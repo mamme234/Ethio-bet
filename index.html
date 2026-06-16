@@ -20,9 +20,8 @@
       width: 100%;
       background: rgba(19, 26, 34, 0.85);
       backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       border-radius: 32px;
-      padding: 24px 20px 20px;
+      padding: 20px;
       border: 1px solid rgba(255, 255, 255, 0.06);
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
       position: relative;
@@ -38,44 +37,58 @@
       background: radial-gradient(circle at 30% 10%, rgba(240, 185, 11, 0.05), transparent 60%);
       pointer-events: none;
     }
+    /* Profile */
     .profile {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding-bottom: 16px;
+      gap: 12px;
+      padding-bottom: 14px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .profile img {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       border: 2px solid #f0b90b;
       object-fit: cover;
       background: #1f2a37;
     }
     .profile .info { flex: 1; }
-    .profile .name { color: #fff; font-size: 18px; font-weight: 700; line-height: 1.2; }
-    .profile .username { color: #889bb5; font-size: 13px; }
+    .profile .name { color: #fff; font-size: 16px; font-weight: 700; }
+    .profile .username { color: #889bb5; font-size: 12px; }
     .profile .balance {
       color: #ffd966;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       background: rgba(240, 185, 11, 0.12);
-      padding: 6px 16px;
+      padding: 4px 14px;
       border-radius: 40px;
       border: 1px solid rgba(240, 185, 11, 0.2);
     }
+    /* Admin Badge */
+    .admin-badge {
+      background: #f0b90b;
+      color: #0b0e14;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 40px;
+      display: inline-block;
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+    /* Multiplier */
     .multiplier {
       text-align: center;
-      font-size: 52px;
+      font-size: 44px;
       font-weight: 800;
       color: #fff;
-      padding: 8px 0 4px;
+      padding: 6px 0 2px;
       text-shadow: 0 0 40px rgba(255, 215, 0, 0.25);
       background: rgba(0,0,0,0.2);
-      border-radius: 20px;
-      margin-bottom: 12px;
+      border-radius: 16px;
+      margin-bottom: 10px;
     }
     canvas {
       width: 100%;
@@ -83,43 +96,43 @@
       background: #0f161e;
       border-radius: 16px;
       display: block;
-      margin: 8px 0 12px;
+      margin: 6px 0 10px;
       border: 1px solid #25303e;
     }
     .status {
       text-align: center;
       font-weight: 600;
-      font-size: 14px;
-      min-height: 24px;
+      font-size: 13px;
+      min-height: 22px;
       color: #6a7e9c;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     .controls input {
       flex: 2;
-      min-width: 100px;
+      min-width: 80px;
       background: #1b2532;
       border: 1px solid #2f3e51;
       border-radius: 40px;
-      padding: 14px 18px;
+      padding: 12px 16px;
       color: #fff;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
       outline: none;
     }
     .controls input:focus { border-color: #f0b90b; }
     .controls button {
       flex: 1;
-      min-width: 90px;
+      min-width: 80px;
       border: none;
       border-radius: 40px;
-      padding: 14px 0;
-      font-size: 16px;
+      padding: 12px 0;
+      font-size: 14px;
       font-weight: 700;
       text-transform: uppercase;
       cursor: pointer;
@@ -130,33 +143,34 @@
       color: #0b0e14;
       box-shadow: 0 4px 16px rgba(240, 185, 11, 0.3);
     }
-    #betBtn:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 6px 24px rgba(240, 185, 11, 0.5); }
+    #betBtn:hover:not(:disabled) { transform: scale(1.02); }
     #cashoutBtn {
       background: linear-gradient(135deg, #2a8c5a, #1f6e46);
       color: #fff;
       box-shadow: 0 4px 16px rgba(42, 140, 90, 0.3);
     }
-    #cashoutBtn:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 6px 24px rgba(42, 140, 90, 0.5); }
+    #cashoutBtn:hover:not(:disabled) { transform: scale(1.02); }
     button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    /* Deposit */
     .deposit-section {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin: 12px 0 8px;
-      padding: 12px;
+      gap: 8px;
+      margin: 10px 0 6px;
+      padding: 10px 12px;
       background: rgba(255,255,255,0.03);
-      border-radius: 16px;
+      border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.05);
     }
     .deposit-section input {
       flex: 1;
-      min-width: 80px;
+      min-width: 70px;
       background: #0f161e;
       border: 1px solid #2f3e51;
       border-radius: 40px;
-      padding: 10px 14px;
+      padding: 8px 12px;
       color: #fff;
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
     }
     .deposit-section input:focus { border-color: #f0b90b; }
@@ -164,45 +178,115 @@
       background: linear-gradient(135deg, #2a8c5a, #1f6e46);
       border: none;
       border-radius: 40px;
-      padding: 10px 24px;
+      padding: 8px 18px;
       color: #fff;
       font-weight: 700;
+      font-size: 13px;
       cursor: pointer;
       transition: 0.2s;
       box-shadow: 0 2px 12px rgba(42, 140, 90, 0.2);
     }
     .deposit-section button:hover { transform: scale(1.02); }
-    #depositStatus { color: #889bb5; font-size: 13px; width: 100%; margin-top: 6px; text-align: center; }
+    #depositStatus { color: #889bb5; font-size: 12px; width: 100%; margin-top: 4px; text-align: center; }
+    /* History */
     .history {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 6px;
-      margin-top: 14px;
-      padding-top: 14px;
+      gap: 5px;
+      margin-top: 12px;
+      padding-top: 12px;
       border-top: 1px solid rgba(255,255,255,0.05);
-      min-height: 34px;
+      min-height: 30px;
     }
-    .history-label { color: #6a7e9c; font-size: 12px; font-weight: 600; margin-right: 4px; }
+    .history-label { color: #6a7e9c; font-size: 11px; font-weight: 600; margin-right: 4px; }
     .badge {
       background: #1f2a37;
       color: #b0c8e5;
-      padding: 4px 14px;
+      padding: 3px 12px;
       border-radius: 40px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       border: 1px solid rgba(255,255,255,0.04);
     }
-    .badge.high { background: #1f3a2f; color: #6fcf97; border-color: rgba(111, 207, 151, 0.2); }
-    .badge.low { background: #3a1f1f; color: #f28b82; border-color: rgba(242, 139, 130, 0.2); }
+    .badge.high { background: #1f3a2f; color: #6fcf97; }
+    .badge.low { background: #3a1f1f; color: #f28b82; }
     .footer {
       color: #4a5e7a;
-      font-size: 11px;
+      font-size: 10px;
       text-align: center;
-      margin-top: 14px;
-      padding-top: 14px;
+      margin-top: 12px;
+      padding-top: 12px;
       border-top: 1px solid rgba(255,255,255,0.04);
     }
+    /* Admin Panel */
+    .admin-panel {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 2px solid rgba(240, 185, 11, 0.2);
+      display: none;
+    }
+    .admin-panel.active { display: block; }
+    .admin-panel h2 {
+      color: #f0b90b;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .admin-panel h2 span {
+      background: #f0b90b;
+      color: #0b0e14;
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 40px;
+    }
+    .deposit-card {
+      background: #1a1f2b;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      border: 1px solid #2a3546;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 16px; }
+    .deposit-card .info .user { color: #889bb5; font-size: 12px; }
+    .deposit-card .info .time { color: #6a7e9c; font-size: 10px; }
+    .deposit-card .actions { display: flex; gap: 6px; }
+    .deposit-card .actions button {
+      padding: 6px 16px;
+      border: none;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-approve { background: #2a8c5a; color: #fff; }
+    .btn-approve:hover { background: #36b06e; }
+    .btn-reject { background: #8c2a2a; color: #fff; }
+    .btn-reject:hover { background: #b03636; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .empty-deposits { color: #6a7e9c; text-align: center; padding: 16px; font-size: 13px; }
+    .merchant-info {
+      background: rgba(240, 185, 11, 0.06);
+      border: 1px solid rgba(240, 185, 11, 0.1);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #889bb5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .merchant-info strong { color: #ffd966; }
   </style>
 </head>
 <body>
@@ -214,8 +298,15 @@
     <div class="info">
       <div class="name" id="userName">Loading...</div>
       <div class="username" id="userTag">@username</div>
+      <div id="adminBadgeContainer"></div>
     </div>
     <div class="balance" id="balanceDisplay">0</div>
+  </div>
+
+  <!-- Merchant Info -->
+  <div class="merchant-info">
+    <span>🏦 Send Telebirr to:</span>
+    <strong id="merchantPhone">0912345678</strong>
   </div>
 
   <!-- Multiplier -->
@@ -236,7 +327,7 @@
   <!-- Deposit -->
   <div class="deposit-section">
     <input type="number" id="depositAmount" placeholder="Amount (ETB)" value="50" min="1">
-    <button id="depositBtn">💳 Deposit</button>
+    <button id="depositBtn">💳 Request Deposit</button>
     <div id="depositStatus"></div>
   </div>
 
@@ -245,7 +336,16 @@
     <span class="history-label">📊 History:</span>
     <div id="historyContainer"></div>
   </div>
-  <div class="footer">⚡ Powered by Telebirr · @Ethiobet1_bot</div>
+
+  <!-- ADMIN PANEL (hidden by default) -->
+  <div class="admin-panel" id="adminPanel">
+    <h2>🔑 Admin Panel <span id="pendingCount">0 pending</span></h2>
+    <div id="adminDepositList">
+      <div class="empty-deposits">No pending deposits</div>
+    </div>
+  </div>
+
+  <div class="footer">⚡ @Ethiobet1_bot · Telebirr Deposits</div>
 </div>
 
 <script>
@@ -260,38 +360,17 @@
   const username = user?.username || '';
   const photoUrl = user?.photo_url || '';
 
-  document.getElementById('userName').textContent = firstName + (lastName ? ' ' + lastName : '');
-  document.getElementById('userTag').textContent = username ? '@' + username : 'User';
-  if (photoUrl) {
-    document.getElementById('avatar').src = photoUrl;
-  } else {
-    // Fallback avatar with initials
-    const initial = firstName.charAt(0).toUpperCase();
-    const c = document.createElement('canvas');
-    c.width = 100; c.height = 100;
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = '#f0b90b';
-    ctx.arc(50, 50, 50, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#0b0e14';
-    ctx.font = 'bold 44px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(initial, 50, 52);
-    document.getElementById('avatar').src = c.toDataURL();
-  }
+  // ---------- CONFIG ----------
+  const MERCHANT_PHONE = '0912345678';
+  const ADMIN_IDS = [123456789]; // Replace with your Telegram ID
 
-  // ---------- WEBSOCKET ----------
-  const ws = new WebSocket(`wss://${window.location.host}/?userId=${userId}`);
-  // For local dev: use `ws://localhost:8080/?userId=${userId}`
+  const isAdmin = ADMIN_IDS.includes(parseInt(userId));
 
-  let balance = 0;
-  let multiplier = 1.00;
-  let gameStatus = 'waiting';
-  let hasBet = false;
-  const history = [];
-
-  const balanceSpan = document.getElementById('balanceDisplay');
+  // ---------- DOM REFS ----------
+  const avatar = document.getElementById('avatar');
+  const userName = document.getElementById('userName');
+  const userTag = document.getElementById('userTag');
+  const balanceDisplay = document.getElementById('balanceDisplay');
   const multiplierDisplay = document.getElementById('multiplierDisplay');
   const statusMsg = document.getElementById('statusMsg');
   const betInput = document.getElementById('betInput');
@@ -301,14 +380,55 @@
   const depositAmount = document.getElementById('depositAmount');
   const depositBtn = document.getElementById('depositBtn');
   const depositStatus = document.getElementById('depositStatus');
+  const merchantPhone = document.getElementById('merchantPhone');
+  const adminPanel = document.getElementById('adminPanel');
+  const adminDepositList = document.getElementById('adminDepositList');
+  const pendingCount = document.getElementById('pendingCount');
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
+  // ---------- PROFILE ----------
+  userName.textContent = firstName + (lastName ? ' ' + lastName : '');
+  userTag.textContent = username ? '@' + username : 'User';
+  merchantPhone.textContent = MERCHANT_PHONE;
+
+  if (photoUrl) {
+    avatar.src = photoUrl;
+  } else {
+    const initial = firstName.charAt(0).toUpperCase();
+    const c = document.createElement('canvas');
+    c.width = 100; c.height = 100;
+    const cx = c.getContext('2d');
+    cx.fillStyle = '#f0b90b';
+    cx.arc(50, 50, 50, 0, Math.PI * 2);
+    cx.fill();
+    cx.fillStyle = '#0b0e14';
+    cx.font = 'bold 44px sans-serif';
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+    cx.fillText(initial, 50, 52);
+    avatar.src = c.toDataURL();
+  }
+
+  // Show admin badge if admin
+  if (isAdmin) {
+    document.getElementById('adminBadgeContainer').innerHTML = 
+      '<span class="admin-badge">🔑 Admin</span>';
+    adminPanel.classList.add('active');
+  }
+
+  // ---------- WEBSOCKET ----------
+  const ws = new WebSocket(`wss://${window.location.host}/?userId=${userId}`);
+  let balance = 0;
+  let multiplier = 1.00;
+  let gameStatus = 'waiting';
+  let hasBet = false;
+  const history = [];
+
+  // ---------- CANVAS DRAW ----------
   function drawCanvas(currentMultiplier, crashed, crashValue) {
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-
-    // Grid
     ctx.strokeStyle = '#1e2a38';
     ctx.lineWidth = 0.8;
     for (let i = 0; i < 10; i++) {
@@ -321,22 +441,18 @@
       ctx.font = '10px monospace';
       ctx.fillText((i * 5).toString() + 'x', 6, y + 4);
     }
-
     const maxX = w - 30;
     const baseY = h - 20;
     const scaleX = maxX / 8;
     const scaleY = (h - 40) / 12;
-
     ctx.beginPath();
     ctx.strokeStyle = '#f0b90b';
     ctx.lineWidth = 4.5;
     ctx.shadowColor = '#f0b90b';
     ctx.shadowBlur = 15;
-
     const points = 60;
     let displayMultiplier = currentMultiplier;
     if (crashed) displayMultiplier = crashValue || 1.00;
-
     for (let i = 0; i <= points; i++) {
       const t = (i / points) * 8;
       let m = 1.00 + t * 1.2;
@@ -355,8 +471,6 @@
     }
     ctx.stroke();
     ctx.shadowBlur = 0;
-
-    // Plane
     const currentT = (displayMultiplier - 1) / 1.2;
     const planeX = 40 + Math.min(currentT, 8) * scaleX;
     const planeY = baseY - (displayMultiplier - 1) * scaleY;
@@ -370,7 +484,6 @@
     ctx.closePath();
     ctx.fill();
     ctx.shadowBlur = 0;
-
     if (crashed) {
       ctx.fillStyle = '#ff6b6b';
       ctx.font = 'bold 36px sans-serif';
@@ -383,7 +496,10 @@
 
   // ---------- WEBSOCKET EVENTS ----------
   ws.onopen = () => { statusMsg.textContent = '✅ Connected!'; };
-  ws.onclose = () => { statusMsg.textContent = '❌ Disconnected. Reconnecting...'; setTimeout(() => location.reload(), 3000); };
+  ws.onclose = () => { 
+    statusMsg.textContent = '❌ Disconnected. Reconnecting...'; 
+    setTimeout(() => location.reload(), 3000); 
+  };
   ws.onerror = () => { statusMsg.textContent = '⚠️ Connection error'; };
 
   ws.onmessage = (e) => {
@@ -447,8 +563,9 @@
   };
 
   function updateUI() {
-    balanceSpan.textContent = balance.toFixed(0);
+    balanceDisplay.textContent = balance.toFixed(0);
   }
+
   function renderHistory() {
     historyContainer.innerHTML = '';
     history.forEach(v => {
@@ -459,7 +576,7 @@
     });
   }
 
-  // ---------- BUTTON HANDLERS ----------
+  // ---------- BET & CASHOUT ----------
   betBtn.onclick = () => {
     const amount = parseFloat(betInput.value);
     if (!amount || amount <= 0) return alert('Enter valid bet');
@@ -474,36 +591,108 @@
     }
   };
 
-  depositBtn.onclick = async () => {
+  // ---------- DEPOSIT (Mini App) ----------
+  depositBtn.onclick = () => {
     const amount = parseFloat(depositAmount.value);
     if (!amount || amount < 1) {
       depositStatus.textContent = '⚠️ Enter valid amount';
       return;
     }
-    depositStatus.textContent = '⏳ Processing...';
+    depositStatus.textContent = '📸 Send screenshot to bot...';
     depositBtn.disabled = true;
-    try {
-      const resp = await fetch('/api/deposit', {
+    
+    // Open Telegram bot chat with instructions
+    tg.openTelegramLink(`https://t.me/@Ethiobet1_bot`);
+    
+    setTimeout(() => {
+      depositStatus.textContent = '📤 After payment, send screenshot to bot';
+      depositBtn.disabled = false;
+    }, 3000);
+  };
+
+  // ---------- ADMIN PANEL ----------
+  if (isAdmin) {
+    function loadPendingDeposits() {
+      fetch(`/api/pending?adminId=${userId}`)
+        .then(res => {
+          if (res.status === 403) {
+            adminDepositList.innerHTML = '<div class="empty-deposits">⛔ Unauthorized</div>';
+            return null;
+          }
+          return res.json();
+        })
+        .then(deposits => {
+          if (!deposits) return;
+          pendingCount.textContent = deposits.length + ' pending';
+          
+          if (deposits.length === 0) {
+            adminDepositList.innerHTML = '<div class="empty-deposits">✅ No pending deposits</div>';
+            return;
+          }
+          
+          adminDepositList.innerHTML = deposits.map(d => `
+            <div class="deposit-card" id="dep-${d.id}">
+              <div class="info">
+                <div class="amount">💰 ${d.amount} ETB</div>
+                <div class="user">👤 ${d.telegramId}</div>
+                <div class="time">🆔 ${d.id}</div>
+              </div>
+              <div class="actions">
+                <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
+                <button class="btn-reject" onclick="verifyDeposit('${d.id}', 'reject')">❌ Reject</button>
+              </div>
+            </div>
+          `).join('');
+        })
+        .catch(err => {
+          adminDepositList.innerHTML = '<div class="empty-deposits">⚠️ Error loading</div>';
+        });
+    }
+
+    window.verifyDeposit = function(depositId, action) {
+      if (!confirm(`Are you sure you want to ${action} this deposit?`)) return;
+      
+      const card = document.getElementById(`dep-${depositId}`);
+      const buttons = card.querySelectorAll('button');
+      buttons.forEach(b => b.disabled = true);
+      
+      fetch('/api/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegramId: userId, amount })
+        body: JSON.stringify({ adminId: userId, depositId, action })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          card.style.opacity = '0.3';
+          card.style.background = action === 'approve' ? '#1f3a2f' : '#3a1f1f';
+          setTimeout(loadPendingDeposits, 1000);
+        }
+      })
+      .catch(err => {
+        alert('Error: ' + err.message);
+        buttons.forEach(b => b.disabled = false);
       });
-      const data = await resp.json();
-      if (data.success) {
-        depositStatus.textContent = '✅ Redirecting to Telebirr...';
-        window.location.href = data.paymentUrl;
-      } else {
-        depositStatus.textContent = '❌ ' + data.error;
-        depositBtn.disabled = false;
-      }
-    } catch (err) {
-      depositStatus.textContent = '❌ Network error';
-      depositBtn.disabled = false;
+    };
+
+    loadPendingDeposits();
+    setInterval(loadPendingDeposits, 10000);
+  }
+
+  // ---------- KEYBOARD SHORTCUTS ----------
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !betBtn.disabled) {
+      e.preventDefault();
+      betBtn.click();
     }
-  };
+    if ((e.key === ' ' || e.key === 'Space') && !cashoutBtn.disabled) {
+      e.preventDefault();
+      cashoutBtn.click();
+    }
+  });
 
   // ---------- INIT ----------
   drawCanvas(1.00, false, 0);
 </script>
 </body>
-  </html>
+    </html>
