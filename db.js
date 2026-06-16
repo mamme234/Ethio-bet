@@ -1,4 +1,5 @@
 {
   "users": {},
-  "pending": {}
+  "pendingDeposits": [],
+  "completedDeposits": []
 }
