@@ -258,6 +258,16 @@
       text-align: center;
     }
     .deposit-info-box strong { color: #ffd966; display: block; font-size: 18px; margin-bottom: 4px; }
+    .auto-verify-badge {
+      display: inline-block;
+      background: #6fcf97;
+      color: #0b0e14;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 40px;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -282,8 +292,9 @@
 
   <!-- Deposit Info -->
   <div class="deposit-info-box">
-    <strong>📸 Deposit Instructions</strong>
-    Send money to <strong>0934600018</strong> via Telebirr, then send screenshot to <strong>@Ethiobet1_bot</strong>
+    <strong>🤖 Auto-Verification Active</strong>
+    Send money to <strong>0934600018</strong> via Telebirr, then send screenshot to bot<br>
+    <span style="font-size:11px;color:#6fcf97;">✅ Instant credit when you send the screenshot!</span>
   </div>
 
   <!-- Multiplier -->
@@ -315,24 +326,21 @@
     </div>
   </div>
 
-  <div class="footer">⚡ @Ethiobet1_bot · Telebirr Deposits</div>
+  <div class="footer">⚡ @Ethiobet1_bot · Auto-Verify · Telebirr</div>
 </div>
 
 <script>
   // ---------- CONFIG ----------
-  // AUTOMATICALLY DETECTS ENVIRONMENT
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   
-  // ⚠️ UPDATE THIS: Replace with your actual Render backend URL
   const BACKEND_URL = isLocal 
     ? 'http://localhost:8080' 
     : 'https://ethio-bet.onrender.com';
 
   const MERCHANT_PHONE = '0934600018';
-  const ADMIN_IDS = [7154361039]; // Your admin ID
+  const ADMIN_IDS = [7154361039];
 
   console.log('🔗 Backend URL:', BACKEND_URL);
-  console.log('👑 Admin IDs:', ADMIN_IDS);
 
   // ---------- TELEGRAM WEBAPP ----------
   const tg = window.Telegram.WebApp;
@@ -388,7 +396,6 @@
     avatar.src = c.toDataURL();
   }
 
-  // Show admin badge if admin
   if (isAdmin) {
     document.getElementById('adminBadgeContainer').innerHTML = 
       '<span class="admin-badge">🔑 Admin</span>';
@@ -488,9 +495,7 @@
     statusMsg.className = 'status status-error';
     betBtn.disabled = true;
     cashoutBtn.disabled = true;
-    setTimeout(() => {
-      window.location.reload();
-    }, 5000);
+    setTimeout(() => window.location.reload(), 5000);
   };
   
   ws.onerror = () => {
