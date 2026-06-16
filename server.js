@@ -3,6 +3,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const TelegramBot = require('node-telegram-bot-api');
+const cors = require('cors');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -13,6 +14,21 @@ const DB_PATH = path.join(__dirname, 'db.json');
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const MERCHANT_PHONE = process.env.MERCHANT_PHONE;
 const ADMIN_IDS = (process.env.ADMIN_IDS || '').split(',').map(id => parseInt(id.trim()));
+const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+// ---------- EXPRESS + CORS ----------
+const app = express();
+app.use(cors({
+  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080'],
+  credentials: true
+}));
+app.use(express.json());
+
+// Serve index.html from root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // ---------- DATABASE ----------
 function loadDB() {
@@ -48,10 +64,146 @@ function isAdmin(chatId) {
 // ---------- TELEGRAM BOT ----------
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
-// ---------- EXPRESS ----------
-const app = express();
-app.use(express.json());
-app.use(express.static(path.join(__dirname, './')));
+// ---------- BOT COMMANDS ----------
+
+// /start - Welcome message with inline buttons
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  const user = getUser(chatId);
+  const isAdminUser = isAdmin(chatId);
+  
+  const welcomeMessage = 
+    `✈️ *Welcome to Ethiobet!*\n\n` +
+    `💰 *Balance:* ${user.balance.toFixed(2)} ETB\n` +
+    `🏦 *Merchant:* ${MERCHANT_PHONE}\n\n` +
+    `📋 *What you can do:*\n` +
+    `• Play the Aviator crash game\n` +
+    `• Deposit via Telebirr\n` +
+    `• Withdraw your winnings\n\n` +
+    `🔹 *How to deposit:*\n` +
+    `1. Click the "Deposit" button below\n` +
+    `2. Send the amount to ${MERCHANT_PHONE}\n` +
+    `3. Send the screenshot here\n` +
+    `4. Admin will verify and credit you\n\n` +
+    `🎮 Click "Play Game" to start playing!`;
+
+  const options = {
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '🎮 Play Game', web_app: { url: FRONTEND_URL } },
+          { text: '💰 Deposit', callback_data: 'deposit' }
+        ],
+        [
+          { text: '📊 Balance', callback_data: 'balance' },
+          { text: '📜 History', callback_data: 'history' }
+        ],
+        [
+          { text: '❓ Help', callback_data: 'help' }
+        ]
+      ]
+    }
+  };
+
+  if (isAdminUser) {
+    options.reply_markup.inline_keyboard.push([
+      { text: '🔑 Admin Panel', web_app: { url: FRONTEND_URL } }
+    ]);
+  }
+
+  bot.sendMessage(chatId, welcomeMessage, options);
+});
+
+// Handle callback queries (button clicks)
+bot.on('callback_query', (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
+  
+  bot.answerCallbackQuery(query.id);
+  
+  switch(data) {
+    case 'deposit':
+      bot.sendMessage(chatId,
+        `💳 *Deposit Instructions*\n\n` +
+        `1. Send the amount to: *${MERCHANT_PHONE}*\n` +
+        `2. Take a screenshot of the confirmation\n` +
+        `3. Send the screenshot here\n` +
+        `4. Wait for admin verification\n\n` +
+        `⚠️ *Important:* Include your username in the payment reference.`
+      );
+      break;
+      
+    case 'balance':
+      const user = getUser(chatId);
+      bot.sendMessage(chatId, 
+        `💰 *Your Balance:* ${user.balance.toFixed(2)} ETB`
+      );
+      break;
+      
+    case 'history':
+      const deposits = db.completedDeposits.filter(d => d.telegramId === chatId);
+      if (deposits.length === 0) {
+        bot.sendMessage(chatId, '📭 No deposit history.');
+      } else {
+        let text = '📊 *Deposit History*\n\n';
+        deposits.slice(-10).reverse().forEach(d => {
+          const status = d.status === 'approved' ? '✅' : '❌';
+          text += `${status} ${d.amount} ETB - ${new Date(d.createdAt).toLocaleDateString()}\n`;
+        });
+        bot.sendMessage(chatId, text);
+      }
+      break;
+      
+    case 'help':
+      bot.sendMessage(chatId,
+        `✈️ *Ethiobet Help*\n\n` +
+        `📋 *Commands:*\n` +
+        `/start - Main menu\n` +
+        `/balance - Check balance\n` +
+        `/deposit <amount> - Request deposit\n` +
+        `/bet <amount> - Place a bet\n` +
+        `/cashout - Cash out during flight\n` +
+        `/history - View deposit history\n` +
+        `/help - Show this message\n\n` +
+        `🏦 *Merchant:* ${MERCHANT_PHONE}`
+      );
+      break;
+  }
+});
+
+// Handle photos (screenshots)
+bot.on('photo', (msg) => {
+  const chatId = msg.chat.id;
+  
+  const pending = db.pendingDeposits.filter(d => d.telegramId === chatId && d.status === 'pending');
+  if (pending.length === 0) {
+    return bot.sendMessage(chatId, 
+      '📸 No pending deposit found. Use /deposit <amount> first.'
+    );
+  }
+  
+  const photo = msg.photo[msg.photo.length - 1];
+  const fileId = photo.file_id;
+  
+  const adminMessage = 
+    `📸 *New Deposit Screenshot*\n\n` +
+    `👤 User: ${msg.from.first_name} (${chatId})\n` +
+    `💰 Amount: ${pending[0].amount} ETB\n` +
+    `🆔 Ref: ${pending[0].id}`;
+
+  ADMIN_IDS.forEach(adminId => {
+    bot.sendPhoto(adminId, fileId, {
+      caption: adminMessage,
+      parse_mode: 'Markdown'
+    });
+  });
+  
+  bot.sendMessage(chatId, 
+    `✅ Screenshot received!\n` +
+    `⏳ Admin will verify shortly.`
+  );
+});
 
 // ---------- API ENDPOINTS ----------
 
@@ -130,145 +282,6 @@ app.post('/api/verify', (req, res) => {
   } else {
     res.status(400).json({ error: 'Invalid action' });
   }
-});
-
-// ---------- BOT COMMANDS ----------
-
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  const user = getUser(chatId);
-  const isAdminUser = isAdmin(chatId);
-  
-  let message = 
-    `✈️ *Welcome to Ethiobet!*\n\n` +
-    `💰 Balance: ${user.balance.toFixed(2)} ETB\n` +
-    `🏦 Merchant: ${MERCHANT_PHONE}\n\n` +
-    `📋 *Commands:*\n` +
-    `/balance - Check balance\n` +
-    `/deposit <amount> - Request deposit\n` +
-    `/bet <amount> - Place bet\n` +
-    `/cashout - Cash out during flight\n` +
-    `/history - View history\n` +
-    `/help - Show this message\n\n` +
-    `📸 *To deposit:*\n` +
-    `1. Send ${MERCHANT_PHONE} via Telebirr\n` +
-    `2. Send the screenshot here\n` +
-    `3. Wait for admin verification`;
-  
-  if (isAdminUser) {
-    message += `\n\n🔑 *You are an admin!* Open the Mini App to manage deposits.`;
-  }
-  
-  bot.sendMessage(chatId, message);
-});
-
-bot.onText(/\/balance/, (msg) => {
-  const chatId = msg.chat.id;
-  const user = getUser(chatId);
-  bot.sendMessage(chatId, `💰 *Balance:* ${user.balance.toFixed(2)} ETB`);
-});
-
-bot.onText(/\/deposit (.+)/, (msg, match) => {
-  const chatId = msg.chat.id;
-  const amount = parseFloat(match[1]);
-  
-  if (isNaN(amount) || amount < 1) {
-    return bot.sendMessage(chatId, '⚠️ Enter a valid amount (min 1 ETB).');
-  }
-  
-  const depositId = `DEP_${Date.now()}_${chatId}`;
-  
-  db.pendingDeposits.push({
-    id: depositId,
-    telegramId: chatId,
-    amount: amount,
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  });
-  saveDB();
-  
-  bot.sendMessage(chatId,
-    `💳 *Deposit Request Created*\n\n` +
-    `💰 Amount: ${amount} ETB\n` +
-    `🏦 Send to: ${MERCHANT_PHONE}\n` +
-    `🆔 Reference: ${depositId}\n\n` +
-    `📸 *Instructions:*\n` +
-    `1. Open Telebirr\n` +
-    `2. Send ${amount} ETB to ${MERCHANT_PHONE}\n` +
-    `3. Take a screenshot of the confirmation\n` +
-    `4. Send the screenshot here\n\n` +
-    `⏳ Your deposit will be verified manually.`
-  );
-});
-
-bot.on('photo', (msg) => {
-  const chatId = msg.chat.id;
-  
-  const pending = db.pendingDeposits.filter(d => d.telegramId === chatId && d.status === 'pending');
-  if (pending.length === 0) {
-    return bot.sendMessage(chatId, 
-      '📸 No pending deposit found. Use /deposit <amount> first.'
-    );
-  }
-  
-  const photo = msg.photo[msg.photo.length - 1];
-  const fileId = photo.file_id;
-  
-  const adminMessage = 
-    `📸 *New Deposit Screenshot*\n\n` +
-    `👤 User: ${msg.from.first_name} (${chatId})\n` +
-    `💰 Amount: ${pending[0].amount} ETB\n` +
-    `🆔 Ref: ${pending[0].id}`;
-
-  ADMIN_IDS.forEach(adminId => {
-    bot.sendPhoto(adminId, fileId, {
-      caption: adminMessage,
-      parse_mode: 'Markdown'
-    });
-  });
-  
-  bot.sendMessage(chatId, 
-    `✅ Screenshot received!\n` +
-    `⏳ Admin will verify shortly.`
-  );
-});
-
-bot.onText(/\/history/, (msg) => {
-  const chatId = msg.chat.id;
-  const deposits = db.completedDeposits.filter(d => d.telegramId === chatId);
-  
-  if (deposits.length === 0) {
-    return bot.sendMessage(chatId, '📭 No deposit history.');
-  }
-  
-  let text = '📊 *Deposit History*\n\n';
-  deposits.slice(-10).reverse().forEach(d => {
-    const status = d.status === 'approved' ? '✅' : '❌';
-    text += `${status} ${d.amount} ETB - ${new Date(d.createdAt).toLocaleDateString()}\n`;
-  });
-  
-  bot.sendMessage(chatId, text);
-});
-
-bot.onText(/\/help/, (msg) => {
-  const chatId = msg.chat.id;
-  const isAdminUser = isAdmin(chatId);
-  
-  let message = 
-    `✈️ *Ethiobet Commands*\n\n` +
-    `/balance - Check balance\n` +
-    `/deposit <amount> - Request deposit\n` +
-    `/bet <amount> - Place a bet\n` +
-    `/cashout - Cash out during flight\n` +
-    `/history - View deposit history\n` +
-    `/help - Show this message\n\n` +
-    `🏦 *Send Telebirr to:* ${MERCHANT_PHONE}`;
-  
-  if (isAdminUser) {
-    message += `\n\n🔑 *Admin:* Open the Mini App to manage deposits.`;
-  }
-  
-  bot.sendMessage(chatId, message);
 });
 
 // ---------- WEBSOCKET GAME ENGINE ----------
@@ -396,11 +409,13 @@ wss.on('connection', (ws, req) => {
   });
 });
 
+// ---------- START THE GAME ----------
 setTimeout(startNewRound, 1000);
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on ${BACKEND_URL}`);
   console.log(`🤖 Bot is active`);
   console.log(`🏦 Merchant: ${MERCHANT_PHONE}`);
   console.log(`👑 Admins: ${ADMIN_IDS.join(', ')}`);
+  console.log(`🔗 Frontend URL: ${FRONTEND_URL}`);
 });
