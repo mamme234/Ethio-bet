@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>✈️ Aviator Live</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+    body {
+      background: #0b0e14;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .container {
+      background: #131a22;
+      border-radius: 32px;
+      padding: 24px;
+      max-width: 600px;
+      width: 100%;
+      border: 1px solid #2a3546;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1f2a37;
+      padding-bottom: 12px;
+    }
+    .balance {
+      color: #a0b3cc;
+      font-weight: 600;
+    }
+    .balance span {
+      color: #ffd966;
+      font-size: 24px;
+      margin-left: 6px;
+    }
+    .user-id {
+      background: #1f2a37;
+      color: #6a7e9c;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .multiplier {
+      text-align: center;
+      font-size: 48px;
+      font-weight: 800;
+      color: #fff;
+      padding: 12px 0 4px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 30px rgba(255,215,0,0.2);
+    }
+    canvas {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #0f161e;
+      border-radius: 16px;
+      display: block;
+      margin: 8px 0 12px;
+      border: 1px solid #25303e;
+      cursor: pointer;
+    }
+    .status {
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      min-height: 24px;
+      color: #6a7e9c;
+      margin-bottom: 12px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .controls input {
+      flex: 2;
+      min-width: 100px;
+      background: #1b2532;
+      border: 1px solid #2f3e51;
+      border-radius: 40px;
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      outline: none;
+    }
+    .controls input:focus { border-color: #f0b90b; }
+    .controls button {
+      flex: 1;
+      min-width: 90px;
+      border: none;
+      border-radius: 40px;
+      padding: 14px 0;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    #betBtn {
+      background: #f0b90b;
+      color: #0b0e14;
+    }
+    #betBtn:hover:not(:disabled) { background: #ffce3c; transform: scale(1.02); }
+    #cashoutBtn {
+      background: #2a8c5a;
+      color: #fff;
+    }
+    #cashoutBtn:hover:not(:disabled) { background: #36b06e; transform: scale(1.02); }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .history {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #1f2a37;
+      min-height: 34px;
+    }
+    .history-label {
+      color: #6a7e9c;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .badge {
+      background: #1f2a37;
+      color: #b0c8e5;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .badge.high { background: #1f3a2f; color: #6fcf97; }
+    .badge.low { background: #3a1f1f; color: #f28b82; }
+    .footer {
+      color: #4a5e7a;
+      font-size: 11px;
+      text-align: center;
+      margin-top: 14px;
+      border-top: 1px solid #1a2330;
+      padding-top: 14px;
+    }
+    #statusMsg {
+      color: #889bb5;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="balance">💰 Balance: <span id="balanceDisplay">1000.00</span></div>
+    <div class="user-id" id="userIdDisplay">User: ...</div>
+  </div>
+
+  <div class="multiplier" id="multiplierDisplay">1.00x</div>
+  <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+  <div class="status" id="statusMsg">⏳ Connecting to server...</div>
+
+  <div class="controls">
+    <input type="number" id="betInput" value="10.00" step="0.50" min="0.50">
+    <button id="betBtn">Bet</button>
+    <button id="cashoutBtn" disabled>Cash Out</button>
+  </div>
+
+  <div class="history">
+    <span class="history-label">📊 History:</span>
+    <div id="historyContainer"></div>
+  </div>
+  <div class="footer">⚡ Live WebSocket · Persistent Balance</div>
+</div>
+
+<script>
+  // ---------- CONFIG ----------
+  const WS_URL = `ws://${window.location.host}`;
+
+  // ---------- DOM REFS ----------
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const balanceSpan = document.getElementById('balanceDisplay');
+  const multiplierDisplay = document.getElementById('multiplierDisplay');
+  const betInput = document.getElementById('betInput');
+  const betBtn = document.getElementById('betBtn');
+  const cashoutBtn = document.getElementById('cashoutBtn');
+  const statusMsg = document.getElementById('statusMsg');
+  const historyContainer = document.getElementById('historyContainer');
+  const userIdDisplay = document.getElementById('userIdDisplay');
+
+  // ---------- STATE ----------
+  let balance = 0;
+  let userId = '';
+  let multiplier = 1.00;
+  let gameStatus = 'waiting'; // 'waiting', 'flying', 'crashed'
+  let hasBet = false;
+  let history = [];
+  let ws = null;
+  let animationFrame = null;
+
+  // ---------- CANVAS DRAWING ----------
+  function drawCanvas(currentMultiplier, crashed, crashValue) {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid
+    ctx.strokeStyle = '#1e2a38';
+    ctx.lineWidth = 0.8;
+    for (let i = 0; i < 10; i++) {
+      const y = h - (i / 10) * h * 0.85 - 20;
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(w - 20, y);
+      ctx.stroke();
+      ctx.fillStyle = '#3e526a';
+      ctx.font = '10px monospace';
+      ctx.fillText((i * 5).toString() + 'x', 6, y + 4);
+    }
+
+    const maxX = w - 30;
+    const baseY = h - 20;
+    const scaleX = maxX / 8;
+    const scaleY = (h - 40) / 12;
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#f0b90b';
+    ctx.lineWidth = 4.5;
+    ctx.shadowColor = '#f0b90b';
+    ctx.shadowBlur = 15;
+
+    const points = 60;
+    let displayMultiplier = currentMultiplier;
+    if (crashed) displayMultiplier = crashValue || 1.00;
+
+    for (let i = 0; i <= points; i++) {
+      const t = (i / points) * 8;
+      let m = 1.00 + t * 1.2;
+      if (crashed && crashValue) {
+        const crashT = (crashValue - 1) / 1.2;
+        if (t > crashT) m = crashValue;
+        else m = 1 + t * 1.2;
+      } else {
+        if (t * 1.2 > displayMultiplier - 1) m = displayMultiplier;
+        else m = 1 + t * 1.2;
+      }
+      const x = 40 + t * scaleX;
+      const y = baseY - (m - 1) * scaleY;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Plane
+    const currentT = (displayMultiplier - 1) / 1.2;
+    const planeX = 40 + Math.min(currentT, 8) * scaleX;
+    const planeY = baseY - (displayMultiplier - 1) * scaleY;
+    ctx.beginPath();
+    ctx.fillStyle = '#ffd966';
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = '#ffd966';
+    ctx.moveTo(planeX + 20, planeY - 6);
+    ctx.lineTo(planeX + 30, planeY);
+    ctx.lineTo(planeX + 20, planeY + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    if (crashed) {
+      ctx.fillStyle = '#ff6b6b';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.shadowColor = '#ff0000';
+      ctx.shadowBlur = 30;
+      ctx.fillText('💥 CRASHED', w/2 - 130, 90);
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  // ---------- WEBSOCKET ----------
+  function connectWS() {
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => {
+      statusMsg.textContent = '✅ Connected! Place your bet.';
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('Received:', data);
+
+      switch(data.type) {
+        case 'init':
+          userId = data.userId;
+          balance = data.balance;
+          userIdDisplay.textContent = `ID: ${userId.slice(0,8)}`;
+          updateUI();
+          break;
+
+        case 'round_started':
+          gameStatus = 'flying';
+          statusMsg.textContent = '✈️ Flying! Cash out before it crashes!';
+          betBtn.disabled = true;
+          if (!hasBet) betBtn.disabled = false;
+          break;
+
+        case 'multiplier_update':
+          multiplier = data.multiplier;
+          multiplierDisplay.textContent = multiplier.toFixed(2) + 'x';
+          if (gameStatus !== 'crashed') {
+            drawCanvas(multiplier, false, 0);
+          }
+          break;
+
+        case 'game_crashed':
+          gameStatus = 'crashed';
+          multiplier = data.multiplier;
+          multiplierDisplay.textContent = multiplier.toFixed(2) + 'x';
+          drawCanvas(multiplier, true, multiplier);
+          statusMsg.textContent = `💥 Crashed at ${multiplier.toFixed(2)}x!`;
+          betBtn.disabled = false;
+          cashoutBtn.disabled = true;
+          hasBet = false;
+          // Add to history
+          history.unshift(multiplier);
+          if (history.length > 15) history.pop();
+          renderHistory();
+          break;
+
+        case 'bet_placed':
+          hasBet = true;
+          balance = data.balance;
+          betBtn.disabled = true;
+          cashoutBtn.disabled = false;
+          statusMsg.textContent = `⏳ Bet placed! Watch the flight...`;
+          updateUI();
+          break;
+
+        case 'cash_out_success':
+          hasBet = false;
+          balance = data.balance;
+          cashoutBtn.disabled = true;
+          betBtn.disabled = false;
+          statusMsg.textContent = `✅ Cashed out at ${data.multiplier.toFixed(2)}x! Won ${data.winAmount.toFixed(2)}!`;
+          updateUI();
+          // Draw the cashout point
+          drawCanvas(data.multiplier, false, 0);
+          break;
+
+        case 'user_cashed_out':
+          // Social notification (optional)
+          statusMsg.textContent = `👤 User ${data.userId.slice(0,6)} cashed out at ${data.multiplier.toFixed(2)}x!`;
+          break;
+
+        case 'error':
+          statusMsg.textContent = `⚠️ ${data.message}`;
+          if (data.message.includes('balance')) {
+            betBtn.disabled = false;
+          }
+          break;
+
+        default:
+          console.log('Unknown event:', data);
+      }
+    };
+
+    ws.onclose = () => {
+      statusMsg.textContent = '❌ Disconnected. Reconnecting...';
+      setTimeout(connectWS, 2000);
+    };
+
+    ws.onerror = (err) => {
+      console.error('WebSocket error:', err);
+    };
+  }
+
+  // ---------- UI HELPERS ----------
+  function updateUI() {
+    balanceSpan.textContent = balance.toFixed(2);
+  }
+
+  function renderHistory() {
+    historyContainer.innerHTML = '';
+    history.forEach(val => {
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      if (val >= 5.0) badge.classList.add('high');
+      else if (val <= 1.50) badge.classList.add('low');
+      badge.textContent = val.toFixed(2) + 'x';
+      historyContainer.appendChild(badge);
+    });
+  }
+
+  // ---------- BUTTON EVENTS ----------
+  betBtn.addEventListener('click', () => {
+    const amount = parseFloat(betInput.value);
+    if (isNaN(amount) || amount <= 0) {
+      statusMsg.textContent = '⚠️ Enter a valid bet amount.';
+      return;
+    }
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'place_bet', amount: amount }));
+    } else {
+      statusMsg.textContent = '❌ Not connected to server.';
+    }
+  });
+
+  cashoutBtn.addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'cash_out' }));
+    }
+  });
+
+  // ---------- KEYBOARD SHORTCUTS ----------
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !betBtn.disabled) {
+      e.preventDefault();
+      betBtn.click();
+    }
+    if ((e.key === ' ' || e.key === 'Space') && !cashoutBtn.disabled) {
+      e.preventDefault();
+      cashoutBtn.click();
+    }
+  });
+
+  // ---------- INIT ----------
+  // Draw initial state
+  drawCanvas(1.00, false, 0);
+  connectWS();
+
+  // Draw loop for smooth animation when flying
+  function animationLoop() {
+    if (gameStatus === 'flying' && ws) {
+      // The canvas is updated via WebSocket messages.
+      // We just keep the loop alive for future.
+    }
+    requestAnimationFrame(animationLoop);
+  }
+  animationLoop();
+</script>
+</body>
+  </html>
