@@ -12,15 +12,21 @@ const path = require('path');
 const PORT = process.env.PORT || 8080;
 const DB_PATH = path.join(__dirname, 'db.json');
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const MERCHANT_PHONE = process.env.MERCHANT_PHONE;
-const ADMIN_IDS = (process.env.ADMIN_IDS || '').split(',').map(id => parseInt(id.trim()));
+const MERCHANT_PHONE = process.env.MERCHANT_PHONE || '0934600018';
+const ADMIN_IDS = (process.env.ADMIN_IDS || '7154361039').split(',').map(id => parseInt(id.trim()));
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+console.log('🚀 Starting Ethiobet Server...');
+console.log('📱 Merchant Phone:', MERCHANT_PHONE);
+console.log('👑 Admin IDs:', ADMIN_IDS);
+console.log('🔗 Backend URL:', BACKEND_URL);
+console.log('🔗 Frontend URL:', FRONTEND_URL);
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080'],
+  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080', 'https://ethio-bet.vercel.app', 'https://ethio-bet.onrender.com'],
   credentials: true
 }));
 app.use(express.json());
@@ -76,24 +82,25 @@ bot.onText(/\/start/, (msg) => {
     `✈️ *Welcome to Ethiobet!*\n\n` +
     `💰 *Balance:* ${user.balance.toFixed(2)} ETB\n` +
     `🏦 *Merchant:* ${MERCHANT_PHONE}\n\n` +
-    `📋 *What you can do:*\n` +
-    `• Play the Aviator crash game\n` +
-    `• Deposit via Telebirr\n` +
-    `• Withdraw your winnings\n\n` +
-    `🔹 *How to deposit:*\n` +
-    `1. Click the "Deposit" button below\n` +
-    `2. Send the amount to ${MERCHANT_PHONE}\n` +
-    `3. Send the screenshot here\n` +
-    `4. Admin will verify and credit you\n\n` +
-    `🎮 Click "Play Game" to start playing!`;
+    `📋 *How to deposit:*\n` +
+    `1️⃣ Send the amount to *${MERCHANT_PHONE}* via Telebirr\n` +
+    `2️⃣ Take a screenshot of the confirmation\n` +
+    `3️⃣ Send the screenshot here\n` +
+    `4️⃣ Admin will verify and credit your account\n\n` +
+    `🎮 Click "Play Game" to start playing!\n\n` +
+    `📊 *Commands:*\n` +
+    `/balance - Check balance\n` +
+    `/bet <amount> - Place a bet\n` +
+    `/cashout - Cash out during flight\n` +
+    `/history - View deposit history\n` +
+    `/help - Show this message`;
 
   const options = {
     parse_mode: 'Markdown',
     reply_markup: {
       inline_keyboard: [
         [
-          { text: '🎮 Play Game', web_app: { url: FRONTEND_URL } },
-          { text: '💰 Deposit', callback_data: 'deposit' }
+          { text: '🎮 Play Game', web_app: { url: FRONTEND_URL } }
         ],
         [
           { text: '📊 Balance', callback_data: 'balance' },
@@ -123,17 +130,6 @@ bot.on('callback_query', (query) => {
   bot.answerCallbackQuery(query.id);
   
   switch(data) {
-    case 'deposit':
-      bot.sendMessage(chatId,
-        `💳 *Deposit Instructions*\n\n` +
-        `1. Send the amount to: *${MERCHANT_PHONE}*\n` +
-        `2. Take a screenshot of the confirmation\n` +
-        `3. Send the screenshot here\n` +
-        `4. Wait for admin verification\n\n` +
-        `⚠️ *Important:* Include your username in the payment reference.`
-      );
-      break;
-      
     case 'balance':
       const user = getUser(chatId);
       bot.sendMessage(chatId, 
@@ -161,12 +157,16 @@ bot.on('callback_query', (query) => {
         `📋 *Commands:*\n` +
         `/start - Main menu\n` +
         `/balance - Check balance\n` +
-        `/deposit <amount> - Request deposit\n` +
         `/bet <amount> - Place a bet\n` +
         `/cashout - Cash out during flight\n` +
         `/history - View deposit history\n` +
         `/help - Show this message\n\n` +
-        `🏦 *Merchant:* ${MERCHANT_PHONE}`
+        `🏦 *Merchant:* ${MERCHANT_PHONE}\n\n` +
+        `📸 *Deposit Instructions:*\n` +
+        `1. Send money to ${MERCHANT_PHONE}\n` +
+        `2. Screenshot the confirmation\n` +
+        `3. Send the screenshot here\n` +
+        `4. Admin verifies and credits you`
       );
       break;
   }
@@ -176,6 +176,7 @@ bot.on('callback_query', (query) => {
 bot.on('photo', (msg) => {
   const chatId = msg.chat.id;
   
+  // Check if user has a pending deposit
   const pending = db.pendingDeposits.filter(d => d.telegramId === chatId && d.status === 'pending');
   if (pending.length === 0) {
     return bot.sendMessage(chatId, 
