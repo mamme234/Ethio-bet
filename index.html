@@ -104,6 +104,8 @@
       color: #6a7e9c;
       margin-bottom: 10px;
     }
+    .status-connected { color: #6fcf97; }
+    .status-error { color: #f28b82; }
     .controls {
       display: flex;
       flex-wrap: wrap;
@@ -148,42 +150,6 @@
     }
     #cashoutBtn:hover:not(:disabled) { transform: scale(1.02); }
     button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-    .deposit-section {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 10px 0 6px;
-      padding: 10px 12px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-    .deposit-section input {
-      flex: 1;
-      min-width: 70px;
-      background: #0f161e;
-      border: 1px solid #2f3e51;
-      border-radius: 40px;
-      padding: 8px 12px;
-      color: #fff;
-      font-size: 13px;
-      outline: none;
-    }
-    .deposit-section input:focus { border-color: #f0b90b; }
-    .deposit-section button {
-      background: linear-gradient(135deg, #2a8c5a, #1f6e46);
-      border: none;
-      border-radius: 40px;
-      padding: 8px 18px;
-      color: #fff;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 2px 12px rgba(42, 140, 90, 0.2);
-    }
-    .deposit-section button:hover { transform: scale(1.02); }
-    #depositStatus { color: #889bb5; font-size: 12px; width: 100%; margin-top: 4px; text-align: center; }
     .history {
       display: flex;
       flex-wrap: wrap;
@@ -281,6 +247,17 @@
       align-items: center;
     }
     .merchant-info strong { color: #ffd966; }
+    .deposit-info-box {
+      background: rgba(42, 140, 90, 0.08);
+      border: 1px solid rgba(42, 140, 90, 0.15);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin: 8px 0;
+      font-size: 13px;
+      color: #889bb5;
+      text-align: center;
+    }
+    .deposit-info-box strong { color: #ffd966; display: block; font-size: 18px; margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -300,7 +277,13 @@
   <!-- Merchant Info -->
   <div class="merchant-info">
     <span>🏦 Send Telebirr to:</span>
-    <strong id="merchantPhone">0912345678</strong>
+    <strong id="merchantPhone">0934600018</strong>
+  </div>
+
+  <!-- Deposit Info -->
+  <div class="deposit-info-box">
+    <strong>📸 Deposit Instructions</strong>
+    Send money to <strong>0934600018</strong> via Telebirr, then send screenshot to <strong>@Ethiobet1_bot</strong>
   </div>
 
   <!-- Multiplier -->
@@ -314,15 +297,8 @@
   <!-- Controls -->
   <div class="controls">
     <input type="number" id="betInput" value="10" step="1" min="1">
-    <button id="betBtn">🚀 Bet</button>
+    <button id="betBtn" disabled>🚀 Bet</button>
     <button id="cashoutBtn" disabled>💰 Cash Out</button>
-  </div>
-
-  <!-- Deposit -->
-  <div class="deposit-section">
-    <input type="number" id="depositAmount" placeholder="Amount (ETB)" value="50" min="1">
-    <button id="depositBtn">💳 Request Deposit</button>
-    <div id="depositStatus"></div>
   </div>
 
   <!-- History -->
@@ -344,15 +320,19 @@
 
 <script>
   // ---------- CONFIG ----------
+  // AUTOMATICALLY DETECTS ENVIRONMENT
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   
-  // ⚠️ CHANGE THIS: Replace with your actual Render backend URL
+  // ⚠️ UPDATE THIS: Replace with your actual Render backend URL
   const BACKEND_URL = isLocal 
     ? 'http://localhost:8080' 
-    : 'https://your-backend.onrender.com'; // ⚠️ UPDATE THIS
+    : 'https://ethio-bet.onrender.com';
 
-  const MERCHANT_PHONE = '0912345678';
-  const ADMIN_IDS = [123456789]; // ⚠️ Replace with your Telegram ID
+  const MERCHANT_PHONE = '0934600018';
+  const ADMIN_IDS = [7154361039]; // Your admin ID
+
+  console.log('🔗 Backend URL:', BACKEND_URL);
+  console.log('👑 Admin IDs:', ADMIN_IDS);
 
   // ---------- TELEGRAM WEBAPP ----------
   const tg = window.Telegram.WebApp;
@@ -378,9 +358,6 @@
   const betBtn = document.getElementById('betBtn');
   const cashoutBtn = document.getElementById('cashoutBtn');
   const historyContainer = document.getElementById('historyContainer');
-  const depositAmount = document.getElementById('depositAmount');
-  const depositBtn = document.getElementById('depositBtn');
-  const depositStatus = document.getElementById('depositStatus');
   const merchantPhone = document.getElementById('merchantPhone');
   const adminPanel = document.getElementById('adminPanel');
   const adminDepositList = document.getElementById('adminDepositList');
@@ -419,7 +396,8 @@
   }
 
   // ---------- WEBSOCKET ----------
-  const wsUrl = `${BACKEND_URL.replace('http', 'ws')}/?userId=${userId}`;
+  const WS_URL = BACKEND_URL.replace('http', 'ws');
+  const wsUrl = `${WS_URL}/?userId=${userId}`;
   console.log('🔗 Connecting to WebSocket:', wsUrl);
   const ws = new WebSocket(wsUrl);
 
@@ -501,17 +479,22 @@
   // ---------- WEBSOCKET EVENTS ----------
   ws.onopen = () => {
     statusMsg.textContent = '✅ Connected!';
-    statusMsg.className = 'status';
+    statusMsg.className = 'status status-connected';
+    betBtn.disabled = false;
   };
   
   ws.onclose = () => {
     statusMsg.textContent = '❌ Disconnected. Reconnecting...';
     statusMsg.className = 'status status-error';
-    setTimeout(() => location.reload(), 3000);
+    betBtn.disabled = true;
+    cashoutBtn.disabled = true;
+    setTimeout(() => {
+      window.location.reload();
+    }, 5000);
   };
   
   ws.onerror = () => {
-    statusMsg.textContent = '⚠️ Connection error';
+    statusMsg.textContent = '⚠️ Connection error. Retrying...';
     statusMsg.className = 'status status-error';
   };
 
@@ -523,6 +506,7 @@
       case 'init':
         balance = data.balance;
         updateUI();
+        betBtn.disabled = false;
         break;
       case 'round_started':
         gameStatus = 'flying';
@@ -610,25 +594,6 @@
     }
   };
 
-  // ---------- DEPOSIT - Opens Bot ----------
-  depositBtn.onclick = () => {
-    const amount = parseFloat(depositAmount.value);
-    if (!amount || amount < 1) {
-      depositStatus.textContent = '⚠️ Enter valid amount';
-      return;
-    }
-    depositStatus.textContent = '📤 Opening bot for deposit...';
-    depositBtn.disabled = true;
-    
-    // Open Telegram bot with deposit instruction
-    tg.openTelegramLink(`https://t.me/@Ethiobet1_bot?start=deposit_${amount}`);
-    
-    setTimeout(() => {
-      depositStatus.textContent = '💰 Send payment to merchant and screenshot to bot';
-      depositBtn.disabled = false;
-    }, 3000);
-  };
-
   // ---------- ADMIN PANEL ----------
   if (isAdmin) {
     function loadPendingDeposits() {
@@ -666,6 +631,7 @@
         })
         .catch(err => {
           adminDepositList.innerHTML = '<div class="empty-deposits">⚠️ Error loading</div>';
+          console.error(err);
         });
     }
 
