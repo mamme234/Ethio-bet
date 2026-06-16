@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>✈️ Aviator Live</title>
+  <title>✈️ Aviator – Telebirr</title>
   <style>
     * { box-sizing: border-box; margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
     body {
@@ -47,12 +47,46 @@
       font-size: 12px;
       font-weight: 600;
     }
+    .deposit-section {
+      background: #1b2532;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 16px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .deposit-section input {
+      flex: 1;
+      min-width: 80px;
+      background: #0f161e;
+      border: 1px solid #2f3e51;
+      border-radius: 40px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    .deposit-section input:focus { border-color: #f0b90b; }
+    .deposit-section button {
+      background: #2a8c5a;
+      border: none;
+      border-radius: 40px;
+      padding: 10px 20px;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .deposit-section button:hover { background: #36b06e; }
+    #depositStatus { color: #889bb5; font-size: 13px; width: 100%; margin-top: 6px; }
     .multiplier {
       text-align: center;
       font-size: 48px;
       font-weight: 800;
       color: #fff;
-      padding: 12px 0 4px;
+      padding: 8px 0 4px;
       letter-spacing: 1px;
       text-shadow: 0 0 30px rgba(255,215,0,0.2);
     }
@@ -64,7 +98,6 @@
       display: block;
       margin: 8px 0 12px;
       border: 1px solid #25303e;
-      cursor: pointer;
     }
     .status {
       text-align: center;
@@ -153,23 +186,29 @@
       border-top: 1px solid #1a2330;
       padding-top: 14px;
     }
-    #statusMsg {
-      color: #889bb5;
-    }
   </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- Header -->
   <div class="header">
-    <div class="balance">💰 Balance: <span id="balanceDisplay">1000.00</span></div>
+    <div class="balance">💰 Balance: <span id="balanceDisplay">0.00</span></div>
     <div class="user-id" id="userIdDisplay">User: ...</div>
   </div>
 
+  <!-- Deposit Section -->
+  <div class="deposit-section">
+    <input type="number" id="depositAmount" placeholder="Amount (ETB)" value="50" min="1">
+    <input type="text" id="phoneNumber" placeholder="09XXXXXXXX" maxlength="10">
+    <button id="depositBtn">Deposit</button>
+    <div id="depositStatus"></div>
+  </div>
+
+  <!-- Game -->
   <div class="multiplier" id="multiplierDisplay">1.00x</div>
   <canvas id="gameCanvas" width="800" height="450"></canvas>
-
-  <div class="status" id="statusMsg">⏳ Connecting to server...</div>
+  <div class="status" id="statusMsg">⏳ Connecting...</div>
 
   <div class="controls">
     <input type="number" id="betInput" value="10.00" step="0.50" min="0.50">
@@ -181,7 +220,7 @@
     <span class="history-label">📊 History:</span>
     <div id="historyContainer"></div>
   </div>
-  <div class="footer">⚡ Live WebSocket · Persistent Balance</div>
+  <div class="footer">⚡ Live · Telebirr Deposits</div>
 </div>
 
 <script>
@@ -199,16 +238,19 @@
   const statusMsg = document.getElementById('statusMsg');
   const historyContainer = document.getElementById('historyContainer');
   const userIdDisplay = document.getElementById('userIdDisplay');
+  const depositAmount = document.getElementById('depositAmount');
+  const phoneNumber = document.getElementById('phoneNumber');
+  const depositBtn = document.getElementById('depositBtn');
+  const depositStatus = document.getElementById('depositStatus');
 
   // ---------- STATE ----------
   let balance = 0;
   let userId = '';
   let multiplier = 1.00;
-  let gameStatus = 'waiting'; // 'waiting', 'flying', 'crashed'
+  let gameStatus = 'waiting';
   let hasBet = false;
   let history = [];
   let ws = null;
-  let animationFrame = null;
 
   // ---------- CANVAS DRAWING ----------
   function drawCanvas(currentMultiplier, crashed, crashValue) {
@@ -332,7 +374,6 @@
           betBtn.disabled = false;
           cashoutBtn.disabled = true;
           hasBet = false;
-          // Add to history
           history.unshift(multiplier);
           if (history.length > 15) history.pop();
           renderHistory();
@@ -354,20 +395,16 @@
           betBtn.disabled = false;
           statusMsg.textContent = `✅ Cashed out at ${data.multiplier.toFixed(2)}x! Won ${data.winAmount.toFixed(2)}!`;
           updateUI();
-          // Draw the cashout point
           drawCanvas(data.multiplier, false, 0);
           break;
 
         case 'user_cashed_out':
-          // Social notification (optional)
           statusMsg.textContent = `👤 User ${data.userId.slice(0,6)} cashed out at ${data.multiplier.toFixed(2)}x!`;
           break;
 
         case 'error':
           statusMsg.textContent = `⚠️ ${data.message}`;
-          if (data.message.includes('balance')) {
-            betBtn.disabled = false;
-          }
+          if (data.message.includes('balance')) betBtn.disabled = false;
           break;
 
         default:
@@ -380,9 +417,7 @@
       setTimeout(connectWS, 2000);
     };
 
-    ws.onerror = (err) => {
-      console.error('WebSocket error:', err);
-    };
+    ws.onerror = (err) => console.error('WebSocket error:', err);
   }
 
   // ---------- UI HELPERS ----------
@@ -402,17 +437,56 @@
     });
   }
 
-  // ---------- BUTTON EVENTS ----------
+  // ---------- DEPOSIT ----------
+  depositBtn.addEventListener('click', async () => {
+    const amount = parseFloat(depositAmount.value);
+    const phone = phoneNumber.value.trim();
+
+    if (!amount || amount < 1) {
+      depositStatus.textContent = '⚠️ Enter a valid amount (min 1 ETB)';
+      return;
+    }
+    if (!phone || phone.length < 10) {
+      depositStatus.textContent = '⚠️ Enter a valid phone (09XXXXXXXX)';
+      return;
+    }
+
+    depositStatus.textContent = '⏳ Processing...';
+    depositBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, amount, phoneNumber: phone })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        depositStatus.textContent = '✅ Redirecting to Telebirr...';
+        window.location.href = data.paymentUrl;
+      } else {
+        depositStatus.textContent = `❌ Error: ${data.error}`;
+        depositBtn.disabled = false;
+      }
+    } catch (err) {
+      depositStatus.textContent = '❌ Network error. Try again.';
+      depositBtn.disabled = false;
+      console.error(err);
+    }
+  });
+
+  // ---------- BET & CASHOUT ----------
   betBtn.addEventListener('click', () => {
     const amount = parseFloat(betInput.value);
     if (isNaN(amount) || amount <= 0) {
-      statusMsg.textContent = '⚠️ Enter a valid bet amount.';
+      statusMsg.textContent = '⚠️ Enter a valid bet.';
       return;
     }
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'place_bet', amount: amount }));
+      ws.send(JSON.stringify({ type: 'place_bet', amount }));
     } else {
-      statusMsg.textContent = '❌ Not connected to server.';
+      statusMsg.textContent = '❌ Not connected.';
     }
   });
 
@@ -435,19 +509,8 @@
   });
 
   // ---------- INIT ----------
-  // Draw initial state
   drawCanvas(1.00, false, 0);
   connectWS();
-
-  // Draw loop for smooth animation when flying
-  function animationLoop() {
-    if (gameStatus === 'flying' && ws) {
-      // The canvas is updated via WebSocket messages.
-      // We just keep the loop alive for future.
-    }
-    requestAnimationFrame(animationLoop);
-  }
-  animationLoop();
 </script>
 </body>
   </html>
