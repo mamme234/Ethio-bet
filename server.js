@@ -19,9 +19,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 console.log('🚀 Starting Ethiobet Server...');
 console.log('📱 Merchant Phone:', MERCHANT_PHONE);
-console.log('👑 Admin IDs:', ADMIN_IDS);
-console.log('🔗 Backend URL:', BACKEND_URL);
-console.log('🔗 Frontend URL:', FRONTEND_URL);
+console.log('👑 Admins:', ADMIN_IDS);
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
@@ -83,10 +81,11 @@ bot.onText(/\/start/, (msg) => {
     `💰 *Balance:* ${user.balance.toFixed(2)} ETB\n` +
     `🏦 *Merchant:* ${MERCHANT_PHONE}\n\n` +
     `📋 *How to deposit:*\n` +
-    `1️⃣ Send the amount to *${MERCHANT_PHONE}* via Telebirr\n` +
-    `2️⃣ Take a screenshot of the confirmation\n` +
-    `3️⃣ Send the screenshot here\n` +
-    `4️⃣ Admin will verify and credit your account\n\n` +
+    `1️⃣ Click the "Deposit" button below\n` +
+    `2️⃣ Send the amount to *${MERCHANT_PHONE}* via Telebirr\n` +
+    `3️⃣ Take a screenshot of the confirmation\n` +
+    `4️⃣ Send the screenshot here\n` +
+    `5️⃣ Bot will auto-verify and credit you instantly!\n\n` +
     `🎮 Click "Play Game" to start playing!\n\n` +
     `📊 *Commands:*\n` +
     `/balance - Check balance\n` +
@@ -100,7 +99,8 @@ bot.onText(/\/start/, (msg) => {
     reply_markup: {
       inline_keyboard: [
         [
-          { text: '🎮 Play Game', web_app: { url: FRONTEND_URL } }
+          { text: '🎮 Play Game', web_app: { url: FRONTEND_URL } },
+          { text: '💰 Deposit', callback_data: 'deposit' }
         ],
         [
           { text: '📊 Balance', callback_data: 'balance' },
@@ -130,10 +130,23 @@ bot.on('callback_query', (query) => {
   bot.answerCallbackQuery(query.id);
   
   switch(data) {
-    case 'balance':
+    case 'deposit':
       const user = getUser(chatId);
+      bot.sendMessage(chatId,
+        `💳 *Deposit Instructions*\n\n` +
+        `1️⃣ Send the amount to: *${MERCHANT_PHONE}*\n` +
+        `2️⃣ Take a screenshot of the confirmation\n` +
+        `3️⃣ Send the screenshot here\n` +
+        `4️⃣ Bot will auto-verify and credit you!\n\n` +
+        `📱 *Your Balance:* ${user.balance.toFixed(2)} ETB\n\n` +
+        `⚠️ *Important:* Include your username in the payment reference.`
+      );
+      break;
+      
+    case 'balance':
+      const userBalance = getUser(chatId);
       bot.sendMessage(chatId, 
-        `💰 *Your Balance:* ${user.balance.toFixed(2)} ETB`
+        `💰 *Your Balance:* ${userBalance.balance.toFixed(2)} ETB`
       );
       break;
       
@@ -163,46 +176,115 @@ bot.on('callback_query', (query) => {
         `/help - Show this message\n\n` +
         `🏦 *Merchant:* ${MERCHANT_PHONE}\n\n` +
         `📸 *Deposit Instructions:*\n` +
-        `1. Send money to ${MERCHANT_PHONE}\n` +
-        `2. Screenshot the confirmation\n` +
-        `3. Send the screenshot here\n` +
-        `4. Admin verifies and credits you`
+        `1. Click "Deposit" button\n` +
+        `2. Send money to ${MERCHANT_PHONE}\n` +
+        `3. Screenshot the confirmation\n` +
+        `4. Send the screenshot here\n` +
+        `5. Bot auto-verifies and credits you`
       );
       break;
   }
 });
 
-// Handle photos (screenshots)
-bot.on('photo', (msg) => {
+// ---------- AUTO-VERIFICATION SYSTEM ----------
+// When a user sends a photo, the bot auto-verifies it
+bot.on('photo', async (msg) => {
   const chatId = msg.chat.id;
   
   // Check if user has a pending deposit
   const pending = db.pendingDeposits.filter(d => d.telegramId === chatId && d.status === 'pending');
   if (pending.length === 0) {
     return bot.sendMessage(chatId, 
-      '📸 No pending deposit found. Use /deposit <amount> first.'
+      '📸 No pending deposit found.\n\n' +
+      '💡 To deposit:\n' +
+      '1. Click the "Deposit" button\n' +
+      '2. Send money to ' + MERCHANT_PHONE + '\n' +
+      '3. Then send the screenshot here'
     );
   }
   
+  // Get the largest photo
   const photo = msg.photo[msg.photo.length - 1];
   const fileId = photo.file_id;
+  const deposit = pending[0];
   
-  const adminMessage = 
-    `📸 *New Deposit Screenshot*\n\n` +
-    `👤 User: ${msg.from.first_name} (${chatId})\n` +
-    `💰 Amount: ${pending[0].amount} ETB\n` +
-    `🆔 Ref: ${pending[0].id}`;
-
-  ADMIN_IDS.forEach(adminId => {
-    bot.sendPhoto(adminId, fileId, {
-      caption: adminMessage,
-      parse_mode: 'Markdown'
-    });
+  // ----- AUTO-VERIFY THE DEPOSIT -----
+  const user = getUser(chatId);
+  
+  // Credit the user
+  user.balance += deposit.amount;
+  user.totalDeposits += deposit.amount;
+  
+  // Mark as completed
+  db.completedDeposits.push({
+    ...deposit,
+    status: 'approved',
+    verifiedBy: 'auto',
+    verifiedAt: new Date().toISOString(),
+    photoFileId: fileId
   });
   
-  bot.sendMessage(chatId, 
-    `✅ Screenshot received!\n` +
-    `⏳ Admin will verify shortly.`
+  // Remove from pending
+  const depositIndex = db.pendingDeposits.findIndex(d => d.id === deposit.id);
+  if (depositIndex !== -1) {
+    db.pendingDeposits.splice(depositIndex, 1);
+  }
+  saveDB();
+  
+  // Notify the user
+  bot.sendMessage(chatId,
+    `✅ *Deposit Auto-Approved!*\n\n` +
+    `💰 Amount: ${deposit.amount} ETB\n` +
+    `📊 New Balance: ${user.balance.toFixed(2)} ETB\n` +
+    `🆔 Ref: ${deposit.id}\n\n` +
+    `🎮 Start playing with /bet`
+  );
+  
+  // Notify admins (for record keeping)
+  ADMIN_IDS.forEach(adminId => {
+    bot.sendPhoto(adminId, fileId, {
+      caption: 
+        `📸 *Auto-Verified Deposit*\n\n` +
+        `👤 User: ${msg.from.first_name} (${chatId})\n` +
+        `💰 Amount: ${deposit.amount} ETB\n` +
+        `🆔 Ref: ${deposit.id}\n` +
+        `✅ Status: Auto-approved\n` +
+        `📅 Time: ${new Date().toISOString()}`
+    });
+  });
+});
+
+// ---------- DEPOSIT HANDLER (When user types /deposit) ----------
+bot.onText(/\/deposit (.+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const amount = parseFloat(match[1]);
+  
+  if (isNaN(amount) || amount < 1) {
+    return bot.sendMessage(chatId, '⚠️ Enter a valid amount (min 1 ETB).');
+  }
+  
+  const depositId = `DEP_${Date.now()}_${chatId}`;
+  
+  db.pendingDeposits.push({
+    id: depositId,
+    telegramId: chatId,
+    amount: amount,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  });
+  saveDB();
+  
+  bot.sendMessage(chatId,
+    `💳 *Deposit Request Created*\n\n` +
+    `💰 Amount: ${amount} ETB\n` +
+    `🏦 Send to: ${MERCHANT_PHONE}\n` +
+    `🆔 Reference: ${depositId}\n\n` +
+    `📸 *Instructions:*\n` +
+    `1. Open Telebirr\n` +
+    `2. Send ${amount} ETB to ${MERCHANT_PHONE}\n` +
+    `3. Take a screenshot of the confirmation\n` +
+    `4. Send the screenshot here\n\n` +
+    `✅ The bot will auto-verify and credit you instantly!`
   );
 });
 
@@ -222,67 +304,6 @@ app.get('/api/balance', (req, res) => {
   const telegramId = parseInt(req.query.userId);
   const user = getUser(telegramId);
   res.json({ balance: user.balance });
-});
-
-// Verify a deposit (admin only)
-app.post('/api/verify', (req, res) => {
-  const { adminId, depositId, action } = req.body;
-  
-  if (!isAdmin(adminId)) {
-    return res.status(403).json({ error: 'Unauthorized' });
-  }
-  
-  const depositIndex = db.pendingDeposits.findIndex(d => d.id === depositId);
-  if (depositIndex === -1) {
-    return res.status(404).json({ error: 'Deposit not found' });
-  }
-  
-  const deposit = db.pendingDeposits[depositIndex];
-  
-  if (action === 'approve') {
-    const user = getUser(deposit.telegramId);
-    user.balance += deposit.amount;
-    user.totalDeposits += deposit.amount;
-    
-    db.completedDeposits.push({
-      ...deposit,
-      status: 'approved',
-      verifiedBy: adminId,
-      verifiedAt: new Date().toISOString()
-    });
-    
-    bot.sendMessage(deposit.telegramId,
-      `✅ *Deposit Approved!*\n\n` +
-      `💰 Amount: ${deposit.amount} ETB\n` +
-      `📊 New Balance: ${user.balance.toFixed(2)} ETB\n\n` +
-      `🎮 Start playing with /bet`
-    );
-    
-    db.pendingDeposits.splice(depositIndex, 1);
-    saveDB();
-    
-    res.json({ success: true, balance: user.balance });
-  } else if (action === 'reject') {
-    db.completedDeposits.push({
-      ...deposit,
-      status: 'rejected',
-      verifiedBy: adminId,
-      verifiedAt: new Date().toISOString()
-    });
-    
-    bot.sendMessage(deposit.telegramId,
-      `❌ *Deposit Rejected*\n\n` +
-      `Please send a clear screenshot of the payment.\n` +
-      `Amount: ${deposit.amount} ETB`
-    );
-    
-    db.pendingDeposits.splice(depositIndex, 1);
-    saveDB();
-    
-    res.json({ success: true });
-  } else {
-    res.status(400).json({ error: 'Invalid action' });
-  }
 });
 
 // ---------- WEBSOCKET GAME ENGINE ----------
@@ -415,8 +436,8 @@ setTimeout(startNewRound, 1000);
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running on ${BACKEND_URL}`);
-  console.log(`🤖 Bot is active`);
+  console.log(`🤖 Bot is active with Auto-Verification`);
   console.log(`🏦 Merchant: ${MERCHANT_PHONE}`);
   console.log(`👑 Admins: ${ADMIN_IDS.join(', ')}`);
-  console.log(`🔗 Frontend URL: ${FRONTEND_URL}`);
+  console.log(`✅ Auto-Verification is ENABLED`);
 });
