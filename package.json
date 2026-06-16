@@ -1,7 +1,7 @@
 {
   "name": "ethiobet",
-  "version": "1.0.0",
-  "description": "Telebirr Aviator with admin panel",
+  "version": "2.0.0",
+  "description": "Ethiobet - Aviator Game with Telebirr",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,6 +12,7 @@
     "express": "^4.18.2",
     "ws": "^8.14.2",
     "node-telegram-bot-api": "^0.61.0",
+    "cors": "^2.8.5",
     "crypto": "^1.0.1"
   },
   "devDependencies": {
