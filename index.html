@@ -37,7 +37,6 @@
       background: radial-gradient(circle at 30% 10%, rgba(240, 185, 11, 0.05), transparent 60%);
       pointer-events: none;
     }
-    /* Profile */
     .profile {
       display: flex;
       align-items: center;
@@ -66,7 +65,6 @@
       border-radius: 40px;
       border: 1px solid rgba(240, 185, 11, 0.2);
     }
-    /* Admin Badge */
     .admin-badge {
       background: #f0b90b;
       color: #0b0e14;
@@ -78,7 +76,6 @@
       margin-top: 2px;
       text-transform: uppercase;
     }
-    /* Multiplier */
     .multiplier {
       text-align: center;
       font-size: 44px;
@@ -151,7 +148,6 @@
     }
     #cashoutBtn:hover:not(:disabled) { transform: scale(1.02); }
     button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-    /* Deposit */
     .deposit-section {
       display: flex;
       flex-wrap: wrap;
@@ -188,7 +184,6 @@
     }
     .deposit-section button:hover { transform: scale(1.02); }
     #depositStatus { color: #889bb5; font-size: 12px; width: 100%; margin-top: 4px; text-align: center; }
-    /* History */
     .history {
       display: flex;
       flex-wrap: wrap;
@@ -219,7 +214,6 @@
       padding-top: 12px;
       border-top: 1px solid rgba(255,255,255,0.04);
     }
-    /* Admin Panel */
     .admin-panel {
       margin-top: 14px;
       padding-top: 14px;
@@ -349,6 +343,17 @@
 </div>
 
 <script>
+  // ---------- CONFIG ----------
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
+  // ⚠️ CHANGE THIS: Replace with your actual Render backend URL
+  const BACKEND_URL = isLocal 
+    ? 'http://localhost:8080' 
+    : 'https://your-backend.onrender.com'; // ⚠️ UPDATE THIS
+
+  const MERCHANT_PHONE = '0912345678';
+  const ADMIN_IDS = [123456789]; // ⚠️ Replace with your Telegram ID
+
   // ---------- TELEGRAM WEBAPP ----------
   const tg = window.Telegram.WebApp;
   tg.expand();
@@ -359,10 +364,6 @@
   const lastName = user?.last_name || '';
   const username = user?.username || '';
   const photoUrl = user?.photo_url || '';
-
-  // ---------- CONFIG ----------
-  const MERCHANT_PHONE = '0912345678';
-  const ADMIN_IDS = [123456789]; // Replace with your Telegram ID
 
   const isAdmin = ADMIN_IDS.includes(parseInt(userId));
 
@@ -418,7 +419,10 @@
   }
 
   // ---------- WEBSOCKET ----------
-  const ws = new WebSocket(`wss://${window.location.host}/?userId=${userId}`);
+  const wsUrl = `${BACKEND_URL.replace('http', 'ws')}/?userId=${userId}`;
+  console.log('🔗 Connecting to WebSocket:', wsUrl);
+  const ws = new WebSocket(wsUrl);
+
   let balance = 0;
   let multiplier = 1.00;
   let gameStatus = 'waiting';
@@ -495,12 +499,21 @@
   }
 
   // ---------- WEBSOCKET EVENTS ----------
-  ws.onopen = () => { statusMsg.textContent = '✅ Connected!'; };
-  ws.onclose = () => { 
-    statusMsg.textContent = '❌ Disconnected. Reconnecting...'; 
-    setTimeout(() => location.reload(), 3000); 
+  ws.onopen = () => {
+    statusMsg.textContent = '✅ Connected!';
+    statusMsg.className = 'status';
   };
-  ws.onerror = () => { statusMsg.textContent = '⚠️ Connection error'; };
+  
+  ws.onclose = () => {
+    statusMsg.textContent = '❌ Disconnected. Reconnecting...';
+    statusMsg.className = 'status status-error';
+    setTimeout(() => location.reload(), 3000);
+  };
+  
+  ws.onerror = () => {
+    statusMsg.textContent = '⚠️ Connection error';
+    statusMsg.className = 'status status-error';
+  };
 
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
@@ -514,6 +527,7 @@
       case 'round_started':
         gameStatus = 'flying';
         statusMsg.textContent = '✈️ Flying! Cash out!';
+        statusMsg.className = 'status';
         betBtn.disabled = true;
         if (!hasBet) betBtn.disabled = false;
         break;
@@ -528,6 +542,7 @@
         multiplierDisplay.textContent = multiplier.toFixed(2) + 'x';
         drawCanvas(multiplier, true, multiplier);
         statusMsg.textContent = '💥 Crashed!';
+        statusMsg.className = 'status status-error';
         betBtn.disabled = false;
         cashoutBtn.disabled = true;
         hasBet = false;
@@ -541,6 +556,7 @@
         betBtn.disabled = true;
         cashoutBtn.disabled = false;
         statusMsg.textContent = '⏳ Bet placed!';
+        statusMsg.className = 'status';
         updateUI();
         break;
       case 'cash_out_success':
@@ -549,14 +565,17 @@
         cashoutBtn.disabled = true;
         betBtn.disabled = false;
         statusMsg.textContent = `✅ Cashed out at ${data.multiplier.toFixed(2)}x! Won ${data.winAmount.toFixed(2)} ETB!`;
+        statusMsg.className = 'status status-connected';
         updateUI();
         drawCanvas(data.multiplier, false, 0);
         break;
       case 'user_cashed_out':
         statusMsg.textContent = `👤 User cashed out at ${data.multiplier.toFixed(2)}x!`;
+        statusMsg.className = 'status';
         break;
       case 'error':
         statusMsg.textContent = '⚠️ ' + data.message;
+        statusMsg.className = 'status status-error';
         if (data.message.includes('balance')) betBtn.disabled = false;
         break;
     }
@@ -591,21 +610,21 @@
     }
   };
 
-  // ---------- DEPOSIT (Mini App) ----------
+  // ---------- DEPOSIT - Opens Bot ----------
   depositBtn.onclick = () => {
     const amount = parseFloat(depositAmount.value);
     if (!amount || amount < 1) {
       depositStatus.textContent = '⚠️ Enter valid amount';
       return;
     }
-    depositStatus.textContent = '📸 Send screenshot to bot...';
+    depositStatus.textContent = '📤 Opening bot for deposit...';
     depositBtn.disabled = true;
     
-    // Open Telegram bot chat with instructions
-    tg.openTelegramLink(`https://t.me/@Ethiobet1_bot`);
+    // Open Telegram bot with deposit instruction
+    tg.openTelegramLink(`https://t.me/@Ethiobet1_bot?start=deposit_${amount}`);
     
     setTimeout(() => {
-      depositStatus.textContent = '📤 After payment, send screenshot to bot';
+      depositStatus.textContent = '💰 Send payment to merchant and screenshot to bot';
       depositBtn.disabled = false;
     }, 3000);
   };
@@ -613,7 +632,7 @@
   // ---------- ADMIN PANEL ----------
   if (isAdmin) {
     function loadPendingDeposits() {
-      fetch(`/api/pending?adminId=${userId}`)
+      fetch(`${BACKEND_URL}/api/pending?adminId=${userId}`)
         .then(res => {
           if (res.status === 403) {
             adminDepositList.innerHTML = '<div class="empty-deposits">⛔ Unauthorized</div>';
@@ -636,6 +655,7 @@
                 <div class="amount">💰 ${d.amount} ETB</div>
                 <div class="user">👤 ${d.telegramId}</div>
                 <div class="time">🆔 ${d.id}</div>
+                <div class="time">📅 ${new Date(d.createdAt).toLocaleString()}</div>
               </div>
               <div class="actions">
                 <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
@@ -656,7 +676,7 @@
       const buttons = card.querySelectorAll('button');
       buttons.forEach(b => b.disabled = true);
       
-      fetch('/api/verify', {
+      fetch(`${BACKEND_URL}/api/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminId: userId, depositId, action })
@@ -695,4 +715,4 @@
   drawCanvas(1.00, false, 0);
 </script>
 </body>
-    </html>
+  </html>
