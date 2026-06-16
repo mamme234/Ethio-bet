@@ -1,7 +1,7 @@
 {
   "name": "ethiobet",
-  "version": "2.0.0",
-  "description": "Telebirr-powered Aviator Mini App",
+  "version": "1.0.0",
+  "description": "Telebirr Aviator with admin panel",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,7 +12,6 @@
     "express": "^4.18.2",
     "ws": "^8.14.2",
     "node-telegram-bot-api": "^0.61.0",
-    "telebirr-sdk": "^1.0.0",
     "crypto": "^1.0.1"
   },
   "devDependencies": {
