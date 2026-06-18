@@ -1,7 +1,7 @@
 {
-  "name": "ethiobet-platform",
+  "name": "ethiobet-backend",
   "version": "3.0.0",
-  "description": "Ethiobet - Full Casino & Sports Platform",
+  "description": "Ethiobet - Full Casino & Sports Platform Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
