@@ -13,65 +13,48 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 12px;
+      padding: 0;
+      margin: 0;
     }
     .app {
       max-width: 480px;
       width: 100%;
-      background: rgba(19, 26, 34, 0.85);
-      backdrop-filter: blur(16px);
-      border-radius: 32px;
-      padding: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      background: #0b0e14;
+      padding: 6px 12px 60px;
       position: relative;
-      overflow: hidden;
-      min-height: 600px;
+      min-height: 100vh;
     }
-    .app::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 30% 10%, rgba(240, 185, 11, 0.05), transparent 60%);
-      pointer-events: none;
-    }
-    .page { display: none; animation: fadeIn 0.3s ease; }
-    .page.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     /* HEADER */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 12px;
+      padding: 8px 0 8px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
-      margin-bottom: 14px;
+      margin-bottom: 6px;
     }
-    .logo { font-size: 20px; font-weight: 800; color: #f0b90b; }
+    .logo { font-size: 18px; font-weight: 800; color: #f0b90b; }
     .logo span { color: #fff; }
     .header .balance {
       color: #ffd966;
       font-weight: 700;
       background: rgba(240, 185, 11, 0.12);
-      padding: 4px 14px;
+      padding: 2px 12px;
       border-radius: 40px;
       border: 1px solid rgba(240, 185, 11, 0.2);
-      font-size: 14px;
+      font-size: 13px;
     }
-    .header .user-name { color: #889bb5; font-size: 13px; }
-    .header .logout-btn { color: #f28b82; font-size: 12px; cursor: pointer; background: none; border: none; }
+    .header .logout-btn { color: #f28b82; font-size: 11px; cursor: pointer; background: none; border: none; margin-left: 6px; }
+    .header .login-link { color: #6a7e9c; text-decoration: none; font-size: 13px; margin-left: 8px; cursor: pointer; }
 
     /* NAV TABS */
     .nav-tabs {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       overflow-x: auto;
-      padding: 4px 0 12px;
-      margin-bottom: 12px;
+      padding: 4px 0 8px;
+      margin-bottom: 6px;
       scrollbar-width: none;
       border-bottom: 1px solid rgba(255,255,255,0.04);
     }
@@ -80,13 +63,14 @@
       background: transparent;
       border: none;
       color: #6a7e9c;
-      padding: 6px 16px;
+      padding: 4px 14px;
       border-radius: 40px;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12px;
       cursor: pointer;
       white-space: nowrap;
       transition: 0.2s;
+      flex-shrink: 0;
     }
     .nav-tabs button.active { background: #f0b90b; color: #0b0e14; }
     .nav-tabs button:hover { color: #fff; }
@@ -95,204 +79,212 @@
     .game-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
     .game-card {
       background: #131a22;
-      border-radius: 16px;
-      padding: 14px 8px;
+      border-radius: 14px;
+      padding: 12px 6px;
       text-align: center;
       border: 1px solid rgba(255,255,255,0.04);
       cursor: pointer;
       transition: 0.2s;
     }
     .game-card:hover { border-color: #f0b90b; transform: scale(1.02); }
-    .game-card .icon { font-size: 28px; margin-bottom: 4px; }
+    .game-card .icon { font-size: 26px; margin-bottom: 2px; }
     .game-card .name { font-size: 11px; font-weight: 600; color: #b0c8e5; }
     .game-card .tag {
-      font-size: 9px;
+      font-size: 8px;
       color: #6a7e9c;
       background: #1f2a37;
-      padding: 2px 8px;
+      padding: 1px 8px;
       border-radius: 40px;
       display: inline-block;
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
     /* BOTTOM NAV */
     .bottom-nav {
       display: flex;
       justify-content: space-around;
-      padding: 12px 0 4px;
-      margin-top: 16px;
+      padding: 8px 0 4px;
+      margin-top: 12px;
       border-top: 1px solid rgba(255,255,255,0.06);
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 480px;
+      width: 100%;
+      background: #0b0e14;
+      z-index: 100;
     }
     .bottom-nav a {
       color: #6a7e9c;
       text-decoration: none;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
+      gap: 1px;
       cursor: pointer;
       transition: 0.2s;
+      padding: 4px 8px;
     }
     .bottom-nav a.active { color: #f0b90b; }
-    .bottom-nav a .emoji { font-size: 20px; }
+    .bottom-nav a .emoji { font-size: 18px; }
 
-    /* PROMO BANNER */
+    /* PROMO BANNER - SMALL */
     .promo-banner {
       background: linear-gradient(135deg, #1f3a2f, #2a8c5a);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 14px;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .promo-banner .text { font-weight: 700; font-size: 14px; }
-    .promo-banner .text small { display: block; font-weight: 400; font-size: 11px; opacity: 0.8; }
+    .promo-banner .text { font-weight: 700; font-size: 12px; }
+    .promo-banner .text small { display: block; font-weight: 400; font-size: 10px; opacity: 0.8; }
     .promo-banner .btn {
       background: #f0b90b;
       color: #0b0e14;
-      padding: 6px 16px;
+      padding: 4px 14px;
       border-radius: 40px;
       font-weight: 700;
-      text-decoration: none;
-      font-size: 12px;
+      font-size: 11px;
       border: none;
       cursor: pointer;
     }
 
     /* LOGIN / REGISTER */
     .auth-container { max-width: 360px; margin: 20px auto; }
-    .auth-container h1 { font-size: 24px; margin-bottom: 4px; }
-    .auth-container .sub { color: #6a7e9c; font-size: 14px; margin-bottom: 20px; }
-    .auth-container label { display: block; font-size: 13px; font-weight: 600; color: #a0b3cc; margin-bottom: 4px; }
+    .auth-container h1 { font-size: 22px; margin-bottom: 2px; }
+    .auth-container .sub { color: #6a7e9c; font-size: 13px; margin-bottom: 16px; }
+    .auth-container label { display: block; font-size: 12px; font-weight: 600; color: #a0b3cc; margin-bottom: 3px; }
     .auth-container input {
       width: 100%;
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: #1b2532;
       border: 1px solid #2f3e51;
       border-radius: 40px;
       color: #fff;
-      font-size: 15px;
-      margin-bottom: 14px;
+      font-size: 14px;
+      margin-bottom: 12px;
       outline: none;
     }
     .auth-container input:focus { border-color: #f0b90b; }
     .auth-container .btn {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       background: #f0b90b;
       border: none;
       border-radius: 40px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: #0b0e14;
       cursor: pointer;
       transition: 0.2s;
     }
     .auth-container .btn:hover { background: #ffce3c; }
-    .auth-container .switch { text-align: center; margin-top: 16px; color: #6a7e9c; font-size: 14px; }
+    .auth-container .switch { text-align: center; margin-top: 14px; color: #6a7e9c; font-size: 13px; }
     .auth-container .switch a { color: #f0b90b; cursor: pointer; text-decoration: none; }
-    .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 12px; }
+    .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 10px; }
 
-    /* GAME PAGE - Aviator */
+    /* GAME PAGE - Aviator / JetX */
     .multiplier {
       text-align: center;
-      font-size: 44px;
+      font-size: 40px;
       font-weight: 800;
       color: #fff;
-      padding: 6px 0 2px;
+      padding: 4px 0 2px;
       text-shadow: 0 0 40px rgba(255, 215, 0, 0.25);
       background: rgba(0,0,0,0.2);
-      border-radius: 16px;
-      margin-bottom: 10px;
+      border-radius: 12px;
+      margin-bottom: 8px;
     }
     canvas {
       width: 100%;
       aspect-ratio: 16 / 9;
       background: #0f161e;
-      border-radius: 16px;
+      border-radius: 12px;
       display: block;
-      margin: 6px 0 10px;
+      margin: 4px 0 8px;
       border: 1px solid #25303e;
     }
     .status {
       text-align: center;
       font-weight: 600;
-      font-size: 13px;
-      min-height: 22px;
+      font-size: 12px;
+      min-height: 20px;
       color: #6a7e9c;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .status-connected { color: #6fcf97; }
     .status-error { color: #f28b82; }
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 6px;
+      margin-bottom: 8px;
     }
     .controls input {
       flex: 2;
-      min-width: 80px;
+      min-width: 70px;
       background: #1b2532;
       border: 1px solid #2f3e51;
       border-radius: 40px;
-      padding: 12px 16px;
+      padding: 10px 14px;
       color: #fff;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
       outline: none;
     }
     .controls input:focus { border-color: #f0b90b; }
     .controls button {
       flex: 1;
-      min-width: 70px;
+      min-width: 60px;
       border: none;
       border-radius: 40px;
-      padding: 12px 0;
-      font-size: 13px;
+      padding: 10px 0;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       cursor: pointer;
       transition: all 0.15s;
     }
-    #betBtn {
+    #betBtn, #jetxBetBtn {
       background: linear-gradient(135deg, #f0b90b, #d99f0a);
       color: #0b0e14;
       box-shadow: 0 4px 16px rgba(240, 185, 11, 0.3);
     }
-    #betBtn:hover:not(:disabled) { transform: scale(1.02); }
-    #cashoutBtn {
+    #betBtn:hover:not(:disabled), #jetxBetBtn:hover:not(:disabled) { transform: scale(1.02); }
+    #cashoutBtn, #jetxCashoutBtn {
       background: linear-gradient(135deg, #2a8c5a, #1f6e46);
       color: #fff;
       box-shadow: 0 4px 16px rgba(42, 140, 90, 0.3);
     }
-    #cashoutBtn:hover:not(:disabled) { transform: scale(1.02); }
+    #cashoutBtn:hover:not(:disabled), #jetxCashoutBtn:hover:not(:disabled) { transform: scale(1.02); }
     button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
     .history {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 5px;
-      margin-top: 10px;
-      padding-top: 10px;
+      gap: 4px;
+      margin-top: 8px;
+      padding-top: 8px;
       border-top: 1px solid rgba(255,255,255,0.05);
-      min-height: 30px;
+      min-height: 26px;
     }
-    .history-label { color: #6a7e9c; font-size: 11px; font-weight: 600; }
+    .history-label { color: #6a7e9c; font-size: 10px; font-weight: 600; }
     .badge {
       background: #1f2a37;
       color: #b0c8e5;
-      padding: 3px 12px;
+      padding: 2px 10px;
       border-radius: 40px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       border: 1px solid rgba(255,255,255,0.04);
     }
@@ -304,33 +296,34 @@
       background: none;
       border: none;
       color: #6a7e9c;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
       padding: 4px 0;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
     .back-btn:hover { color: #fff; }
 
     /* WALLET */
     .wallet-card {
       background: #131a22;
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 14px;
+      padding: 16px;
       border: 1px solid rgba(255,255,255,0.04);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
-    .wallet-card .amount { font-size: 32px; font-weight: 800; color: #ffd966; }
-    .wallet-card .label { color: #6a7e9c; font-size: 13px; }
-    .wallet-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .wallet-card .amount { font-size: 28px; font-weight: 800; color: #ffd966; }
+    .wallet-card .label { color: #6a7e9c; font-size: 12px; }
+    .wallet-actions { display: flex; gap: 8px; margin-top: 10px; }
     .wallet-actions button {
       flex: 1;
-      padding: 12px;
+      padding: 10px;
       border: none;
       border-radius: 40px;
       font-weight: 700;
+      font-size: 13px;
       cursor: pointer;
       transition: 0.2s;
     }
@@ -340,49 +333,49 @@
 
     /* ADMIN PANEL */
     .admin-panel {
-      margin-top: 14px;
-      padding-top: 14px;
+      margin-top: 10px;
+      padding-top: 10px;
       border-top: 2px solid rgba(240, 185, 11, 0.2);
       display: none;
     }
     .admin-panel.active { display: block; }
     .admin-panel h2 {
       color: #f0b90b;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .admin-panel h2 span {
       background: #f0b90b;
       color: #0b0e14;
-      font-size: 11px;
-      padding: 2px 10px;
+      font-size: 10px;
+      padding: 2px 8px;
       border-radius: 40px;
     }
     .deposit-card {
       background: #1a1f2b;
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 8px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
       border: 1px solid #2a3546;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
     }
-    .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 16px; }
-    .deposit-card .info .user { color: #889bb5; font-size: 12px; }
-    .deposit-card .actions { display: flex; gap: 6px; }
+    .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 14px; }
+    .deposit-card .info .user { color: #889bb5; font-size: 11px; }
+    .deposit-card .actions { display: flex; gap: 4px; }
     .deposit-card .actions button {
-      padding: 6px 16px;
+      padding: 4px 12px;
       border: none;
       border-radius: 40px;
       font-weight: 700;
-      font-size: 12px;
+      font-size: 11px;
       cursor: pointer;
       transition: 0.2s;
     }
@@ -391,87 +384,89 @@
     .btn-reject { background: #8c2a2a; color: #fff; }
     .btn-reject:hover { background: #b03636; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .empty-deposits { color: #6a7e9c; text-align: center; padding: 16px; font-size: 13px; }
+    .empty-deposits { color: #6a7e9c; text-align: center; padding: 12px; font-size: 12px; }
 
     /* CHAT */
     .chat-messages {
-      height: 300px;
+      height: 280px;
       overflow-y: auto;
       background: #0f161e;
-      border-radius: 16px;
-      padding: 12px;
-      margin-bottom: 12px;
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 10px;
       border: 1px solid #25303e;
     }
-    .chat-message { margin-bottom: 8px; }
-    .chat-message .user { color: #f0b90b; font-weight: 700; font-size: 13px; }
-    .chat-message .msg { color: #b0c8e5; font-size: 14px; }
-    .chat-message .time { color: #6a7e9c; font-size: 10px; margin-left: 8px; }
-    .chat-input { display: flex; gap: 8px; }
+    .chat-message { margin-bottom: 6px; }
+    .chat-message .user { color: #f0b90b; font-weight: 700; font-size: 12px; }
+    .chat-message .msg { color: #b0c8e5; font-size: 13px; }
+    .chat-message .time { color: #6a7e9c; font-size: 9px; margin-left: 6px; }
+    .chat-input { display: flex; gap: 6px; }
     .chat-input input {
       flex: 1;
-      padding: 10px 16px;
+      padding: 8px 14px;
       background: #1b2532;
       border: 1px solid #2f3e51;
       border-radius: 40px;
       color: #fff;
       outline: none;
+      font-size: 13px;
     }
     .chat-input input:focus { border-color: #f0b90b; }
     .chat-input button {
-      padding: 10px 20px;
+      padding: 8px 16px;
       background: #f0b90b;
       border: none;
       border-radius: 40px;
       font-weight: 700;
       color: #0b0e14;
       cursor: pointer;
+      font-size: 13px;
     }
 
     .admin-badge {
       background: #f0b90b;
       color: #0b0e14;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
-      padding: 2px 10px;
+      padding: 2px 8px;
       border-radius: 40px;
       display: inline-block;
       margin-top: 2px;
       text-transform: uppercase;
     }
 
-    .footer-text { color: #4a5e7a; font-size: 10px; text-align: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); }
+    .footer-text { color: #4a5e7a; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
 
-    /* JetX specific */
+    /* GAME COMING */
     .game-coming {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 350px;
+      min-height: 300px;
       text-align: center;
     }
-    .game-coming .big-icon { font-size: 80px; margin-bottom: 20px; }
-    .game-coming h2 { color: #f0b90b; margin-bottom: 8px; }
-    .game-coming p { color: #6a7e9c; }
-    .game-coming .btn { background: #f0b90b; border: none; padding: 12px 40px; border-radius: 40px; font-weight: 700; margin-top: 20px; cursor: pointer; color: #0b0e14; }
+    .game-coming .big-icon { font-size: 60px; margin-bottom: 16px; }
+    .game-coming h2 { color: #f0b90b; margin-bottom: 6px; font-size: 20px; }
+    .game-coming p { color: #6a7e9c; font-size: 13px; }
+    .game-coming .btn { background: #f0b90b; border: none; padding: 10px 32px; border-radius: 40px; font-weight: 700; margin-top: 16px; cursor: pointer; color: #0b0e14; font-size: 14px; }
 
-    /* Mines grid */
+    /* MINES */
     .mines-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin: 16px 0;
+      gap: 6px;
+      margin: 12px 0;
     }
     .mines-cell {
       aspect-ratio: 1;
       background: #1b2532;
-      border-radius: 12px;
+      border-radius: 10px;
       border: 2px solid #2f3e51;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
+      font-size: 24px;
       cursor: pointer;
       transition: 0.2s;
     }
@@ -479,36 +474,35 @@
     .mines-cell.revealed { cursor: default; }
     .mines-cell.bomb { background: #8c2a2a; border-color: #f28b82; }
     .mines-cell.gem { background: #1f3a2f; border-color: #6fcf97; }
-    .mines-cell.flagged { border-color: #f0b90b; background: rgba(240,185,11,0.15); }
 
-    /* Slots */
+    /* SLOTS */
     .slot-machine {
       background: #131a22;
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 14px;
+      padding: 16px;
       border: 1px solid rgba(255,255,255,0.04);
-      margin: 12px 0;
+      margin: 10px 0;
     }
     .slot-reels {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       justify-content: center;
-      margin: 16px 0;
+      margin: 12px 0;
     }
     .slot-reel {
-      width: 80px;
-      height: 100px;
+      width: 70px;
+      height: 90px;
       background: #0f161e;
-      border-radius: 12px;
+      border-radius: 10px;
       border: 2px solid #2f3e51;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
+      font-size: 40px;
       transition: 0.3s;
     }
     .slot-reel.spinning { animation: spin 0.3s ease-in-out infinite; }
-    @keyframes spin { 0% { transform: translateY(-10px); } 50% { transform: translateY(10px); } 100% { transform: translateY(0); } }
+    @keyframes spin { 0% { transform: translateY(-8px); } 50% { transform: translateY(8px); } 100% { transform: translateY(0); } }
   </style>
 </head>
 <body>
@@ -522,7 +516,7 @@
       <div id="lobbyUserInfo">
         <span class="balance" id="lobbyBalance">💰 0.00 ETB</span>
         <button class="logout-btn" onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
-        <a href="#" onclick="showPage('login')" style="color:#6a7e9c;text-decoration:none;font-size:13px;margin-left:8px;" id="loginLink">Login</a>
+        <span class="login-link" onclick="showPage('login')" id="loginLink">Login</span>
       </div>
     </div>
 
@@ -571,7 +565,7 @@
       </div>
     </div>
 
-    <!-- Admin Panel (hidden by default) -->
+    <!-- Admin Panel -->
     <div class="admin-panel" id="adminPanel">
       <h2>🔑 Admin Panel <span id="pendingCount">0 pending</span></h2>
       <div id="adminDepositList"><div class="empty-deposits">No pending deposits</div></div>
@@ -624,7 +618,7 @@
   <!-- ===== PAGE: WALLET ===== -->
   <div class="page" id="page-wallet">
     <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <h2 style="margin-bottom:12px;">💰 Wallet</h2>
+    <h2 style="margin-bottom:10px;font-size:18px;">💰 Wallet</h2>
     <div class="wallet-card">
       <div class="label">Your Balance</div>
       <div class="amount" id="walletBalance">0.00 ETB</div>
@@ -633,32 +627,32 @@
         <button class="withdraw-btn" onclick="alert('Withdrawals coming soon!')">🏦 Withdraw</button>
       </div>
     </div>
-    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);">
-      <h3 style="font-size:14px;color:#6a7e9c;margin-bottom:8px;">📊 Deposit History</h3>
-      <div id="walletHistory"><div style="color:#6a7e9c;font-size:13px;text-align:center;padding:12px;">No transactions yet</div></div>
+    <div style="background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);">
+      <h3 style="font-size:13px;color:#6a7e9c;margin-bottom:6px;">📊 Deposit History</h3>
+      <div id="walletHistory"><div style="color:#6a7e9c;font-size:12px;text-align:center;padding:10px;">No transactions yet</div></div>
     </div>
   </div>
 
   <!-- ===== PAGE: PROMOTIONS ===== -->
   <div class="page" id="page-promotions">
     <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <h2 style="margin-bottom:12px;">🎁 Promotions</h2>
-    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);margin-bottom:10px;">
+    <h2 style="margin-bottom:10px;font-size:18px;">🎁 Promotions</h2>
+    <div style="background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div style="font-weight:700;">💰 Deposit Bonus</div><div style="font-size:12px;color:#6a7e9c;">100% up to 1000 ETB</div></div>
-        <button class="btn" style="background:#f0b90b;border:none;padding:6px 16px;border-radius:40px;font-weight:700;cursor:pointer;">Claim</button>
+        <div><div style="font-weight:700;font-size:14px;">💰 Deposit Bonus</div><div style="font-size:11px;color:#6a7e9c;">100% up to 1000 ETB</div></div>
+        <button class="btn" style="background:#f0b90b;border:none;padding:5px 14px;border-radius:40px;font-weight:700;font-size:12px;cursor:pointer;">Claim</button>
       </div>
     </div>
-    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);margin-bottom:10px;">
+    <div style="background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div style="font-weight:700;">🎰 Spin Bonuses</div><div style="font-size:12px;color:#6a7e9c;">Free spins on selected slots</div></div>
-        <button class="btn" style="background:#f0b90b;border:none;padding:6px 16px;border-radius:40px;font-weight:700;cursor:pointer;">Claim</button>
+        <div><div style="font-weight:700;font-size:14px;">🎰 Spin Bonuses</div><div style="font-size:11px;color:#6a7e9c;">Free spins on selected slots</div></div>
+        <button class="btn" style="background:#f0b90b;border:none;padding:5px 14px;border-radius:40px;font-weight:700;font-size:12px;cursor:pointer;">Claim</button>
       </div>
     </div>
-    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);margin-bottom:10px;">
+    <div style="background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div style="font-weight:700;">🐔 Shamo</div><div style="font-size:12px;color:#6a7e9c;">Weekly cashback bonus</div></div>
-        <button class="btn" style="background:#f0b90b;border:none;padding:6px 16px;border-radius:40px;font-weight:700;cursor:pointer;">Claim</button>
+        <div><div style="font-weight:700;font-size:14px;">🐔 Shamo</div><div style="font-size:11px;color:#6a7e9c;">Weekly cashback bonus</div></div>
+        <button class="btn" style="background:#f0b90b;border:none;padding:5px 14px;border-radius:40px;font-weight:700;font-size:12px;cursor:pointer;">Claim</button>
       </div>
     </div>
   </div>
@@ -666,9 +660,9 @@
   <!-- ===== PAGE: CHAT ===== -->
   <div class="page" id="page-chat">
     <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <h2 style="margin-bottom:12px;">💬 Live Chat</h2>
+    <h2 style="margin-bottom:10px;font-size:18px;">💬 Live Chat</h2>
     <div class="chat-messages" id="chatMessages">
-      <div style="color:#6a7e9c;text-align:center;padding:40px;">No messages yet. Be the first!</div>
+      <div style="color:#6a7e9c;text-align:center;padding:30px;">No messages yet. Be the first!</div>
     </div>
     <div class="chat-input">
       <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()">
@@ -679,23 +673,23 @@
   <!-- ===== PAGE: MORE ===== -->
   <div class="page" id="page-more">
     <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <h2 style="margin-bottom:12px;">📋 More Options</h2>
-    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);">
-      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;">📖 About Us</a></div>
-      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;">❓ FAQs</a></div>
-      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;">🛡️ Responsible Gaming</a></div>
-      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;">📜 Terms & Conditions</a></div>
-      <div style="padding:8px 0;"><a href="#" style="color:#fff;text-decoration:none;">🔒 Privacy Policy</a></div>
+    <h2 style="margin-bottom:10px;font-size:18px;">📋 More Options</h2>
+    <div style="background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);">
+      <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;font-size:13px;">📖 About Us</a></div>
+      <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;font-size:13px;">❓ FAQs</a></div>
+      <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;font-size:13px;">🛡️ Responsible Gaming</a></div>
+      <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;font-size:13px;">📜 Terms & Conditions</a></div>
+      <div style="padding:6px 0;"><a href="#" style="color:#fff;text-decoration:none;font-size:13px;">🔒 Privacy Policy</a></div>
     </div>
-    <div style="margin-top:12px;background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);">
-      <div style="color:#6a7e9c;font-size:13px;">📱 Social</div>
-      <a href="https://t.me/Ethiobet1_bot" style="color:#f0b90b;text-decoration:none;display:block;padding:4px 0;">📢 Telegram</a>
+    <div style="margin-top:10px;background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);">
+      <div style="color:#6a7e9c;font-size:12px;">📱 Social</div>
+      <a href="https://t.me/Ethiobet1_bot" style="color:#f0b90b;text-decoration:none;display:block;padding:4px 0;font-size:13px;">📢 Telegram</a>
     </div>
   </div>
 
   <!-- ===== PAGE: GAME - AVIATOR ===== -->
   <div class="page" id="page-game-aviator">
-    <button class="back-btn" onclick="stopGame(); showPage('lobby')">← Back to Lobby</button>
+    <button class="back-btn" onclick="stopGame(); showPage('lobby')">← Back</button>
     <div class="multiplier" id="multiplierDisplay">1.00x</div>
     <canvas id="gameCanvas" width="800" height="450"></canvas>
     <div class="status" id="statusMsg">⏳ Connecting...</div>
@@ -712,7 +706,7 @@
 
   <!-- ===== PAGE: GAME - JETX ===== -->
   <div class="page" id="page-game-jetx">
-    <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
     <div class="game-coming">
       <div class="big-icon">🚀</div>
       <h2>JetX</h2>
@@ -734,19 +728,19 @@
 
   <!-- ===== PAGE: GAME - MINES ===== -->
   <div class="page" id="page-game-mines">
-    <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <h2>💣 Mines</h2>
-      <span style="color:#ffd966;font-weight:700;">Balance: <span id="minesBalance">0</span> ETB</span>
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2 style="font-size:18px;">💣 Mines</h2>
+      <span style="color:#ffd966;font-weight:700;font-size:14px;">Balance: <span id="minesBalance">0</span> ETB</span>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-      <input type="number" id="minesBetInput" value="10" step="1" min="1" style="flex:1;min-width:80px;background:#1b2532;border:1px solid #2f3e51;border-radius:40px;padding:10px 16px;color:#fff;outline:none;">
-      <button id="minesStartBtn" style="background:#f0b90b;border:none;border-radius:40px;padding:10px 24px;font-weight:700;color:#0b0e14;cursor:pointer;">Start Game</button>
-      <button id="minesCashoutBtn" style="background:#2a8c5a;border:none;border-radius:40px;padding:10px 24px;font-weight:700;color:#fff;cursor:pointer;display:none;">Cash Out</button>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      <input type="number" id="minesBetInput" value="10" step="1" min="1" style="flex:1;min-width:70px;background:#1b2532;border:1px solid #2f3e51;border-radius:40px;padding:8px 14px;color:#fff;outline:none;font-size:13px;">
+      <button id="minesStartBtn" style="background:#f0b90b;border:none;border-radius:40px;padding:8px 20px;font-weight:700;color:#0b0e14;cursor:pointer;font-size:13px;">Start Game</button>
+      <button id="minesCashoutBtn" style="background:#2a8c5a;border:none;border-radius:40px;padding:8px 20px;font-weight:700;color:#fff;cursor:pointer;display:none;font-size:13px;">Cash Out</button>
     </div>
-    <div id="minesStatus" style="text-align:center;color:#6a7e9c;font-size:13px;margin-bottom:10px;">Place your bet and start!</div>
+    <div id="minesStatus" style="text-align:center;color:#6a7e9c;font-size:12px;margin-bottom:8px;">Place your bet and start!</div>
     <div class="mines-grid" id="minesGrid"></div>
-    <div style="margin-top:12px;display:flex;justify-content:space-between;color:#6a7e9c;font-size:13px;">
+    <div style="margin-top:10px;display:flex;justify-content:space-between;color:#6a7e9c;font-size:12px;">
       <span>💎 Gems found: <span id="minesGems">0</span></span>
       <span>💰 Multiplier: <span id="minesMultiplier">1.00x</span></span>
     </div>
@@ -754,27 +748,27 @@
 
   <!-- ===== PAGE: GAME - SLOTS ===== -->
   <div class="page" id="page-game-slots">
-    <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
-    <h2 style="margin-bottom:8px;">🎰 Slots</h2>
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+    <h2 style="margin-bottom:6px;font-size:18px;">🎰 Slots</h2>
     <div class="slot-machine">
-      <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
-        <span style="color:#6a7e9c;">Balance: <span id="slotsBalance" style="color:#ffd966;font-weight:700;">0</span> ETB</span>
-        <span style="color:#6a7e9c;">Bet: <span id="slotsBetDisplay" style="color:#fff;font-weight:700;">10</span> ETB</span>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+        <span style="color:#6a7e9c;font-size:13px;">Balance: <span id="slotsBalance" style="color:#ffd966;font-weight:700;">0</span> ETB</span>
+        <span style="color:#6a7e9c;font-size:13px;">Bet: <span id="slotsBetDisplay" style="color:#fff;font-weight:700;">10</span> ETB</span>
       </div>
       <div class="slot-reels">
         <div class="slot-reel" id="slotReel1">🍒</div>
         <div class="slot-reel" id="slotReel2">🍋</div>
         <div class="slot-reel" id="slotReel3">🍊</div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <input type="number" id="slotsBetInput" value="10" step="1" min="1" style="flex:1;min-width:80px;background:#1b2532;border:1px solid #2f3e51;border-radius:40px;padding:10px 16px;color:#fff;outline:none;">
-        <button id="slotsSpinBtn" style="flex:1;background:#f0b90b;border:none;border-radius:40px;padding:12px;font-weight:700;color:#0b0e14;cursor:pointer;">🎰 Spin</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="number" id="slotsBetInput" value="10" step="1" min="1" style="flex:1;min-width:70px;background:#1b2532;border:1px solid #2f3e51;border-radius:40px;padding:8px 14px;color:#fff;outline:none;font-size:13px;">
+        <button id="slotsSpinBtn" style="flex:1;background:#f0b90b;border:none;border-radius:40px;padding:10px;font-weight:700;color:#0b0e14;cursor:pointer;font-size:13px;">🎰 Spin</button>
       </div>
-      <div id="slotsResult" style="text-align:center;color:#6a7e9c;font-size:13px;margin-top:10px;">Press spin to play!</div>
+      <div id="slotsResult" style="text-align:center;color:#6a7e9c;font-size:12px;margin-top:8px;">Press spin to play!</div>
     </div>
-    <div style="margin-top:12px;background:#131a22;border-radius:16px;padding:12px;border:1px solid rgba(255,255,255,0.04);">
-      <div style="color:#6a7e9c;font-size:13px;text-align:center;">Symbols: 🍒 🍋 🍊 🍇 🔔 ⭐ 💎</div>
-      <div style="color:#6a7e9c;font-size:11px;text-align:center;margin-top:4px;">Match 3 = Win! 🎉</div>
+    <div style="margin-top:10px;background:#131a22;border-radius:14px;padding:10px;border:1px solid rgba(255,255,255,0.04);">
+      <div style="color:#6a7e9c;font-size:12px;text-align:center;">Symbols: 🍒 🍋 🍊 🍇 🔔 ⭐ 💎</div>
+      <div style="color:#6a7e9c;font-size:10px;text-align:center;margin-top:3px;">Match 3 = Win! 🎉</div>
     </div>
   </div>
 
@@ -796,7 +790,7 @@
   // ============================================================
   const tg = window.Telegram?.WebApp;
   if (tg) {
-    tg.expand(); // Full screen!
+    tg.expand();
     tg.ready();
   }
 
@@ -816,6 +810,9 @@
     if (pageId === 'lobby') refreshLobby();
     if (pageId === 'game-mines') initMines();
     if (pageId === 'game-slots') updateSlotsBalance();
+    // Auto-init game when entering game pages
+    if (pageId === 'game-aviator') setTimeout(initGame, 300);
+    if (pageId === 'game-jetx') setTimeout(initJetX, 300);
   }
 
   function filterGames(tab) {
@@ -850,6 +847,7 @@
     updateUI();
     showPage('lobby');
     if (ws) { ws.close(); ws = null; }
+    if (jetxWs) { jetxWs.close(); jetxWs = null; }
   }
 
   async function login() {
@@ -868,6 +866,7 @@
         setAuth(data.token, data.user);
         showPage('lobby');
         initGame();
+        initJetX();
       } else {
         error.textContent = '❌ ' + data.error;
       }
@@ -894,6 +893,7 @@
         setAuth(data.token, data.user);
         showPage('lobby');
         initGame();
+        initJetX();
       } else {
         error.textContent = '❌ ' + data.error;
       }
@@ -1001,7 +1001,7 @@
           <div class="info">
             <div class="amount">💰 ${d.amount} ETB</div>
             <div class="user">👤 ${d.telegramId}</div>
-            <div class="user" style="font-size:10px;">🆔 ${d.id}</div>
+            <div class="user" style="font-size:9px;">🆔 ${d.id}</div>
           </div>
           <div class="actions">
             <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
@@ -1065,7 +1065,7 @@
     const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
     const chatDiv = document.getElementById('chatMessages');
     if (messages.length === 0) {
-      chatDiv.innerHTML = '<div style="color:#6a7e9c;text-align:center;padding:40px;">No messages yet. Be the first!</div>';
+      chatDiv.innerHTML = '<div style="color:#6a7e9c;text-align:center;padding:30px;">No messages yet. Be the first!</div>';
       return;
     }
     chatDiv.innerHTML = messages.map(m => `
@@ -1089,9 +1089,11 @@
   let gameStatus = 'waiting';
   let hasBet = false;
   let gameHistory = [];
+  let gameAnimFrame = null;
 
   function initGame() {
     gameCanvas = document.getElementById('gameCanvas');
+    if (!gameCanvas) return;
     ctx = gameCanvas.getContext('2d');
     drawCanvas(1.00, false, 0);
     connectGameWS();
@@ -1108,7 +1110,6 @@
       document.getElementById('statusMsg').className = 'status status-connected';
       document.getElementById('betBtn').disabled = false;
     };
-    
     ws.onclose = () => {
       document.getElementById('statusMsg').textContent = '❌ Disconnected. Reconnecting...';
       document.getElementById('statusMsg').className = 'status status-error';
@@ -1116,16 +1117,13 @@
       document.getElementById('cashoutBtn').disabled = true;
       setTimeout(connectGameWS, 3000);
     };
-    
     ws.onerror = () => {
       document.getElementById('statusMsg').textContent = '⚠️ Connection error. Retrying...';
       document.getElementById('statusMsg').className = 'status status-error';
     };
-    
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
       console.log('WS:', data);
-      
       switch(data.type) {
         case 'init':
           if (currentUser) currentUser.balance = data.balance;
@@ -1269,6 +1267,7 @@
   function stopGame() {
     if (ws) { ws.close(); ws = null; }
     gameRunning = false;
+    if (gameAnimFrame) cancelAnimationFrame(gameAnimFrame);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -1287,7 +1286,7 @@
   });
 
   // ============================================================
-  // ========== JETX GAME (Clone of Aviator) ==========
+  // ========== JETX GAME ==========
   // ============================================================
   let jetxWs = null;
   let jetxMultiplier = 1.00;
@@ -1299,6 +1298,7 @@
 
   function initJetX() {
     jetxCanvas = document.getElementById('jetxCanvas');
+    if (!jetxCanvas) return;
     jetxCtx = jetxCanvas.getContext('2d');
     drawJetXCanvas(1.00, false, 0);
     connectJetXWS();
@@ -1548,7 +1548,6 @@
       document.getElementById('minesStatus').textContent = '💥 BOOM! Game Over!';
       document.getElementById('minesStartBtn').style.display = 'block';
       document.getElementById('minesCashoutBtn').style.display = 'none';
-      // Reveal all bombs
       minesState.grid.forEach((val, i) => {
         if (val === 'bomb') {
           const c = document.querySelector(`.mines-cell[data-index="${i}"]`);
@@ -1556,15 +1555,6 @@
           c.textContent = '💣';
         }
       });
-      // Deduct bet from user
-      const token = getToken();
-      if (token) {
-        fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
-          .then(res => res.json())
-          .then(data => {
-            // Balance was already deducted when bet placed
-          });
-      }
     } else {
       cell.classList.add('revealed', 'gem');
       cell.textContent = '💎';
@@ -1584,7 +1574,6 @@
       const token = getToken();
       if (!token) { alert('Please login first!'); showPage('login'); return; }
       
-      // Check balance
       fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => res.json())
         .then(data => {
@@ -1592,7 +1581,6 @@
             alert('Insufficient balance!');
             return;
           }
-          // Generate bombs
           minesState.grid = Array(25).fill('gem');
           let bombs = 0;
           while (bombs < 5) {
@@ -1613,7 +1601,6 @@
           document.getElementById('minesStatus').textContent = '💎 Click cells to find gems!';
           document.getElementById('minesStartBtn').style.display = 'none';
           document.getElementById('minesCashoutBtn').style.display = 'none';
-          // Reset grid
           document.querySelectorAll('.mines-cell').forEach(c => {
             c.className = 'mines-cell';
             c.textContent = '❓';
@@ -1630,9 +1617,6 @@
       fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => res.json())
         .then(data => {
-          // Credit the user (add winAmount to balance)
-          // This is a simplified version - in production, use a proper API
-          // For now, we'll just update the local balance
           if (currentUser) {
             currentUser.balance += winAmount;
             updateUI();
@@ -1643,7 +1627,6 @@
           document.getElementById('minesCashoutBtn').style.display = 'none';
           minesState.started = false;
           minesState.gameOver = true;
-          // Reveal all cells
           minesState.grid.forEach((val, i) => {
             const c = document.querySelector(`.mines-cell[data-index="${i}"]`);
             if (!c.classList.contains('revealed')) {
@@ -1653,8 +1636,6 @@
               else c.classList.add('gem');
             }
           });
-          // Also update server balance
-          // In production, you'd call an API to add winnings
         });
     });
   });
@@ -1691,12 +1672,10 @@
           alert('Insufficient balance!');
           return;
         }
-        // Deduct bet from local balance
         if (currentUser) currentUser.balance -= bet;
         updateUI();
         updateSlotsBalance();
         
-        // Spin animation
         isSpinning = true;
         const reel1 = document.getElementById('slotReel1');
         const reel2 = document.getElementById('slotReel2');
@@ -1718,7 +1697,6 @@
           reel3.classList.remove('spinning');
           isSpinning = false;
           
-          // Check win
           if (result1 === result2 && result2 === result3) {
             const winAmount = bet * 5;
             if (currentUser) currentUser.balance += winAmount;
@@ -1740,6 +1718,9 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('slotsSpinBtn').addEventListener('click', spinSlots);
+    document.getElementById('slotsBetInput').addEventListener('change', function() {
+      document.getElementById('slotsBetDisplay').textContent = this.value || 10;
+    });
   });
 
   // ============================================================
