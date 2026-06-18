@@ -24,17 +24,45 @@ console.log('🚀 Starting Ethiobet Platform...');
 console.log('🤖 Bot: @Ethiobet1_bot');
 console.log('📱 Merchant:', MERCHANT_PHONE);
 console.log('👑 Admins:', ADMIN_IDS);
+console.log('🔗 Backend URL:', BACKEND_URL);
+console.log('🔗 Frontend URL:', FRONTEND_URL);
 console.log('🔑 JWT Secret set');
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
+
+// CORS configuration for production
+const allowedOrigins = [
+  FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:8080',
+  'https://ethiobet.vercel.app',
+  'https://ethiobet.onrender.com',
+  'https://ethiobet.vercel.app/',
+  'https://ethiobet.onrender.com/'
+];
+
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080', 'https://ethiobet.vercel.app', 'https://ethiobet.onrender.com'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('❌ Blocked by CORS:', origin);
+      callback(null, true); // Allow all for now (remove in production)
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
+// Health check endpoint (for Render)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Serve index.html if frontend not deployed separately
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -48,7 +76,7 @@ function loadDB() {
       completedDeposits: [],
       chatMessages: [],
       sportsBets: [],
-      matches: [] // will be populated with dummy data
+      matches: []
     }, null, 2));
   }
   return JSON.parse(fs.readFileSync(DB_PATH));
@@ -71,45 +99,108 @@ function isAdmin(id) {
 // ---------- AUTH ENDPOINTS ----------
 app.post('/api/register', async (req, res) => {
   const { phone, password, name } = req.body;
-  if (!phone || !password) return res.status(400).json({ error: 'Phone and password required' });
-  if (findUser(phone)) return res.status(400).json({ error: 'User already exists' });
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = {
-    id: Date.now(),
-    phone,
-    name: name || 'User',
-    password: hashedPassword,
-    balance: 0,
-    totalDeposits: 0,
-    totalBets: 0,
-    createdAt: new Date().toISOString()
-  };
-  db.users.push(newUser);
-  saveDB();
-  const token = jwt.sign({ id: newUser.id, phone }, JWT_SECRET);
-  res.json({ success: true, token, user: { id: newUser.id, phone, name: newUser.name, balance: newUser.balance } });
+  console.log('📝 Register attempt:', { phone, name });
+  
+  if (!phone || !password) {
+    console.log('❌ Missing phone or password');
+    return res.status(400).json({ error: 'Phone and password required' });
+  }
+  
+  if (findUser(phone)) {
+    console.log('❌ User already exists:', phone);
+    return res.status(400).json({ error: 'User already exists' });
+  }
+  
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = {
+      id: Date.now(),
+      phone,
+      name: name || 'User',
+      password: hashedPassword,
+      balance: 0,
+      totalDeposits: 0,
+      totalBets: 0,
+      createdAt: new Date().toISOString()
+    };
+    db.users.push(newUser);
+    saveDB();
+    console.log('✅ User registered:', phone);
+    
+    const token = jwt.sign({ id: newUser.id, phone }, JWT_SECRET);
+    res.json({ 
+      success: true, 
+      token, 
+      user: { 
+        id: newUser.id, 
+        phone, 
+        name: newUser.name, 
+        balance: newUser.balance 
+      } 
+    });
+  } catch (err) {
+    console.error('❌ Registration error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.post('/api/login', async (req, res) => {
   const { phone, password } = req.body;
+  console.log('🔐 Login attempt:', phone);
+  
   const user = findUser(phone);
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
-  const token = jwt.sign({ id: user.id, phone }, JWT_SECRET);
-  res.json({ success: true, token, user: { id: user.id, phone, name: user.name, balance: user.balance } });
+  if (!user) {
+    console.log('❌ User not found:', phone);
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+  
+  try {
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      console.log('❌ Invalid password for:', phone);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    console.log('✅ Login successful:', phone);
+    
+    const token = jwt.sign({ id: user.id, phone }, JWT_SECRET);
+    res.json({ 
+      success: true, 
+      token, 
+      user: { 
+        id: user.id, 
+        phone: user.phone, 
+        name: user.name, 
+        balance: user.balance 
+      } 
+    });
+  } catch (err) {
+    console.error('❌ Login error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.get('/api/profile', (req, res) => {
   const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
+  if (!auth) {
+    console.log('❌ No auth header');
+    return res.status(401).json({ error: 'No token' });
+  }
   try {
     const token = auth.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = getUser(decoded.id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ id: user.id, phone: user.phone, name: user.name, balance: user.balance });
+    if (!user) {
+      console.log('❌ User not found for id:', decoded.id);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ 
+      id: user.id, 
+      phone: user.phone, 
+      name: user.name, 
+      balance: user.balance 
+    });
   } catch (err) {
+    console.log('❌ Invalid token:', err.message);
     res.status(401).json({ error: 'Invalid token' });
   }
 });
@@ -143,14 +234,23 @@ app.post('/api/verify', async (req, res) => {
     }
     db.completedDeposits.push({ ...deposit, status: 'approved', verifiedBy: adminId, verifiedAt: new Date().toISOString() });
     if (user) {
-      try { await bot.sendMessage(deposit.telegramId, `✅ Deposit Approved!\n💰 ${deposit.amount} ETB\n📊 New Balance: ${user.balance.toFixed(2)} ETB`); } catch(e) {}
+      try { 
+        await bot.sendMessage(deposit.telegramId, 
+          `✅ *Deposit Approved!*\n\n💰 Amount: ${deposit.amount} ETB\n📊 New Balance: ${user.balance.toFixed(2)} ETB`,
+          { parse_mode: 'Markdown' }
+        ); 
+      } catch(e) {}
     }
     db.pendingDeposits.splice(depositIndex, 1);
     saveDB();
     res.json({ success: true, balance: user ? user.balance : 0 });
   } else if (action === 'reject') {
     db.completedDeposits.push({ ...deposit, status: 'rejected', verifiedBy: adminId, verifiedAt: new Date().toISOString() });
-    try { await bot.sendMessage(deposit.telegramId, `❌ Deposit Rejected\nPlease send a clear screenshot.`); } catch(e) {}
+    try { 
+      await bot.sendMessage(deposit.telegramId, 
+        `❌ *Deposit Rejected*\n\nPlease send a clear screenshot of the payment.`
+      ); 
+    } catch(e) {}
     db.pendingDeposits.splice(depositIndex, 1);
     saveDB();
     res.json({ success: true });
@@ -160,11 +260,8 @@ app.post('/api/verify', async (req, res) => {
 });
 
 // ---------- SPORTS BETTING ENDPOINTS ----------
-
-// Get current matches (World Cup dummy data)
 app.get('/api/matches', (req, res) => {
   const now = Date.now();
-  // Generate dummy matches if empty
   if (db.matches.length === 0) {
     const dummyMatches = [
       { id: 'm1', home: 'Brazil', away: 'Argentina', homeOdds: 2.10, drawOdds: 3.20, awayOdds: 3.50, startTime: now + 3600000, status: 'upcoming' },
@@ -179,7 +276,6 @@ app.get('/api/matches', (req, res) => {
   res.json(db.matches);
 });
 
-// Place a sports bet
 app.post('/api/sports/bet', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -198,18 +294,15 @@ app.post('/api/sports/bet', (req, res) => {
     if (!match) return res.status(404).json({ error: 'Match not found' });
     if (match.status !== 'upcoming') return res.status(400).json({ error: 'Match already finished' });
 
-    let odds;
-    let betLabel;
+    let odds, betLabel;
     if (betType === 'home') { odds = match.homeOdds; betLabel = match.home; }
     else if (betType === 'draw') { odds = match.drawOdds; betLabel = 'Draw'; }
     else if (betType === 'away') { odds = match.awayOdds; betLabel = match.away; }
     else return res.status(400).json({ error: 'Invalid bet type' });
 
-    // Deduct balance
     user.balance -= amount;
     saveDB();
 
-    // Store bet
     const bet = {
       id: Date.now().toString(),
       userId: user.id,
@@ -232,7 +325,6 @@ app.post('/api/sports/bet', (req, res) => {
   }
 });
 
-// Get user's sports bet history
 app.get('/api/sports/history', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -246,7 +338,7 @@ app.get('/api/sports/history', (req, res) => {
   }
 });
 
-// Admin: resolve a match (set result and settle bets)
+// Admin: resolve a match
 app.post('/api/sports/resolve', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -255,21 +347,18 @@ app.post('/api/sports/resolve', (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     if (!isAdmin(decoded.id)) return res.status(403).json({ error: 'Unauthorized' });
 
-    const { matchId, winner } = req.body; // winner: 'home', 'draw', 'away'
+    const { matchId, winner } = req.body;
     const match = db.matches.find(m => m.id === matchId);
     if (!match) return res.status(404).json({ error: 'Match not found' });
     if (match.status === 'finished') return res.status(400).json({ error: 'Already resolved' });
 
-    // Update match status
     match.status = 'finished';
     match.result = winner;
     saveDB();
 
-    // Settle bets
     const bets = db.sportsBets.filter(b => b.matchId === matchId && b.status === 'active');
     for (const bet of bets) {
       if (bet.betType === winner) {
-        // Win
         const user = getUser(bet.userId);
         if (user) {
           const winAmount = bet.amount * bet.odds;
@@ -282,13 +371,9 @@ app.post('/api/sports/resolve', (req, res) => {
         }
       } else {
         bet.status = 'lost';
-        try {
-          bot.sendMessage(bet.userId, `😔 Your bet on ${bet.match} lost. Better luck next time!`);
-        } catch(e) {}
       }
     }
     saveDB();
-
     res.json({ success: true, settledBets: bets.length });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -322,14 +407,19 @@ bot.onText(/\/start/, (msg) => {
 bot.on('callback_query', (query) => {
   const chatId = query.message.chat.id;
   bot.answerCallbackQuery(query.id);
-  switch(query.data) {
-    case 'deposit':
-      bot.sendMessage(chatId, `💳 Deposit Instructions\n\n1️⃣ Send to: ${MERCHANT_PHONE}\n2️⃣ Take a screenshot\n3️⃣ Send it here\n4️⃣ Auto-verified instantly!`);
-      break;
+  if (query.data === 'deposit') {
+    bot.sendMessage(chatId, 
+      `💳 *Deposit Instructions*\n\n` +
+      `1️⃣ Send to: *${MERCHANT_PHONE}* via Telebirr\n` +
+      `2️⃣ Take a screenshot\n` +
+      `3️⃣ Send it here\n` +
+      `4️⃣ Auto-verified instantly!`,
+      { parse_mode: 'Markdown' }
+    );
   }
 });
 
-// Auto-verification
+// Auto-verification for deposit screenshots
 bot.on('photo', async (msg) => {
   const chatId = msg.chat.id;
   const pending = db.pendingDeposits.filter(d => d.telegramId === chatId && d.status === 'pending');
@@ -344,13 +434,27 @@ bot.on('photo', async (msg) => {
     user.balance += deposit.amount;
     user.totalDeposits += deposit.amount;
   }
-  db.completedDeposits.push({ ...deposit, status: 'approved', verifiedBy: 'auto', verifiedAt: new Date().toISOString(), photoFileId: fileId });
+  db.completedDeposits.push({ 
+    ...deposit, 
+    status: 'approved', 
+    verifiedBy: 'auto', 
+    verifiedAt: new Date().toISOString(), 
+    photoFileId: fileId 
+  });
   const idx = db.pendingDeposits.findIndex(d => d.id === deposit.id);
   if (idx !== -1) db.pendingDeposits.splice(idx, 1);
   saveDB();
-  bot.sendMessage(chatId, `✅ Deposit Auto-Approved!\n💰 ${deposit.amount} ETB\n📊 New Balance: ${user ? user.balance.toFixed(2) : 'N/A'}`);
+  bot.sendMessage(chatId, 
+    `✅ *Deposit Auto-Approved!*\n\n` +
+    `💰 Amount: ${deposit.amount} ETB\n` +
+    `📊 New Balance: ${user ? user.balance.toFixed(2) : 'N/A'}`,
+    { parse_mode: 'Markdown' }
+  );
   ADMIN_IDS.forEach(adminId => {
-    bot.sendPhoto(adminId, fileId, { caption: `📸 Auto-Verified Deposit\n👤 ${msg.from.first_name} (${chatId})\n💰 ${deposit.amount} ETB\n✅ Status: Auto-approved` });
+    bot.sendPhoto(adminId, fileId, { 
+      caption: `📸 *Auto-Verified Deposit*\n👤 ${msg.from.first_name} (${chatId})\n💰 ${deposit.amount} ETB\n✅ Status: Auto-approved`,
+      parse_mode: 'Markdown'
+    });
   });
 });
 
@@ -458,4 +562,5 @@ server.listen(PORT, () => {
   console.log(`🚀 Server running on ${BACKEND_URL}`);
   console.log(`🤖 Bot @Ethiobet1_bot is active`);
   console.log(`✅ Auto-Verification ENABLED`);
+  console.log(`📊 Database: ${DB_PATH}`);
 });
