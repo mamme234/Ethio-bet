@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>✈️ Ethiobet</title>
+  <title>🎮 AradaGaming</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
     body {
       background: #0b0e14;
+      color: #fff;
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
       padding: 16px;
     }
     .app {
@@ -26,6 +26,7 @@
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
       position: relative;
       overflow: hidden;
+      min-height: 600px;
     }
     .app::before {
       content: '';
@@ -37,45 +38,169 @@
       background: radial-gradient(circle at 30% 10%, rgba(240, 185, 11, 0.05), transparent 60%);
       pointer-events: none;
     }
-    .profile {
+    .page { display: none; animation: fadeIn 0.3s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HEADER */
+    .header {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
       padding-bottom: 14px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
-    .profile img {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: 2px solid #f0b90b;
-      object-fit: cover;
-      background: #1f2a37;
-    }
-    .profile .info { flex: 1; }
-    .profile .name { color: #fff; font-size: 16px; font-weight: 700; }
-    .profile .username { color: #889bb5; font-size: 12px; }
-    .profile .balance {
+    .logo { font-size: 22px; font-weight: 800; color: #f0b90b; }
+    .logo span { color: #fff; }
+    .header .balance {
       color: #ffd966;
-      font-size: 18px;
       font-weight: 700;
       background: rgba(240, 185, 11, 0.12);
       padding: 4px 14px;
       border-radius: 40px;
       border: 1px solid rgba(240, 185, 11, 0.2);
+      font-size: 14px;
     }
-    .admin-badge {
-      background: #f0b90b;
-      color: #0b0e14;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 10px;
+    .header .user-name { color: #889bb5; font-size: 13px; }
+    .header .logout-btn { color: #f28b82; font-size: 12px; cursor: pointer; background: none; border: none; }
+
+    /* NAV TABS */
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px 0 12px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tabs button {
+      background: transparent;
+      border: none;
+      color: #6a7e9c;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.2s;
+    }
+    .nav-tabs button.active { background: #f0b90b; color: #0b0e14; }
+    .nav-tabs button:hover { color: #fff; }
+
+    /* GAME GRID */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .game-card {
+      background: #131a22;
+      border-radius: 16px;
+      padding: 14px 8px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.04);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .game-card:hover { border-color: #f0b90b; transform: scale(1.02); }
+    .game-card .icon { font-size: 28px; margin-bottom: 4px; }
+    .game-card .name { font-size: 11px; font-weight: 600; color: #b0c8e5; }
+    .game-card .tag {
+      font-size: 9px;
+      color: #6a7e9c;
+      background: #1f2a37;
+      padding: 2px 8px;
       border-radius: 40px;
       display: inline-block;
-      margin-top: 2px;
-      text-transform: uppercase;
+      margin-top: 3px;
     }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0 4px;
+      margin-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .bottom-nav a {
+      color: #6a7e9c;
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .bottom-nav a.active { color: #f0b90b; }
+    .bottom-nav a .emoji { font-size: 20px; }
+
+    /* PROMO BANNER */
+    .promo-banner {
+      background: linear-gradient(135deg, #1f3a2f, #2a8c5a);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .promo-banner .text { font-weight: 700; font-size: 14px; }
+    .promo-banner .text small { display: block; font-weight: 400; font-size: 11px; opacity: 0.8; }
+    .promo-banner .btn {
+      background: #f0b90b;
+      color: #0b0e14;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 12px;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* LOGIN / REGISTER */
+    .auth-container { max-width: 360px; margin: 20px auto; }
+    .auth-container h1 { font-size: 24px; margin-bottom: 4px; }
+    .auth-container .sub { color: #6a7e9c; font-size: 14px; margin-bottom: 20px; }
+    .auth-container label { display: block; font-size: 13px; font-weight: 600; color: #a0b3cc; margin-bottom: 4px; }
+    .auth-container input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #1b2532;
+      border: 1px solid #2f3e51;
+      border-radius: 40px;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 14px;
+      outline: none;
+    }
+    .auth-container input:focus { border-color: #f0b90b; }
+    .auth-container .btn {
+      width: 100%;
+      padding: 14px;
+      background: #f0b90b;
+      border: none;
+      border-radius: 40px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0b0e14;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .auth-container .btn:hover { background: #ffce3c; }
+    .auth-container .switch { text-align: center; margin-top: 16px; color: #6a7e9c; font-size: 14px; }
+    .auth-container .switch a { color: #f0b90b; cursor: pointer; text-decoration: none; }
+    .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 12px; }
+
+    /* GAME PAGE - Aviator */
     .multiplier {
       text-align: center;
       font-size: 44px;
@@ -127,11 +252,11 @@
     .controls input:focus { border-color: #f0b90b; }
     .controls button {
       flex: 1;
-      min-width: 80px;
+      min-width: 70px;
       border: none;
       border-radius: 40px;
       padding: 12px 0;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       text-transform: uppercase;
       cursor: pointer;
@@ -150,17 +275,18 @@
     }
     #cashoutBtn:hover:not(:disabled) { transform: scale(1.02); }
     button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
     .history {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 5px;
-      margin-top: 12px;
-      padding-top: 12px;
+      margin-top: 10px;
+      padding-top: 10px;
       border-top: 1px solid rgba(255,255,255,0.05);
       min-height: 30px;
     }
-    .history-label { color: #6a7e9c; font-size: 11px; font-weight: 600; margin-right: 4px; }
+    .history-label { color: #6a7e9c; font-size: 11px; font-weight: 600; }
     .badge {
       background: #1f2a37;
       color: #b0c8e5;
@@ -172,14 +298,47 @@
     }
     .badge.high { background: #1f3a2f; color: #6fcf97; }
     .badge.low { background: #3a1f1f; color: #f28b82; }
-    .footer {
-      color: #4a5e7a;
-      font-size: 10px;
-      text-align: center;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.04);
+
+    /* BACK BUTTON */
+    .back-btn {
+      background: none;
+      border: none;
+      color: #6a7e9c;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px 0;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
+    .back-btn:hover { color: #fff; }
+
+    /* WALLET */
+    .wallet-card {
+      background: #131a22;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.04);
+      margin-bottom: 12px;
+    }
+    .wallet-card .amount { font-size: 32px; font-weight: 800; color: #ffd966; }
+    .wallet-card .label { color: #6a7e9c; font-size: 13px; }
+    .wallet-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .wallet-actions button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .wallet-actions .deposit-btn { background: #2a8c5a; color: #fff; }
+    .wallet-actions .withdraw-btn { background: #8c2a2a; color: #fff; }
+    .wallet-actions button:hover { transform: scale(1.02); }
+
+    /* ADMIN PANEL */
     .admin-panel {
       margin-top: 14px;
       padding-top: 14px;
@@ -217,7 +376,6 @@
     }
     .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 16px; }
     .deposit-card .info .user { color: #889bb5; font-size: 12px; }
-    .deposit-card .info .time { color: #6a7e9c; font-size: 10px; }
     .deposit-card .actions { display: flex; gap: 6px; }
     .deposit-card .actions button {
       padding: 6px 16px;
@@ -234,189 +392,680 @@
     .btn-reject:hover { background: #b03636; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .empty-deposits { color: #6a7e9c; text-align: center; padding: 16px; font-size: 13px; }
-    .merchant-info {
-      background: rgba(240, 185, 11, 0.06);
-      border: 1px solid rgba(240, 185, 11, 0.1);
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-top: 6px;
-      font-size: 12px;
-      color: #889bb5;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+
+    /* CHAT */
+    .chat-messages {
+      height: 300px;
+      overflow-y: auto;
+      background: #0f161e;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #25303e;
     }
-    .merchant-info strong { color: #ffd966; }
-    .deposit-info-box {
-      background: rgba(42, 140, 90, 0.08);
-      border: 1px solid rgba(42, 140, 90, 0.15);
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin: 8px 0;
-      font-size: 13px;
-      color: #889bb5;
-      text-align: center;
+    .chat-message { margin-bottom: 8px; }
+    .chat-message .user { color: #f0b90b; font-weight: 700; font-size: 13px; }
+    .chat-message .msg { color: #b0c8e5; font-size: 14px; }
+    .chat-message .time { color: #6a7e9c; font-size: 10px; margin-left: 8px; }
+    .chat-input { display: flex; gap: 8px; }
+    .chat-input input {
+      flex: 1;
+      padding: 10px 16px;
+      background: #1b2532;
+      border: 1px solid #2f3e51;
+      border-radius: 40px;
+      color: #fff;
+      outline: none;
     }
-    .deposit-info-box strong { color: #ffd966; display: block; font-size: 18px; margin-bottom: 4px; }
-    .auto-verify-badge {
-      display: inline-block;
-      background: #6fcf97;
+    .chat-input input:focus { border-color: #f0b90b; }
+    .chat-input button {
+      padding: 10px 20px;
+      background: #f0b90b;
+      border: none;
+      border-radius: 40px;
+      font-weight: 700;
+      color: #0b0e14;
+      cursor: pointer;
+    }
+
+    .admin-badge {
+      background: #f0b90b;
       color: #0b0e14;
       font-size: 10px;
       font-weight: 700;
       padding: 2px 10px;
       border-radius: 40px;
-      margin-top: 4px;
+      display: inline-block;
+      margin-top: 2px;
+      text-transform: uppercase;
     }
+
+    .footer-text { color: #4a5e7a; font-size: 10px; text-align: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); }
   </style>
 </head>
 <body>
 
-<div class="app">
-  <!-- Profile -->
-  <div class="profile">
-    <img id="avatar" src="" alt="avatar">
-    <div class="info">
-      <div class="name" id="userName">Loading...</div>
-      <div class="username" id="userTag">@username</div>
-      <div id="adminBadgeContainer"></div>
+<div class="app" id="app">
+
+  <!-- ===== PAGE: LOBBY ===== -->
+  <div class="page active" id="page-lobby">
+    <div class="header">
+      <div class="logo">Arada<span>Gaming</span></div>
+      <div id="lobbyUserInfo">
+        <span class="balance" id="lobbyBalance">💰 0.00 ETB</span>
+        <button class="logout-btn" onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
+        <a href="#" onclick="showPage('login')" style="color:#6a7e9c;text-decoration:none;font-size:13px;margin-left:8px;" id="loginLink">Login</a>
+      </div>
     </div>
-    <div class="balance" id="balanceDisplay">0</div>
+
+    <div class="promo-banner">
+      <div class="text">🎉 Welcome Bonus <small>100% up to 1000 ETB</small></div>
+      <button class="btn" onclick="showPage('promotions')">Claim</button>
+    </div>
+
+    <div class="nav-tabs" id="navTabs">
+      <button class="active" data-tab="all">All Games</button>
+      <button data-tab="slots">Slots</button>
+      <button data-tab="crash">Crash Games</button>
+      <button data-tab="promo" onclick="showPage('promotions')">Promotions</button>
+    </div>
+
+    <div class="game-grid" id="gameGrid">
+      <div class="game-card" onclick="showPage('game-aviator')">
+        <div class="icon">✈️</div>
+        <div class="name">Aviator</div>
+        <div class="tag">Crash</div>
+      </div>
+      <div class="game-card" onclick="showPage('game-jetx')">
+        <div class="icon">🚀</div>
+        <div class="name">JetX</div>
+        <div class="tag">Crash</div>
+      </div>
+      <div class="game-card" onclick="showPage('game-mines')">
+        <div class="icon">💣</div>
+        <div class="name">Mines</div>
+        <div class="tag">Strategy</div>
+      </div>
+      <div class="game-card" onclick="alert('Coming Soon!')">
+        <div class="icon">🐔</div>
+        <div class="name">Chicken Road</div>
+        <div class="tag">Crash</div>
+      </div>
+      <div class="game-card" onclick="alert('Coming Soon!')">
+        <div class="icon">🎰</div>
+        <div class="name">Multi Hot 5</div>
+        <div class="tag">Slot</div>
+      </div>
+      <div class="game-card" onclick="alert('Coming Soon!')">
+        <div class="icon">🔥</div>
+        <div class="name">Burn Wilds</div>
+        <div class="tag">Slot</div>
+      </div>
+    </div>
+
+    <!-- Admin Panel (hidden by default) -->
+    <div class="admin-panel" id="adminPanel">
+      <h2>🔑 Admin Panel <span id="pendingCount">0 pending</span></h2>
+      <div id="adminDepositList"><div class="empty-deposits">No pending deposits</div></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a class="active" onclick="showPage('lobby')"><span class="emoji">🏠</span>Home</a>
+      <a onclick="showPage('wallet')"><span class="emoji">💰</span>Wallet</a>
+      <a onclick="showPage('promotions')"><span class="emoji">🎁</span>Promos</a>
+      <a onclick="showPage('chat')"><span class="emoji">💬</span>Chat</a>
+      <a onclick="showPage('more')"><span class="emoji">📋</span>More</a>
+    </div>
+    <div class="footer-text">⚡ @aradagamingbot · Telebirr</div>
   </div>
 
-  <!-- Merchant Info -->
-  <div class="merchant-info">
-    <span>🏦 Send Telebirr to:</span>
-    <strong id="merchantPhone">0934600018</strong>
-  </div>
-
-  <!-- Deposit Info -->
-  <div class="deposit-info-box">
-    <strong>🤖 Auto-Verification Active</strong>
-    Send money to <strong>0934600018</strong> via Telebirr, then send screenshot to bot<br>
-    <span style="font-size:11px;color:#6fcf97;">✅ Instant credit when you send the screenshot!</span>
-  </div>
-
-  <!-- Multiplier -->
-  <div class="multiplier" id="multiplierDisplay">1.00x</div>
-
-  <!-- Canvas -->
-  <canvas id="gameCanvas" width="800" height="450"></canvas>
-
-  <div class="status" id="statusMsg">⏳ Connecting...</div>
-
-  <!-- Controls -->
-  <div class="controls">
-    <input type="number" id="betInput" value="10" step="1" min="1">
-    <button id="betBtn" disabled>🚀 Bet</button>
-    <button id="cashoutBtn" disabled>💰 Cash Out</button>
-  </div>
-
-  <!-- History -->
-  <div class="history">
-    <span class="history-label">📊 History:</span>
-    <div id="historyContainer"></div>
-  </div>
-
-  <!-- ADMIN PANEL (hidden by default) -->
-  <div class="admin-panel" id="adminPanel">
-    <h2>🔑 Admin Panel <span id="pendingCount">0 pending</span></h2>
-    <div id="adminDepositList">
-      <div class="empty-deposits">No pending deposits</div>
+  <!-- ===== PAGE: LOGIN ===== -->
+  <div class="page" id="page-login">
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+    <div class="auth-container">
+      <h1>🔐 Login</h1>
+      <div class="sub">Welcome back to AradaGaming</div>
+      <div id="loginError" class="auth-error"></div>
+      <label>Phone Number</label>
+      <input type="tel" id="loginPhone" placeholder="09XXXXXXXX">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter your password">
+      <button class="btn" onclick="login()">Continue</button>
+      <div class="switch">Don't have an account? <a onclick="showPage('register')">Sign Up</a></div>
     </div>
   </div>
 
-  <div class="footer">⚡ @Ethiobet1_bot · Auto-Verify · Telebirr</div>
+  <!-- ===== PAGE: REGISTER ===== -->
+  <div class="page" id="page-register">
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+    <div class="auth-container">
+      <h1>📝 Sign Up</h1>
+      <div class="sub">Create your AradaGaming account</div>
+      <div id="registerError" class="auth-error"></div>
+      <label>Full Name</label>
+      <input type="text" id="registerName" placeholder="Your name">
+      <label>Phone Number</label>
+      <input type="tel" id="registerPhone" placeholder="09XXXXXXXX">
+      <label>Password</label>
+      <input type="password" id="registerPassword" placeholder="Create a password">
+      <button class="btn" onclick="register()">Create Account</button>
+      <div class="switch">Already have an account? <a onclick="showPage('login')">Login</a></div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: WALLET ===== -->
+  <div class="page" id="page-wallet">
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+    <h2 style="margin-bottom:12px;">💰 Wallet</h2>
+    <div class="wallet-card">
+      <div class="label">Your Balance</div>
+      <div class="amount" id="walletBalance">0.00 ETB</div>
+      <div class="wallet-actions">
+        <button class="deposit-btn" onclick="deposit()">💳 Deposit</button>
+        <button class="withdraw-btn" onclick="alert('Withdrawals coming soon!')">🏦 Withdraw</button>
+      </div>
+    </div>
+    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);">
+      <h3 style="font-size:14px;color:#6a7e9c;margin-bottom:8px;">📊 Deposit History</h3>
+      <div id="walletHistory"><div style="color:#6a7e9c;font-size:13px;text-align:center;padding:12px;">No transactions yet</div></div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: PROMOTIONS ===== -->
+  <div class="page" id="page-promotions">
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+    <h2 style="margin-bottom:12px;">🎁 Promotions</h2>
+    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div style="font-weight:700;">💰 Deposit Bonus</div><div style="font-size:12px;color:#6a7e9c;">100% up to 1000 ETB</div></div>
+        <button class="btn" style="background:#f0b90b;border:none;padding:6px 16px;border-radius:40px;font-weight:700;cursor:pointer;">Claim</button>
+      </div>
+    </div>
+    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div style="font-weight:700;">🎰 Spin Bonuses</div><div style="font-size:12px;color:#6a7e9c;">Free spins on selected slots</div></div>
+        <button class="btn" style="background:#f0b90b;border:none;padding:6px 16px;border-radius:40px;font-weight:700;cursor:pointer;">Claim</button>
+      </div>
+    </div>
+    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div style="font-weight:700;">🐔 Shamo</div><div style="font-size:12px;color:#6a7e9c;">Weekly cashback bonus</div></div>
+        <button class="btn" style="background:#f0b90b;border:none;padding:6px 16px;border-radius:40px;font-weight:700;cursor:pointer;">Claim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: CHAT ===== -->
+  <div class="page" id="page-chat">
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+    <h2 style="margin-bottom:12px;">💬 Live Chat</h2>
+    <div class="chat-messages" id="chatMessages">
+      <div style="color:#6a7e9c;text-align:center;padding:40px;">No messages yet. Be the first!</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()">
+      <button onclick="sendChat()">Send</button>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: MORE ===== -->
+  <div class="page" id="page-more">
+    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+    <h2 style="margin-bottom:12px;">📋 More Options</h2>
+    <div style="background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);">
+      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;">📖 About Us</a></div>
+      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;">❓ FAQs</a></div>
+      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;">🛡️ Responsible Gaming</a></div>
+      <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><a href="#" style="color:#fff;text-decoration:none;">📜 Terms & Conditions</a></div>
+      <div style="padding:8px 0;"><a href="#" style="color:#fff;text-decoration:none;">🔒 Privacy Policy</a></div>
+    </div>
+    <div style="margin-top:12px;background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);">
+      <div style="color:#6a7e9c;font-size:13px;">📱 Social</div>
+      <a href="#" style="color:#f0b90b;text-decoration:none;display:block;padding:4px 0;">📢 Telegram</a>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: GAME - AVIATOR ===== -->
+  <div class="page" id="page-game-aviator">
+    <button class="back-btn" onclick="stopGame(); showPage('lobby')">← Back to Lobby</button>
+    <div class="multiplier" id="multiplierDisplay">1.00x</div>
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
+    <div class="status" id="statusMsg">⏳ Connecting...</div>
+    <div class="controls">
+      <input type="number" id="betInput" value="10" step="1" min="1">
+      <button id="betBtn" disabled>🚀 Bet</button>
+      <button id="cashoutBtn" disabled>💰 Cash Out</button>
+    </div>
+    <div class="history">
+      <span class="history-label">📊 History:</span>
+      <div id="historyContainer"></div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: GAME - JETX ===== -->
+  <div class="page" id="page-game-jetx">
+    <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;">
+      <div style="font-size:80px;margin-bottom:20px;">🚀</div>
+      <h2 style="color:#f0b90b;">JetX Coming Soon!</h2>
+      <p style="color:#6a7e9c;text-align:center;">This game is under development.<br>Check back later!</p>
+      <button class="btn" onclick="showPage('lobby')" style="background:#f0b90b;border:none;padding:12px 40px;border-radius:40px;font-weight:700;margin-top:20px;cursor:pointer;">Go Back</button>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: GAME - MINES ===== -->
+  <div class="page" id="page-game-mines">
+    <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;">
+      <div style="font-size:80px;margin-bottom:20px;">💣</div>
+      <h2 style="color:#f0b90b;">Mines Coming Soon!</h2>
+      <p style="color:#6a7e9c;text-align:center;">This game is under development.<br>Check back later!</p>
+      <button class="btn" onclick="showPage('lobby')" style="background:#f0b90b;border:none;padding:12px 40px;border-radius:40px;font-weight:700;margin-top:20px;cursor:pointer;">Go Back</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
-  // ---------- CONFIG ----------
+  // ============================================================
+  // ========== CONFIGURATION ==========
+  // ============================================================
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  
-  const BACKEND_URL = isLocal 
-    ? 'http://localhost:8080' 
-    : 'https://ethio-bet.onrender.com';
-
-  const MERCHANT_PHONE = '0934600018';
+  const BACKEND_URL = isLocal ? 'http://localhost:8080' : 'https://aradagaming.onrender.com';
   const ADMIN_IDS = [7154361039];
 
   console.log('🔗 Backend URL:', BACKEND_URL);
 
-  // ---------- TELEGRAM WEBAPP ----------
-  const tg = window.Telegram.WebApp;
-  tg.expand();
+  // ============================================================
+  // ========== TELEGRAM WEBAPP ==========
+  // ============================================================
+  const tg = window.Telegram?.WebApp;
+  if (tg) tg.expand();
 
-  const user = tg.initDataUnsafe?.user;
-  const userId = user?.id || 'guest_' + Date.now();
-  const firstName = user?.first_name || 'Guest';
-  const lastName = user?.last_name || '';
-  const username = user?.username || '';
-  const photoUrl = user?.photo_url || '';
+  const tgUser = tg?.initDataUnsafe?.user;
+  const telegramId = tgUser?.id || null;
+  const firstName = tgUser?.first_name || 'Guest';
+  const username = tgUser?.username || '';
 
-  const isAdmin = ADMIN_IDS.includes(parseInt(userId));
-
-  // ---------- DOM REFS ----------
-  const avatar = document.getElementById('avatar');
-  const userName = document.getElementById('userName');
-  const userTag = document.getElementById('userTag');
-  const balanceDisplay = document.getElementById('balanceDisplay');
-  const multiplierDisplay = document.getElementById('multiplierDisplay');
-  const statusMsg = document.getElementById('statusMsg');
-  const betInput = document.getElementById('betInput');
-  const betBtn = document.getElementById('betBtn');
-  const cashoutBtn = document.getElementById('cashoutBtn');
-  const historyContainer = document.getElementById('historyContainer');
-  const merchantPhone = document.getElementById('merchantPhone');
-  const adminPanel = document.getElementById('adminPanel');
-  const adminDepositList = document.getElementById('adminDepositList');
-  const pendingCount = document.getElementById('pendingCount');
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-
-  // ---------- PROFILE ----------
-  userName.textContent = firstName + (lastName ? ' ' + lastName : '');
-  userTag.textContent = username ? '@' + username : 'User';
-  merchantPhone.textContent = MERCHANT_PHONE;
-
-  if (photoUrl) {
-    avatar.src = photoUrl;
-  } else {
-    const initial = firstName.charAt(0).toUpperCase();
-    const c = document.createElement('canvas');
-    c.width = 100; c.height = 100;
-    const cx = c.getContext('2d');
-    cx.fillStyle = '#f0b90b';
-    cx.arc(50, 50, 50, 0, Math.PI * 2);
-    cx.fill();
-    cx.fillStyle = '#0b0e14';
-    cx.font = 'bold 44px sans-serif';
-    cx.textAlign = 'center';
-    cx.textBaseline = 'middle';
-    cx.fillText(initial, 50, 52);
-    avatar.src = c.toDataURL();
+  // ============================================================
+  // ========== PAGE NAVIGATION ==========
+  // ============================================================
+  function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const page = document.getElementById('page-' + pageId);
+    if (page) page.classList.add('active');
+    
+    // Refresh wallet when opened
+    if (pageId === 'wallet') refreshWallet();
+    if (pageId === 'lobby') refreshLobby();
   }
 
-  if (isAdmin) {
-    document.getElementById('adminBadgeContainer').innerHTML = 
-      '<span class="admin-badge">🔑 Admin</span>';
-    adminPanel.classList.add('active');
+  // ============================================================
+  // ========== AUTH ==========
+  // ============================================================
+  let currentUser = null;
+
+  function getToken() { return localStorage.getItem('token'); }
+
+  function setAuth(token, user) {
+    localStorage.setItem('token', token);
+    currentUser = user;
+    updateUI();
   }
 
-  // ---------- WEBSOCKET ----------
-  const WS_URL = BACKEND_URL.replace('http', 'ws');
-  const wsUrl = `${WS_URL}/?userId=${userId}`;
-  console.log('🔗 Connecting to WebSocket:', wsUrl);
-  const ws = new WebSocket(wsUrl);
+  function logout() {
+    localStorage.removeItem('token');
+    currentUser = null;
+    updateUI();
+    showPage('lobby');
+  }
 
-  let balance = 0;
-  let multiplier = 1.00;
+  async function login() {
+    const phone = document.getElementById('loginPhone').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const error = document.getElementById('loginError');
+
+    if (!phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAuth(data.token, data.user);
+        showPage('lobby');
+      } else {
+        error.textContent = '❌ ' + data.error;
+      }
+    } catch (err) {
+      error.textContent = '❌ Network error. Try again.';
+    }
+  }
+
+  async function register() {
+    const name = document.getElementById('registerName').value.trim();
+    const phone = document.getElementById('registerPhone').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const error = document.getElementById('registerError');
+
+    if (!name || !phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
+    if (password.length < 4) { error.textContent = '⚠️ Password must be at least 4 characters'; return; }
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAuth(data.token, data.user);
+        showPage('lobby');
+      } else {
+        error.textContent = '❌ ' + data.error;
+      }
+    } catch (err) {
+      error.textContent = '❌ Network error. Try again.';
+    }
+  }
+
+  // ============================================================
+  // ========== UI UPDATES ==========
+  // ============================================================
+  function updateUI() {
+    const token = getToken();
+    const isLoggedIn = !!token && currentUser;
+
+    // Lobby
+    const lobbyBalance = document.getElementById('lobbyBalance');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginLink = document.getElementById('loginLink');
+
+    if (isLoggedIn && currentUser) {
+      lobbyBalance.textContent = `💰 ${currentUser.balance.toFixed(2)} ETB`;
+      logoutBtn.style.display = 'inline';
+      loginLink.style.display = 'none';
+      // Show admin panel if admin
+      if (ADMIN_IDS.includes(currentUser.id)) {
+        document.getElementById('adminPanel').classList.add('active');
+        loadPendingDeposits();
+      } else {
+        document.getElementById('adminPanel').classList.remove('active');
+      }
+    } else {
+      lobbyBalance.textContent = '💰 0.00 ETB';
+      logoutBtn.style.display = 'none';
+      loginLink.style.display = 'inline';
+      document.getElementById('adminPanel').classList.remove('active');
+    }
+  }
+
+  async function refreshLobby() {
+    const token = getToken();
+    if (!token) { updateUI(); return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentUser = { ...currentUser, ...data };
+        updateUI();
+      } else {
+        logout();
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  async function refreshWallet() {
+    const token = getToken();
+    if (!token) { return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('walletBalance').textContent = data.balance.toFixed(2) + ' ETB';
+        currentUser = { ...currentUser, ...data };
+        updateUI();
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  // ============================================================
+  // ========== DEPOSIT ==========
+  // ============================================================
+  function deposit() {
+    if (!currentUser) {
+      alert('Please login first!');
+      showPage('login');
+      return;
+    }
+    // Open Telegram bot for deposit
+    tg?.openTelegramLink('https://t.me/@aradagamingbot');
+    alert('📸 Send money to 0934600018 via Telebirr, then send screenshot to @aradagamingbot');
+  }
+
+  // ============================================================
+  // ========== ADMIN PANEL ==========
+  // ============================================================
+  async function loadPendingDeposits() {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/pending?adminId=${currentUser?.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Unauthorized');
+      const deposits = await res.json();
+      document.getElementById('pendingCount').textContent = deposits.length + ' pending';
+      
+      const container = document.getElementById('adminDepositList');
+      if (deposits.length === 0) {
+        container.innerHTML = '<div class="empty-deposits">✅ No pending deposits</div>';
+        return;
+      }
+      container.innerHTML = deposits.map(d => `
+        <div class="deposit-card" id="dep-${d.id}">
+          <div class="info">
+            <div class="amount">💰 ${d.amount} ETB</div>
+            <div class="user">👤 ${d.telegramId}</div>
+            <div class="user" style="font-size:10px;">🆔 ${d.id}</div>
+          </div>
+          <div class="actions">
+            <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
+            <button class="btn-reject" onclick="verifyDeposit('${d.id}', 'reject')">❌ Reject</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      document.getElementById('adminDepositList').innerHTML = '<div class="empty-deposits">⚠️ Error loading</div>';
+    }
+  }
+
+  async function verifyDeposit(depositId, action) {
+    if (!confirm(`Are you sure you want to ${action} this deposit?`)) return;
+    const token = getToken();
+    if (!token) return;
+    
+    const card = document.getElementById(`dep-${depositId}`);
+    const buttons = card.querySelectorAll('button');
+    buttons.forEach(b => b.disabled = true);
+    
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ adminId: currentUser.id, depositId, action })
+      });
+      const data = await res.json();
+      if (data.success) {
+        card.style.opacity = '0.3';
+        card.style.background = action === 'approve' ? '#1f3a2f' : '#3a1f1f';
+        setTimeout(loadPendingDeposits, 1000);
+        if (currentUser) currentUser.balance = data.balance || currentUser.balance;
+        updateUI();
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+      buttons.forEach(b => b.disabled = false);
+    }
+  }
+
+  // ============================================================
+  // ========== CHAT ==========
+  // ============================================================
+  function sendChat() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    const chatDiv = document.getElementById('chatMessages');
+    const newMsg = document.createElement('div');
+    newMsg.className = 'chat-message';
+    const name = currentUser?.name || firstName || 'Guest';
+    newMsg.innerHTML = `<span class="user">${name}</span> <span class="msg">${msg}</span> <span class="time">${new Date().toLocaleTimeString()}</span>`;
+    chatDiv.appendChild(newMsg);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+    input.value = '';
+    
+    // Store in local DB (simulate)
+    const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+    messages.push({ user: name, msg, time: new Date().toISOString() });
+    localStorage.setItem('chatMessages', JSON.stringify(messages));
+  }
+
+  function loadChat() {
+    const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+    const chatDiv = document.getElementById('chatMessages');
+    if (messages.length === 0) {
+      chatDiv.innerHTML = '<div style="color:#6a7e9c;text-align:center;padding:40px;">No messages yet. Be the first!</div>';
+      return;
+    }
+    chatDiv.innerHTML = messages.map(m => `
+      <div class="chat-message">
+        <span class="user">${m.user}</span>
+        <span class="msg">${m.msg}</span>
+        <span class="time">${new Date(m.time).toLocaleTimeString()}</span>
+      </div>
+    `).join('');
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
+
+  // ============================================================
+  // ========== AVIATOR GAME ENGINE ==========
+  // ============================================================
+  let ws = null;
+  let gameRunning = false;
+  let gameCanvas = null;
+  let ctx = null;
+  let gameMultiplier = 1.00;
   let gameStatus = 'waiting';
   let hasBet = false;
-  const history = [];
+  let gameHistory = [];
+  let gameAnimFrame = null;
 
-  // ---------- CANVAS DRAW ----------
+  function initGame() {
+    gameCanvas = document.getElementById('gameCanvas');
+    ctx = gameCanvas.getContext('2d');
+    drawCanvas(1.00, false, 0);
+    connectGameWS();
+  }
+
+  function connectGameWS() {
+    if (ws) { ws.close(); }
+    const userId = currentUser?.id || telegramId || 'guest';
+    const WS_URL = BACKEND_URL.replace('http', 'ws');
+    ws = new WebSocket(`${WS_URL}/?userId=${userId}`);
+    
+    ws.onopen = () => {
+      document.getElementById('statusMsg').textContent = '✅ Connected!';
+      document.getElementById('statusMsg').className = 'status status-connected';
+      document.getElementById('betBtn').disabled = false;
+    };
+    
+    ws.onclose = () => {
+      document.getElementById('statusMsg').textContent = '❌ Disconnected. Reconnecting...';
+      document.getElementById('statusMsg').className = 'status status-error';
+      document.getElementById('betBtn').disabled = true;
+      document.getElementById('cashoutBtn').disabled = true;
+      setTimeout(connectGameWS, 3000);
+    };
+    
+    ws.onerror = () => {
+      document.getElementById('statusMsg').textContent = '⚠️ Connection error. Retrying...';
+      document.getElementById('statusMsg').className = 'status status-error';
+    };
+    
+    ws.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      console.log('WS:', data);
+      
+      switch(data.type) {
+        case 'init':
+          if (currentUser) currentUser.balance = data.balance;
+          updateUI();
+          document.getElementById('betBtn').disabled = false;
+          break;
+        case 'round_started':
+          gameStatus = 'flying';
+          document.getElementById('statusMsg').textContent = '✈️ Flying! Cash out!';
+          document.getElementById('statusMsg').className = 'status';
+          document.getElementById('betBtn').disabled = true;
+          if (!hasBet) document.getElementById('betBtn').disabled = false;
+          break;
+        case 'multiplier_update':
+          gameMultiplier = data.multiplier;
+          document.getElementById('multiplierDisplay').textContent = gameMultiplier.toFixed(2) + 'x';
+          if (gameStatus !== 'crashed') drawCanvas(gameMultiplier, false, 0);
+          break;
+        case 'game_crashed':
+          gameStatus = 'crashed';
+          gameMultiplier = data.multiplier;
+          document.getElementById('multiplierDisplay').textContent = gameMultiplier.toFixed(2) + 'x';
+          drawCanvas(gameMultiplier, true, gameMultiplier);
+          document.getElementById('statusMsg').textContent = '💥 Crashed!';
+          document.getElementById('statusMsg').className = 'status status-error';
+          document.getElementById('betBtn').disabled = false;
+          document.getElementById('cashoutBtn').disabled = true;
+          hasBet = false;
+          gameHistory.unshift(gameMultiplier);
+          if (gameHistory.length > 15) gameHistory.pop();
+          renderGameHistory();
+          break;
+        case 'bet_placed':
+          hasBet = true;
+          if (currentUser) currentUser.balance = data.balance;
+          document.getElementById('betBtn').disabled = true;
+          document.getElementById('cashoutBtn').disabled = false;
+          document.getElementById('statusMsg').textContent = '⏳ Bet placed!';
+          document.getElementById('statusMsg').className = 'status';
+          updateUI();
+          break;
+        case 'cash_out_success':
+          hasBet = false;
+          if (currentUser) currentUser.balance = data.balance;
+          document.getElementById('cashoutBtn').disabled = true;
+          document.getElementById('betBtn').disabled = false;
+          document.getElementById('statusMsg').textContent = `✅ Cashed out at ${data.multiplier.toFixed(2)}x! Won ${data.winAmount.toFixed(2)} ETB!`;
+          document.getElementById('statusMsg').className = 'status status-connected';
+          updateUI();
+          drawCanvas(data.multiplier, false, 0);
+          break;
+        case 'error':
+          document.getElementById('statusMsg').textContent = '⚠️ ' + data.message;
+          document.getElementById('statusMsg').className = 'status status-error';
+          if (data.message.includes('balance')) document.getElementById('betBtn').disabled = false;
+          break;
+      }
+    };
+  }
+
   function drawCanvas(currentMultiplier, crashed, crashValue) {
-    const w = canvas.width, h = canvas.height;
+    const w = gameCanvas.width, h = gameCanvas.height;
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = '#1e2a38';
     ctx.lineWidth = 0.8;
@@ -483,195 +1132,48 @@
     }
   }
 
-  // ---------- WEBSOCKET EVENTS ----------
-  ws.onopen = () => {
-    statusMsg.textContent = '✅ Connected!';
-    statusMsg.className = 'status status-connected';
-    betBtn.disabled = false;
-  };
-  
-  ws.onclose = () => {
-    statusMsg.textContent = '❌ Disconnected. Reconnecting...';
-    statusMsg.className = 'status status-error';
-    betBtn.disabled = true;
-    cashoutBtn.disabled = true;
-    setTimeout(() => window.location.reload(), 5000);
-  };
-  
-  ws.onerror = () => {
-    statusMsg.textContent = '⚠️ Connection error. Retrying...';
-    statusMsg.className = 'status status-error';
-  };
-
-  ws.onmessage = (e) => {
-    const data = JSON.parse(e.data);
-    console.log('WS:', data);
-
-    switch(data.type) {
-      case 'init':
-        balance = data.balance;
-        updateUI();
-        betBtn.disabled = false;
-        break;
-      case 'round_started':
-        gameStatus = 'flying';
-        statusMsg.textContent = '✈️ Flying! Cash out!';
-        statusMsg.className = 'status';
-        betBtn.disabled = true;
-        if (!hasBet) betBtn.disabled = false;
-        break;
-      case 'multiplier_update':
-        multiplier = data.multiplier;
-        multiplierDisplay.textContent = multiplier.toFixed(2) + 'x';
-        if (gameStatus !== 'crashed') drawCanvas(multiplier, false, 0);
-        break;
-      case 'game_crashed':
-        gameStatus = 'crashed';
-        multiplier = data.multiplier;
-        multiplierDisplay.textContent = multiplier.toFixed(2) + 'x';
-        drawCanvas(multiplier, true, multiplier);
-        statusMsg.textContent = '💥 Crashed!';
-        statusMsg.className = 'status status-error';
-        betBtn.disabled = false;
-        cashoutBtn.disabled = true;
-        hasBet = false;
-        history.unshift(multiplier);
-        if (history.length > 15) history.pop();
-        renderHistory();
-        break;
-      case 'bet_placed':
-        hasBet = true;
-        balance = data.balance;
-        betBtn.disabled = true;
-        cashoutBtn.disabled = false;
-        statusMsg.textContent = '⏳ Bet placed!';
-        statusMsg.className = 'status';
-        updateUI();
-        break;
-      case 'cash_out_success':
-        hasBet = false;
-        balance = data.balance;
-        cashoutBtn.disabled = true;
-        betBtn.disabled = false;
-        statusMsg.textContent = `✅ Cashed out at ${data.multiplier.toFixed(2)}x! Won ${data.winAmount.toFixed(2)} ETB!`;
-        statusMsg.className = 'status status-connected';
-        updateUI();
-        drawCanvas(data.multiplier, false, 0);
-        break;
-      case 'user_cashed_out':
-        statusMsg.textContent = `👤 User cashed out at ${data.multiplier.toFixed(2)}x!`;
-        statusMsg.className = 'status';
-        break;
-      case 'error':
-        statusMsg.textContent = '⚠️ ' + data.message;
-        statusMsg.className = 'status status-error';
-        if (data.message.includes('balance')) betBtn.disabled = false;
-        break;
-    }
-  };
-
-  function updateUI() {
-    balanceDisplay.textContent = balance.toFixed(0);
-  }
-
-  function renderHistory() {
-    historyContainer.innerHTML = '';
-    history.forEach(v => {
+  function renderGameHistory() {
+    const container = document.getElementById('historyContainer');
+    container.innerHTML = '';
+    gameHistory.forEach(v => {
       const badge = document.createElement('span');
       badge.className = 'badge' + (v >= 5 ? ' high' : v <= 1.5 ? ' low' : '');
       badge.textContent = v.toFixed(2) + 'x';
-      historyContainer.appendChild(badge);
+      container.appendChild(badge);
     });
   }
 
-  // ---------- BET & CASHOUT ----------
-  betBtn.onclick = () => {
-    const amount = parseFloat(betInput.value);
-    if (!amount || amount <= 0) return alert('Enter valid bet');
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'place_bet', amount }));
-    }
-  };
-
-  cashoutBtn.onclick = () => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'cash_out' }));
-    }
-  };
-
-  // ---------- ADMIN PANEL ----------
-  if (isAdmin) {
-    function loadPendingDeposits() {
-      fetch(`${BACKEND_URL}/api/pending?adminId=${userId}`)
-        .then(res => {
-          if (res.status === 403) {
-            adminDepositList.innerHTML = '<div class="empty-deposits">⛔ Unauthorized</div>';
-            return null;
-          }
-          return res.json();
-        })
-        .then(deposits => {
-          if (!deposits) return;
-          pendingCount.textContent = deposits.length + ' pending';
-          
-          if (deposits.length === 0) {
-            adminDepositList.innerHTML = '<div class="empty-deposits">✅ No pending deposits</div>';
-            return;
-          }
-          
-          adminDepositList.innerHTML = deposits.map(d => `
-            <div class="deposit-card" id="dep-${d.id}">
-              <div class="info">
-                <div class="amount">💰 ${d.amount} ETB</div>
-                <div class="user">👤 ${d.telegramId}</div>
-                <div class="time">🆔 ${d.id}</div>
-                <div class="time">📅 ${new Date(d.createdAt).toLocaleString()}</div>
-              </div>
-              <div class="actions">
-                <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
-                <button class="btn-reject" onclick="verifyDeposit('${d.id}', 'reject')">❌ Reject</button>
-              </div>
-            </div>
-          `).join('');
-        })
-        .catch(err => {
-          adminDepositList.innerHTML = '<div class="empty-deposits">⚠️ Error loading</div>';
-          console.error(err);
-        });
-    }
-
-    window.verifyDeposit = function(depositId, action) {
-      if (!confirm(`Are you sure you want to ${action} this deposit?`)) return;
-      
-      const card = document.getElementById(`dep-${depositId}`);
-      const buttons = card.querySelectorAll('button');
-      buttons.forEach(b => b.disabled = true);
-      
-      fetch(`${BACKEND_URL}/api/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminId: userId, depositId, action })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          card.style.opacity = '0.3';
-          card.style.background = action === 'approve' ? '#1f3a2f' : '#3a1f1f';
-          setTimeout(loadPendingDeposits, 1000);
-        }
-      })
-      .catch(err => {
-        alert('Error: ' + err.message);
-        buttons.forEach(b => b.disabled = false);
-      });
-    };
-
-    loadPendingDeposits();
-    setInterval(loadPendingDeposits, 10000);
+  function stopGame() {
+    if (ws) { ws.close(); ws = null; }
+    gameRunning = false;
+    if (gameAnimFrame) cancelAnimationFrame(gameAnimFrame);
   }
 
-  // ---------- KEYBOARD SHORTCUTS ----------
+  // ============================================================
+  // ========== GAME CONTROLS (Aviator) ==========
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('betBtn').addEventListener('click', () => {
+      const amount = parseFloat(document.getElementById('betInput').value);
+      if (!amount || amount <= 0) return alert('Enter valid bet');
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'place_bet', amount }));
+      }
+    });
+
+    document.getElementById('cashoutBtn').addEventListener('click', () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'cash_out' }));
+      }
+    });
+  });
+
+  // ============================================================
+  // ========== KEYBOARD SHORTCUTS ==========
+  // ============================================================
   document.addEventListener('keydown', (e) => {
+    const betBtn = document.getElementById('betBtn');
+    const cashoutBtn = document.getElementById('cashoutBtn');
     if (e.key === 'Enter' && !betBtn.disabled) {
       e.preventDefault();
       betBtn.click();
@@ -682,8 +1184,30 @@
     }
   });
 
-  // ---------- INIT ----------
-  drawCanvas(1.00, false, 0);
+  // ============================================================
+  // ========== INIT ==========
+  // ============================================================
+  // Load chat messages
+  loadChat();
+
+  // Check for existing token
+  const savedToken = getToken();
+  if (savedToken) {
+    refreshLobby();
+  }
+
+  // Init game when page loads
+  setTimeout(initGame, 500);
+
+  // Auto-refresh admin panel
+  setInterval(() => {
+    if (document.getElementById('adminPanel').classList.contains('active')) {
+      loadPendingDeposits();
+    }
+  }, 15000);
+
+  console.log('🎮 AradaGaming Platform Loaded!');
 </script>
+
 </body>
   </html>
