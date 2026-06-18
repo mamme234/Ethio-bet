@@ -18,12 +18,13 @@ const MERCHANT_PHONE = process.env.MERCHANT_PHONE || '0934600018';
 const ADMIN_IDS = (process.env.ADMIN_IDS || '7154361039').split(',').map(id => parseInt(id.trim()));
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key_change_me';
+const JWT_SECRET = process.env.JWT_SECRET || 'mamme dev';
 
 console.log('🚀 Starting Ethiobet Platform...');
 console.log('🤖 Bot: @Ethiobet1_bot');
 console.log('📱 Merchant:', MERCHANT_PHONE);
 console.log('👑 Admins:', ADMIN_IDS);
+console.log('🔑 JWT Secret set');
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
@@ -34,7 +35,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve index.html for root
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -46,7 +46,9 @@ function loadDB() {
       users: [],
       pendingDeposits: [],
       completedDeposits: [],
-      chatMessages: []
+      chatMessages: [],
+      sportsBets: [],
+      matches: [] // will be populated with dummy data
     }, null, 2));
   }
   return JSON.parse(fs.readFileSync(DB_PATH));
@@ -71,7 +73,6 @@ app.post('/api/register', async (req, res) => {
   const { phone, password, name } = req.body;
   if (!phone || !password) return res.status(400).json({ error: 'Phone and password required' });
   if (findUser(phone)) return res.status(400).json({ error: 'User already exists' });
-  
   const hashedPassword = await bcrypt.hash(password, 10);
   const newUser = {
     id: Date.now(),
@@ -158,24 +159,160 @@ app.post('/api/verify', async (req, res) => {
   }
 });
 
+// ---------- SPORTS BETTING ENDPOINTS ----------
+
+// Get current matches (World Cup dummy data)
+app.get('/api/matches', (req, res) => {
+  const now = Date.now();
+  // Generate dummy matches if empty
+  if (db.matches.length === 0) {
+    const dummyMatches = [
+      { id: 'm1', home: 'Brazil', away: 'Argentina', homeOdds: 2.10, drawOdds: 3.20, awayOdds: 3.50, startTime: now + 3600000, status: 'upcoming' },
+      { id: 'm2', home: 'France', away: 'Germany', homeOdds: 2.40, drawOdds: 3.00, awayOdds: 2.90, startTime: now + 7200000, status: 'upcoming' },
+      { id: 'm3', home: 'England', away: 'Spain', homeOdds: 2.60, drawOdds: 3.10, awayOdds: 2.70, startTime: now + 10800000, status: 'upcoming' },
+      { id: 'm4', home: 'Italy', away: 'Portugal', homeOdds: 2.80, drawOdds: 3.00, awayOdds: 2.50, startTime: now + 14400000, status: 'upcoming' },
+      { id: 'm5', home: 'Netherlands', away: 'Belgium', homeOdds: 2.20, drawOdds: 3.30, awayOdds: 3.10, startTime: now + 18000000, status: 'upcoming' },
+    ];
+    db.matches = dummyMatches;
+    saveDB();
+  }
+  res.json(db.matches);
+});
+
+// Place a sports bet
+app.post('/api/sports/bet', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = getUser(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const { matchId, betType, amount } = req.body;
+    if (!matchId || !betType || !amount) return res.status(400).json({ error: 'Missing fields' });
+    if (amount <= 0) return res.status(400).json({ error: 'Amount must be positive' });
+    if (user.balance < amount) return res.status(400).json({ error: 'Insufficient balance' });
+
+    const match = db.matches.find(m => m.id === matchId);
+    if (!match) return res.status(404).json({ error: 'Match not found' });
+    if (match.status !== 'upcoming') return res.status(400).json({ error: 'Match already finished' });
+
+    let odds;
+    let betLabel;
+    if (betType === 'home') { odds = match.homeOdds; betLabel = match.home; }
+    else if (betType === 'draw') { odds = match.drawOdds; betLabel = 'Draw'; }
+    else if (betType === 'away') { odds = match.awayOdds; betLabel = match.away; }
+    else return res.status(400).json({ error: 'Invalid bet type' });
+
+    // Deduct balance
+    user.balance -= amount;
+    saveDB();
+
+    // Store bet
+    const bet = {
+      id: Date.now().toString(),
+      userId: user.id,
+      matchId,
+      match: `${match.home} vs ${match.away}`,
+      betType,
+      betLabel,
+      odds,
+      amount,
+      potentialWin: amount * odds,
+      placedAt: new Date().toISOString(),
+      status: 'active'
+    };
+    db.sportsBets.push(bet);
+    saveDB();
+
+    res.json({ success: true, bet, newBalance: user.balance });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// Get user's sports bet history
+app.get('/api/sports/history', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const bets = db.sportsBets.filter(b => b.userId === decoded.id);
+    res.json(bets);
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// Admin: resolve a match (set result and settle bets)
+app.post('/api/sports/resolve', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!isAdmin(decoded.id)) return res.status(403).json({ error: 'Unauthorized' });
+
+    const { matchId, winner } = req.body; // winner: 'home', 'draw', 'away'
+    const match = db.matches.find(m => m.id === matchId);
+    if (!match) return res.status(404).json({ error: 'Match not found' });
+    if (match.status === 'finished') return res.status(400).json({ error: 'Already resolved' });
+
+    // Update match status
+    match.status = 'finished';
+    match.result = winner;
+    saveDB();
+
+    // Settle bets
+    const bets = db.sportsBets.filter(b => b.matchId === matchId && b.status === 'active');
+    for (const bet of bets) {
+      if (bet.betType === winner) {
+        // Win
+        const user = getUser(bet.userId);
+        if (user) {
+          const winAmount = bet.amount * bet.odds;
+          user.balance += winAmount;
+          bet.status = 'won';
+          bet.wonAmount = winAmount;
+          try {
+            bot.sendMessage(bet.userId, `🎉 Your bet on ${bet.match} won! You won ${winAmount.toFixed(2)} ETB!`);
+          } catch(e) {}
+        }
+      } else {
+        bet.status = 'lost';
+        try {
+          bot.sendMessage(bet.userId, `😔 Your bet on ${bet.match} lost. Better luck next time!`);
+        } catch(e) {}
+      }
+    }
+    saveDB();
+
+    res.json({ success: true, settledBets: bets.length });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
 // ---------- TELEGRAM BOT ----------
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId,
-    `✈️ *Welcome to Ethiobet!*\n\n` +
-    `🎮 Play crash games, slots, and more!\n` +
+    `⚽ *Welcome to Ethiobet!*\n\n` +
+    `🎮 Play casino games & bet on sports!\n` +
     `💰 Deposit via Telebirr\n` +
     `✅ Auto-verification\n\n` +
-    `Tap the button below to start playing!`,
+    `Tap the button below to start!`,
     {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
           [{ text: '🎮 Play Now', web_app: { url: FRONTEND_URL } }],
           [{ text: '💰 Deposit', callback_data: 'deposit' }],
-          [{ text: '📊 Balance', callback_data: 'balance' }]
+          [{ text: '⚽ World Cup Bets', web_app: { url: FRONTEND_URL + '?page=sports' } }]
         ]
       }
     }
@@ -188,10 +325,6 @@ bot.on('callback_query', (query) => {
   switch(query.data) {
     case 'deposit':
       bot.sendMessage(chatId, `💳 Deposit Instructions\n\n1️⃣ Send to: ${MERCHANT_PHONE}\n2️⃣ Take a screenshot\n3️⃣ Send it here\n4️⃣ Auto-verified instantly!`);
-      break;
-    case 'balance':
-      const user = db.users.find(u => u.id === chatId || u.phone === chatId.toString());
-      bot.sendMessage(chatId, user ? `💰 Balance: ${user.balance.toFixed(2)} ETB` : '📊 Please login first.');
       break;
   }
 });
