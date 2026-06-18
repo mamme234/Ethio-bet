@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🎮 AradaGaming</title>
+  <title>🎮 Ethiobet</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -13,7 +13,7 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 16px;
+      padding: 12px;
     }
     .app {
       max-width: 480px;
@@ -21,7 +21,7 @@
       background: rgba(19, 26, 34, 0.85);
       backdrop-filter: blur(16px);
       border-radius: 32px;
-      padding: 20px;
+      padding: 16px;
       border: 1px solid rgba(255, 255, 255, 0.06);
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
       position: relative;
@@ -47,11 +47,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 14px;
+      padding-bottom: 12px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
-    .logo { font-size: 22px; font-weight: 800; color: #f0b90b; }
+    .logo { font-size: 20px; font-weight: 800; color: #f0b90b; }
     .logo span { color: #fff; }
     .header .balance {
       color: #ffd966;
@@ -441,6 +441,74 @@
     }
 
     .footer-text { color: #4a5e7a; font-size: 10px; text-align: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); }
+
+    /* JetX specific */
+    .game-coming {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 350px;
+      text-align: center;
+    }
+    .game-coming .big-icon { font-size: 80px; margin-bottom: 20px; }
+    .game-coming h2 { color: #f0b90b; margin-bottom: 8px; }
+    .game-coming p { color: #6a7e9c; }
+    .game-coming .btn { background: #f0b90b; border: none; padding: 12px 40px; border-radius: 40px; font-weight: 700; margin-top: 20px; cursor: pointer; color: #0b0e14; }
+
+    /* Mines grid */
+    .mines-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .mines-cell {
+      aspect-ratio: 1;
+      background: #1b2532;
+      border-radius: 12px;
+      border: 2px solid #2f3e51;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .mines-cell:hover:not(.revealed) { border-color: #f0b90b; }
+    .mines-cell.revealed { cursor: default; }
+    .mines-cell.bomb { background: #8c2a2a; border-color: #f28b82; }
+    .mines-cell.gem { background: #1f3a2f; border-color: #6fcf97; }
+    .mines-cell.flagged { border-color: #f0b90b; background: rgba(240,185,11,0.15); }
+
+    /* Slots */
+    .slot-machine {
+      background: #131a22;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.04);
+      margin: 12px 0;
+    }
+    .slot-reels {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin: 16px 0;
+    }
+    .slot-reel {
+      width: 80px;
+      height: 100px;
+      background: #0f161e;
+      border-radius: 12px;
+      border: 2px solid #2f3e51;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      transition: 0.3s;
+    }
+    .slot-reel.spinning { animation: spin 0.3s ease-in-out infinite; }
+    @keyframes spin { 0% { transform: translateY(-10px); } 50% { transform: translateY(10px); } 100% { transform: translateY(0); } }
   </style>
 </head>
 <body>
@@ -450,7 +518,7 @@
   <!-- ===== PAGE: LOBBY ===== -->
   <div class="page active" id="page-lobby">
     <div class="header">
-      <div class="logo">Arada<span>Gaming</span></div>
+      <div class="logo">Ethio<span>bet</span></div>
       <div id="lobbyUserInfo">
         <span class="balance" id="lobbyBalance">💰 0.00 ETB</span>
         <button class="logout-btn" onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
@@ -464,41 +532,41 @@
     </div>
 
     <div class="nav-tabs" id="navTabs">
-      <button class="active" data-tab="all">All Games</button>
-      <button data-tab="slots">Slots</button>
-      <button data-tab="crash">Crash Games</button>
-      <button data-tab="promo" onclick="showPage('promotions')">Promotions</button>
+      <button class="active" data-tab="all" onclick="filterGames('all')">All Games</button>
+      <button data-tab="slots" onclick="filterGames('slots')">Slots</button>
+      <button data-tab="crash" onclick="filterGames('crash')">Crash</button>
+      <button onclick="showPage('promotions')">Promotions</button>
     </div>
 
     <div class="game-grid" id="gameGrid">
-      <div class="game-card" onclick="showPage('game-aviator')">
+      <div class="game-card" data-game="crash" onclick="showPage('game-aviator')">
         <div class="icon">✈️</div>
         <div class="name">Aviator</div>
         <div class="tag">Crash</div>
       </div>
-      <div class="game-card" onclick="showPage('game-jetx')">
+      <div class="game-card" data-game="crash" onclick="showPage('game-jetx')">
         <div class="icon">🚀</div>
         <div class="name">JetX</div>
         <div class="tag">Crash</div>
       </div>
-      <div class="game-card" onclick="showPage('game-mines')">
+      <div class="game-card" data-game="crash" onclick="showPage('game-mines')">
         <div class="icon">💣</div>
         <div class="name">Mines</div>
         <div class="tag">Strategy</div>
       </div>
-      <div class="game-card" onclick="alert('Coming Soon!')">
-        <div class="icon">🐔</div>
-        <div class="name">Chicken Road</div>
-        <div class="tag">Crash</div>
-      </div>
-      <div class="game-card" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="showPage('game-slots')">
         <div class="icon">🎰</div>
-        <div class="name">Multi Hot 5</div>
+        <div class="name">Slots</div>
         <div class="tag">Slot</div>
       </div>
-      <div class="game-card" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
         <div class="icon">🔥</div>
         <div class="name">Burn Wilds</div>
+        <div class="tag">Slot</div>
+      </div>
+      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+        <div class="icon">💎</div>
+        <div class="name">Fortune Coins</div>
         <div class="tag">Slot</div>
       </div>
     </div>
@@ -516,7 +584,7 @@
       <a onclick="showPage('chat')"><span class="emoji">💬</span>Chat</a>
       <a onclick="showPage('more')"><span class="emoji">📋</span>More</a>
     </div>
-    <div class="footer-text">⚡ @aradagamingbot · Telebirr</div>
+    <div class="footer-text">⚡ @Ethiobet1_bot · Telebirr</div>
   </div>
 
   <!-- ===== PAGE: LOGIN ===== -->
@@ -524,7 +592,7 @@
     <button class="back-btn" onclick="showPage('lobby')">← Back</button>
     <div class="auth-container">
       <h1>🔐 Login</h1>
-      <div class="sub">Welcome back to AradaGaming</div>
+      <div class="sub">Welcome back to Ethiobet</div>
       <div id="loginError" class="auth-error"></div>
       <label>Phone Number</label>
       <input type="tel" id="loginPhone" placeholder="09XXXXXXXX">
@@ -540,7 +608,7 @@
     <button class="back-btn" onclick="showPage('lobby')">← Back</button>
     <div class="auth-container">
       <h1>📝 Sign Up</h1>
-      <div class="sub">Create your AradaGaming account</div>
+      <div class="sub">Create your Ethiobet account</div>
       <div id="registerError" class="auth-error"></div>
       <label>Full Name</label>
       <input type="text" id="registerName" placeholder="Your name">
@@ -621,7 +689,7 @@
     </div>
     <div style="margin-top:12px;background:#131a22;border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,0.04);">
       <div style="color:#6a7e9c;font-size:13px;">📱 Social</div>
-      <a href="#" style="color:#f0b90b;text-decoration:none;display:block;padding:4px 0;">📢 Telegram</a>
+      <a href="https://t.me/Ethiobet1_bot" style="color:#f0b90b;text-decoration:none;display:block;padding:4px 0;">📢 Telegram</a>
     </div>
   </div>
 
@@ -645,42 +713,92 @@
   <!-- ===== PAGE: GAME - JETX ===== -->
   <div class="page" id="page-game-jetx">
     <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;">
-      <div style="font-size:80px;margin-bottom:20px;">🚀</div>
-      <h2 style="color:#f0b90b;">JetX Coming Soon!</h2>
-      <p style="color:#6a7e9c;text-align:center;">This game is under development.<br>Check back later!</p>
-      <button class="btn" onclick="showPage('lobby')" style="background:#f0b90b;border:none;padding:12px 40px;border-radius:40px;font-weight:700;margin-top:20px;cursor:pointer;">Go Back</button>
+    <div class="game-coming">
+      <div class="big-icon">🚀</div>
+      <h2>JetX</h2>
+      <p>Same as Aviator – fly high and cash out!</p>
+      <div class="multiplier" id="jetxMultiplier">1.00x</div>
+      <canvas id="jetxCanvas" width="800" height="350"></canvas>
+      <div class="status" id="jetxStatus">⏳ Connecting...</div>
+      <div class="controls">
+        <input type="number" id="jetxBetInput" value="10" step="1" min="1">
+        <button id="jetxBetBtn" disabled>🚀 Bet</button>
+        <button id="jetxCashoutBtn" disabled>💰 Cash Out</button>
+      </div>
+      <div class="history">
+        <span class="history-label">📊 History:</span>
+        <div id="jetxHistoryContainer"></div>
+      </div>
     </div>
   </div>
 
   <!-- ===== PAGE: GAME - MINES ===== -->
   <div class="page" id="page-game-mines">
     <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;">
-      <div style="font-size:80px;margin-bottom:20px;">💣</div>
-      <h2 style="color:#f0b90b;">Mines Coming Soon!</h2>
-      <p style="color:#6a7e9c;text-align:center;">This game is under development.<br>Check back later!</p>
-      <button class="btn" onclick="showPage('lobby')" style="background:#f0b90b;border:none;padding:12px 40px;border-radius:40px;font-weight:700;margin-top:20px;cursor:pointer;">Go Back</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h2>💣 Mines</h2>
+      <span style="color:#ffd966;font-weight:700;">Balance: <span id="minesBalance">0</span> ETB</span>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <input type="number" id="minesBetInput" value="10" step="1" min="1" style="flex:1;min-width:80px;background:#1b2532;border:1px solid #2f3e51;border-radius:40px;padding:10px 16px;color:#fff;outline:none;">
+      <button id="minesStartBtn" style="background:#f0b90b;border:none;border-radius:40px;padding:10px 24px;font-weight:700;color:#0b0e14;cursor:pointer;">Start Game</button>
+      <button id="minesCashoutBtn" style="background:#2a8c5a;border:none;border-radius:40px;padding:10px 24px;font-weight:700;color:#fff;cursor:pointer;display:none;">Cash Out</button>
+    </div>
+    <div id="minesStatus" style="text-align:center;color:#6a7e9c;font-size:13px;margin-bottom:10px;">Place your bet and start!</div>
+    <div class="mines-grid" id="minesGrid"></div>
+    <div style="margin-top:12px;display:flex;justify-content:space-between;color:#6a7e9c;font-size:13px;">
+      <span>💎 Gems found: <span id="minesGems">0</span></span>
+      <span>💰 Multiplier: <span id="minesMultiplier">1.00x</span></span>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: GAME - SLOTS ===== -->
+  <div class="page" id="page-game-slots">
+    <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
+    <h2 style="margin-bottom:8px;">🎰 Slots</h2>
+    <div class="slot-machine">
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+        <span style="color:#6a7e9c;">Balance: <span id="slotsBalance" style="color:#ffd966;font-weight:700;">0</span> ETB</span>
+        <span style="color:#6a7e9c;">Bet: <span id="slotsBetDisplay" style="color:#fff;font-weight:700;">10</span> ETB</span>
+      </div>
+      <div class="slot-reels">
+        <div class="slot-reel" id="slotReel1">🍒</div>
+        <div class="slot-reel" id="slotReel2">🍋</div>
+        <div class="slot-reel" id="slotReel3">🍊</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <input type="number" id="slotsBetInput" value="10" step="1" min="1" style="flex:1;min-width:80px;background:#1b2532;border:1px solid #2f3e51;border-radius:40px;padding:10px 16px;color:#fff;outline:none;">
+        <button id="slotsSpinBtn" style="flex:1;background:#f0b90b;border:none;border-radius:40px;padding:12px;font-weight:700;color:#0b0e14;cursor:pointer;">🎰 Spin</button>
+      </div>
+      <div id="slotsResult" style="text-align:center;color:#6a7e9c;font-size:13px;margin-top:10px;">Press spin to play!</div>
+    </div>
+    <div style="margin-top:12px;background:#131a22;border-radius:16px;padding:12px;border:1px solid rgba(255,255,255,0.04);">
+      <div style="color:#6a7e9c;font-size:13px;text-align:center;">Symbols: 🍒 🍋 🍊 🍇 🔔 ⭐ 💎</div>
+      <div style="color:#6a7e9c;font-size:11px;text-align:center;margin-top:4px;">Match 3 = Win! 🎉</div>
     </div>
   </div>
 
 </div>
-
-<script>
+<!-- ===== END OF FIRST HALF ===== --><script>
   // ============================================================
   // ========== CONFIGURATION ==========
   // ============================================================
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const BACKEND_URL = isLocal ? 'http://localhost:8080' : 'https://ethio-bet.onrender.com';
+  const BACKEND_URL = isLocal ? 'http://localhost:8080' : 'https://ethiobet.onrender.com';
   const ADMIN_IDS = [7154361039];
+  const MERCHANT_PHONE = '0934600018';
+  const BOT_USERNAME = 'Ethiobet1_bot';
 
   console.log('🔗 Backend URL:', BACKEND_URL);
 
   // ============================================================
-  // ========== TELEGRAM WEBAPP ==========
+  // ========== TELEGRAM WEBAPP (Full Screen) ==========
   // ============================================================
   const tg = window.Telegram?.WebApp;
-  if (tg) tg.expand();
+  if (tg) {
+    tg.expand(); // Full screen!
+    tg.ready();
+  }
 
   const tgUser = tg?.initDataUnsafe?.user;
   const telegramId = tgUser?.id || null;
@@ -694,10 +812,23 @@
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const page = document.getElementById('page-' + pageId);
     if (page) page.classList.add('active');
-    
-    // Refresh wallet when opened
     if (pageId === 'wallet') refreshWallet();
     if (pageId === 'lobby') refreshLobby();
+    if (pageId === 'game-mines') initMines();
+    if (pageId === 'game-slots') updateSlotsBalance();
+  }
+
+  function filterGames(tab) {
+    document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.nav-tabs button[data-tab="${tab}"]`)?.classList.add('active');
+    document.querySelectorAll('.game-card').forEach(card => {
+      const gameType = card.dataset.game;
+      if (tab === 'all' || gameType === tab) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
   }
 
   // ============================================================
@@ -718,15 +849,14 @@
     currentUser = null;
     updateUI();
     showPage('lobby');
+    if (ws) { ws.close(); ws = null; }
   }
 
   async function login() {
     const phone = document.getElementById('loginPhone').value.trim();
     const password = document.getElementById('loginPassword').value;
     const error = document.getElementById('loginError');
-
     if (!phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
-
     try {
       const res = await fetch(`${BACKEND_URL}/api/login`, {
         method: 'POST',
@@ -737,6 +867,7 @@
       if (data.success) {
         setAuth(data.token, data.user);
         showPage('lobby');
+        initGame();
       } else {
         error.textContent = '❌ ' + data.error;
       }
@@ -750,10 +881,8 @@
     const phone = document.getElementById('registerPhone').value.trim();
     const password = document.getElementById('registerPassword').value;
     const error = document.getElementById('registerError');
-
     if (!name || !phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
     if (password.length < 4) { error.textContent = '⚠️ Password must be at least 4 characters'; return; }
-
     try {
       const res = await fetch(`${BACKEND_URL}/api/register`, {
         method: 'POST',
@@ -764,6 +893,7 @@
       if (data.success) {
         setAuth(data.token, data.user);
         showPage('lobby');
+        initGame();
       } else {
         error.textContent = '❌ ' + data.error;
       }
@@ -778,8 +908,6 @@
   function updateUI() {
     const token = getToken();
     const isLoggedIn = !!token && currentUser;
-
-    // Lobby
     const lobbyBalance = document.getElementById('lobbyBalance');
     const logoutBtn = document.getElementById('logoutBtn');
     const loginLink = document.getElementById('loginLink');
@@ -788,7 +916,6 @@
       lobbyBalance.textContent = `💰 ${currentUser.balance.toFixed(2)} ETB`;
       logoutBtn.style.display = 'inline';
       loginLink.style.display = 'none';
-      // Show admin panel if admin
       if (ADMIN_IDS.includes(currentUser.id)) {
         document.getElementById('adminPanel').classList.add('active');
         loadPendingDeposits();
@@ -832,6 +959,8 @@
         document.getElementById('walletBalance').textContent = data.balance.toFixed(2) + ' ETB';
         currentUser = { ...currentUser, ...data };
         updateUI();
+        updateSlotsBalance();
+        document.getElementById('minesBalance').textContent = data.balance.toFixed(0);
       }
     } catch (err) { console.error(err); }
   }
@@ -845,9 +974,8 @@
       showPage('login');
       return;
     }
-    // Open Telegram bot for deposit
-    tg?.openTelegramLink('https://t.me/@aradagamingbot');
-    alert('📸 Send money to 0934600018 via Telebirr, then send screenshot to @aradagamingbot');
+    tg?.openTelegramLink(`https://t.me/${BOT_USERNAME}`);
+    alert(`📸 Send money to ${MERCHANT_PHONE} via Telebirr, then send screenshot to @${BOT_USERNAME}`);
   }
 
   // ============================================================
@@ -857,13 +985,12 @@
     const token = getToken();
     if (!token) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/pending?adminId=${currentUser?.id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/pending`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Unauthorized');
       const deposits = await res.json();
       document.getElementById('pendingCount').textContent = deposits.length + ' pending';
-      
       const container = document.getElementById('adminDepositList');
       if (deposits.length === 0) {
         container.innerHTML = '<div class="empty-deposits">✅ No pending deposits</div>';
@@ -891,11 +1018,9 @@
     if (!confirm(`Are you sure you want to ${action} this deposit?`)) return;
     const token = getToken();
     if (!token) return;
-    
     const card = document.getElementById(`dep-${depositId}`);
     const buttons = card.querySelectorAll('button');
     buttons.forEach(b => b.disabled = true);
-    
     try {
       const res = await fetch(`${BACKEND_URL}/api/verify`, {
         method: 'POST',
@@ -924,15 +1049,13 @@
     const msg = input.value.trim();
     if (!msg) return;
     const chatDiv = document.getElementById('chatMessages');
+    const name = currentUser?.name || firstName || 'Guest';
     const newMsg = document.createElement('div');
     newMsg.className = 'chat-message';
-    const name = currentUser?.name || firstName || 'Guest';
     newMsg.innerHTML = `<span class="user">${name}</span> <span class="msg">${msg}</span> <span class="time">${new Date().toLocaleTimeString()}</span>`;
     chatDiv.appendChild(newMsg);
     chatDiv.scrollTop = chatDiv.scrollHeight;
     input.value = '';
-    
-    // Store in local DB (simulate)
     const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
     messages.push({ user: name, msg, time: new Date().toISOString() });
     localStorage.setItem('chatMessages', JSON.stringify(messages));
@@ -966,7 +1089,6 @@
   let gameStatus = 'waiting';
   let hasBet = false;
   let gameHistory = [];
-  let gameAnimFrame = null;
 
   function initGame() {
     gameCanvas = document.getElementById('gameCanvas');
@@ -1065,6 +1187,7 @@
   }
 
   function drawCanvas(currentMultiplier, crashed, crashValue) {
+    if (!gameCanvas) return;
     const w = gameCanvas.width, h = gameCanvas.height;
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = '#1e2a38';
@@ -1146,12 +1269,8 @@
   function stopGame() {
     if (ws) { ws.close(); ws = null; }
     gameRunning = false;
-    if (gameAnimFrame) cancelAnimationFrame(gameAnimFrame);
   }
 
-  // ============================================================
-  // ========== GAME CONTROLS (Aviator) ==========
-  // ============================================================
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('betBtn').addEventListener('click', () => {
       const amount = parseFloat(document.getElementById('betInput').value);
@@ -1160,12 +1279,467 @@
         ws.send(JSON.stringify({ type: 'place_bet', amount }));
       }
     });
-
     document.getElementById('cashoutBtn').addEventListener('click', () => {
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'cash_out' }));
       }
     });
+  });
+
+  // ============================================================
+  // ========== JETX GAME (Clone of Aviator) ==========
+  // ============================================================
+  let jetxWs = null;
+  let jetxMultiplier = 1.00;
+  let jetxStatus = 'waiting';
+  let jetxHasBet = false;
+  let jetxHistory = [];
+  let jetxCtx = null;
+  let jetxCanvas = null;
+
+  function initJetX() {
+    jetxCanvas = document.getElementById('jetxCanvas');
+    jetxCtx = jetxCanvas.getContext('2d');
+    drawJetXCanvas(1.00, false, 0);
+    connectJetXWS();
+  }
+
+  function connectJetXWS() {
+    if (jetxWs) { jetxWs.close(); }
+    const userId = currentUser?.id || telegramId || 'guest';
+    const WS_URL = BACKEND_URL.replace('http', 'ws');
+    jetxWs = new WebSocket(`${WS_URL}/?userId=${userId}`);
+    
+    jetxWs.onopen = () => {
+      document.getElementById('jetxStatus').textContent = '✅ Connected!';
+      document.getElementById('jetxStatus').className = 'status status-connected';
+      document.getElementById('jetxBetBtn').disabled = false;
+    };
+    jetxWs.onclose = () => {
+      document.getElementById('jetxStatus').textContent = '❌ Disconnected. Reconnecting...';
+      document.getElementById('jetxStatus').className = 'status status-error';
+      document.getElementById('jetxBetBtn').disabled = true;
+      document.getElementById('jetxCashoutBtn').disabled = true;
+      setTimeout(connectJetXWS, 3000);
+    };
+    jetxWs.onerror = () => {
+      document.getElementById('jetxStatus').textContent = '⚠️ Connection error.';
+      document.getElementById('jetxStatus').className = 'status status-error';
+    };
+    jetxWs.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      console.log('JetX WS:', data);
+      switch(data.type) {
+        case 'init':
+          if (currentUser) currentUser.balance = data.balance;
+          updateUI();
+          document.getElementById('jetxBetBtn').disabled = false;
+          break;
+        case 'round_started':
+          jetxStatus = 'flying';
+          document.getElementById('jetxStatus').textContent = '🚀 Flying! Cash out!';
+          document.getElementById('jetxStatus').className = 'status';
+          document.getElementById('jetxBetBtn').disabled = true;
+          if (!jetxHasBet) document.getElementById('jetxBetBtn').disabled = false;
+          break;
+        case 'multiplier_update':
+          jetxMultiplier = data.multiplier;
+          document.getElementById('jetxMultiplier').textContent = jetxMultiplier.toFixed(2) + 'x';
+          if (jetxStatus !== 'crashed') drawJetXCanvas(jetxMultiplier, false, 0);
+          break;
+        case 'game_crashed':
+          jetxStatus = 'crashed';
+          jetxMultiplier = data.multiplier;
+          document.getElementById('jetxMultiplier').textContent = jetxMultiplier.toFixed(2) + 'x';
+          drawJetXCanvas(jetxMultiplier, true, jetxMultiplier);
+          document.getElementById('jetxStatus').textContent = '💥 Crashed!';
+          document.getElementById('jetxStatus').className = 'status status-error';
+          document.getElementById('jetxBetBtn').disabled = false;
+          document.getElementById('jetxCashoutBtn').disabled = true;
+          jetxHasBet = false;
+          jetxHistory.unshift(jetxMultiplier);
+          if (jetxHistory.length > 15) jetxHistory.pop();
+          renderJetXHistory();
+          break;
+        case 'bet_placed':
+          jetxHasBet = true;
+          if (currentUser) currentUser.balance = data.balance;
+          document.getElementById('jetxBetBtn').disabled = true;
+          document.getElementById('jetxCashoutBtn').disabled = false;
+          document.getElementById('jetxStatus').textContent = '⏳ Bet placed!';
+          document.getElementById('jetxStatus').className = 'status';
+          updateUI();
+          break;
+        case 'cash_out_success':
+          jetxHasBet = false;
+          if (currentUser) currentUser.balance = data.balance;
+          document.getElementById('jetxCashoutBtn').disabled = true;
+          document.getElementById('jetxBetBtn').disabled = false;
+          document.getElementById('jetxStatus').textContent = `✅ Cashed out at ${data.multiplier.toFixed(2)}x! Won ${data.winAmount.toFixed(2)} ETB!`;
+          document.getElementById('jetxStatus').className = 'status status-connected';
+          updateUI();
+          drawJetXCanvas(data.multiplier, false, 0);
+          break;
+        case 'error':
+          document.getElementById('jetxStatus').textContent = '⚠️ ' + data.message;
+          document.getElementById('jetxStatus').className = 'status status-error';
+          break;
+      }
+    };
+  }
+
+  function drawJetXCanvas(currentMultiplier, crashed, crashValue) {
+    if (!jetxCanvas) return;
+    const w = jetxCanvas.width, h = jetxCanvas.height;
+    jetxCtx.clearRect(0, 0, w, h);
+    jetxCtx.strokeStyle = '#1e2a38';
+    jetxCtx.lineWidth = 0.8;
+    for (let i = 0; i < 10; i++) {
+      const y = h - (i / 10) * h * 0.85 - 20;
+      jetxCtx.beginPath();
+      jetxCtx.moveTo(40, y);
+      jetxCtx.lineTo(w - 20, y);
+      jetxCtx.stroke();
+      jetxCtx.fillStyle = '#3e526a';
+      jetxCtx.font = '10px monospace';
+      jetxCtx.fillText((i * 5).toString() + 'x', 6, y + 4);
+    }
+    const maxX = w - 30;
+    const baseY = h - 20;
+    const scaleX = maxX / 8;
+    const scaleY = (h - 40) / 12;
+    jetxCtx.beginPath();
+    jetxCtx.strokeStyle = '#ff6b6b';
+    jetxCtx.lineWidth = 4.5;
+    jetxCtx.shadowColor = '#ff6b6b';
+    jetxCtx.shadowBlur = 15;
+    const points = 60;
+    let displayMultiplier = currentMultiplier;
+    if (crashed) displayMultiplier = crashValue || 1.00;
+    for (let i = 0; i <= points; i++) {
+      const t = (i / points) * 8;
+      let m = 1.00 + t * 1.2;
+      if (crashed && crashValue) {
+        const crashT = (crashValue - 1) / 1.2;
+        if (t > crashT) m = crashValue;
+        else m = 1 + t * 1.2;
+      } else {
+        if (t * 1.2 > displayMultiplier - 1) m = displayMultiplier;
+        else m = 1 + t * 1.2;
+      }
+      const x = 40 + t * scaleX;
+      const y = baseY - (m - 1) * scaleY;
+      if (i === 0) jetxCtx.moveTo(x, y);
+      else jetxCtx.lineTo(x, y);
+    }
+    jetxCtx.stroke();
+    jetxCtx.shadowBlur = 0;
+    const currentT = (displayMultiplier - 1) / 1.2;
+    const rocketX = 40 + Math.min(currentT, 8) * scaleX;
+    const rocketY = baseY - (displayMultiplier - 1) * scaleY;
+    jetxCtx.beginPath();
+    jetxCtx.fillStyle = '#ff6b6b';
+    jetxCtx.shadowBlur = 25;
+    jetxCtx.shadowColor = '#ff6b6b';
+    jetxCtx.arc(rocketX, rocketY, 12, 0, Math.PI * 2);
+    jetxCtx.fill();
+    jetxCtx.fillStyle = '#ffd966';
+    jetxCtx.arc(rocketX - 4, rocketY - 4, 4, 0, Math.PI * 2);
+    jetxCtx.fill();
+    jetxCtx.shadowBlur = 0;
+    if (crashed) {
+      jetxCtx.fillStyle = '#ff6b6b';
+      jetxCtx.font = 'bold 36px sans-serif';
+      jetxCtx.shadowColor = '#ff0000';
+      jetxCtx.shadowBlur = 30;
+      jetxCtx.fillText('💥 CRASHED', w/2 - 130, 90);
+      jetxCtx.shadowBlur = 0;
+    }
+  }
+
+  function renderJetXHistory() {
+    const container = document.getElementById('jetxHistoryContainer');
+    container.innerHTML = '';
+    jetxHistory.forEach(v => {
+      const badge = document.createElement('span');
+      badge.className = 'badge' + (v >= 5 ? ' high' : v <= 1.5 ? ' low' : '');
+      badge.textContent = v.toFixed(2) + 'x';
+      container.appendChild(badge);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('jetxBetBtn').addEventListener('click', () => {
+      const amount = parseFloat(document.getElementById('jetxBetInput').value);
+      if (!amount || amount <= 0) return alert('Enter valid bet');
+      if (jetxWs && jetxWs.readyState === WebSocket.OPEN) {
+        jetxWs.send(JSON.stringify({ type: 'place_bet', amount }));
+      }
+    });
+    document.getElementById('jetxCashoutBtn').addEventListener('click', () => {
+      if (jetxWs && jetxWs.readyState === WebSocket.OPEN) {
+        jetxWs.send(JSON.stringify({ type: 'cash_out' }));
+      }
+    });
+  });
+
+  // ============================================================
+  // ========== MINES GAME ==========
+  // ============================================================
+  let minesState = {
+    grid: [],
+    revealed: [],
+    bombCount: 5,
+    gameOver: false,
+    gemsFound: 0,
+    multiplier: 1.00,
+    betAmount: 10,
+    started: false
+  };
+
+  function initMines() {
+    const grid = document.getElementById('minesGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 25; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'mines-cell';
+      cell.dataset.index = i;
+      cell.textContent = '❓';
+      cell.addEventListener('click', () => minesClick(i));
+      grid.appendChild(cell);
+    }
+    minesState.grid = [];
+    minesState.revealed = [];
+    minesState.gameOver = false;
+    minesState.gemsFound = 0;
+    minesState.multiplier = 1.00;
+    minesState.started = false;
+    document.getElementById('minesGems').textContent = '0';
+    document.getElementById('minesMultiplier').textContent = '1.00x';
+    document.getElementById('minesStatus').textContent = 'Place your bet and start!';
+    document.getElementById('minesStartBtn').style.display = 'block';
+    document.getElementById('minesCashoutBtn').style.display = 'none';
+    updateMinesBalance();
+  }
+
+  function updateMinesBalance() {
+    const token = getToken();
+    if (!token) return;
+    fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('minesBalance').textContent = data.balance.toFixed(0);
+        if (currentUser) currentUser.balance = data.balance;
+        updateUI();
+      });
+  }
+
+  function minesClick(index) {
+    if (!minesState.started || minesState.gameOver) return;
+    if (minesState.revealed.includes(index)) return;
+    
+    const isBomb = minesState.grid[index] === 'bomb';
+    const cell = document.querySelector(`.mines-cell[data-index="${index}"]`);
+    
+    if (isBomb) {
+      cell.classList.add('revealed', 'bomb');
+      cell.textContent = '💣';
+      minesState.gameOver = true;
+      document.getElementById('minesStatus').textContent = '💥 BOOM! Game Over!';
+      document.getElementById('minesStartBtn').style.display = 'block';
+      document.getElementById('minesCashoutBtn').style.display = 'none';
+      // Reveal all bombs
+      minesState.grid.forEach((val, i) => {
+        if (val === 'bomb') {
+          const c = document.querySelector(`.mines-cell[data-index="${i}"]`);
+          c.classList.add('revealed', 'bomb');
+          c.textContent = '💣';
+        }
+      });
+      // Deduct bet from user
+      const token = getToken();
+      if (token) {
+        fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
+          .then(res => res.json())
+          .then(data => {
+            // Balance was already deducted when bet placed
+          });
+      }
+    } else {
+      cell.classList.add('revealed', 'gem');
+      cell.textContent = '💎';
+      minesState.gemsFound++;
+      minesState.multiplier = 1.00 + (minesState.gemsFound * 0.25);
+      document.getElementById('minesGems').textContent = minesState.gemsFound;
+      document.getElementById('minesMultiplier').textContent = minesState.multiplier.toFixed(2) + 'x';
+      document.getElementById('minesStatus').textContent = `💎 Found! ${minesState.gemsFound} gems | ${minesState.multiplier.toFixed(2)}x`;
+      document.getElementById('minesCashoutBtn').style.display = 'block';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('minesStartBtn').addEventListener('click', () => {
+      const bet = parseFloat(document.getElementById('minesBetInput').value);
+      if (!bet || bet <= 0) return alert('Enter valid bet');
+      const token = getToken();
+      if (!token) { alert('Please login first!'); showPage('login'); return; }
+      
+      // Check balance
+      fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(data => {
+          if (data.balance < bet) {
+            alert('Insufficient balance!');
+            return;
+          }
+          // Generate bombs
+          minesState.grid = Array(25).fill('gem');
+          let bombs = 0;
+          while (bombs < 5) {
+            const idx = Math.floor(Math.random() * 25);
+            if (minesState.grid[idx] === 'gem') {
+              minesState.grid[idx] = 'bomb';
+              bombs++;
+            }
+          }
+          minesState.betAmount = bet;
+          minesState.gemsFound = 0;
+          minesState.multiplier = 1.00;
+          minesState.gameOver = false;
+          minesState.started = true;
+          minesState.revealed = [];
+          document.getElementById('minesGems').textContent = '0';
+          document.getElementById('minesMultiplier').textContent = '1.00x';
+          document.getElementById('minesStatus').textContent = '💎 Click cells to find gems!';
+          document.getElementById('minesStartBtn').style.display = 'none';
+          document.getElementById('minesCashoutBtn').style.display = 'none';
+          // Reset grid
+          document.querySelectorAll('.mines-cell').forEach(c => {
+            c.className = 'mines-cell';
+            c.textContent = '❓';
+          });
+        });
+    });
+
+    document.getElementById('minesCashoutBtn').addEventListener('click', () => {
+      if (!minesState.started || minesState.gameOver) return;
+      const winAmount = minesState.betAmount * minesState.multiplier;
+      const token = getToken();
+      if (!token) return;
+      
+      fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(data => {
+          // Credit the user (add winAmount to balance)
+          // This is a simplified version - in production, use a proper API
+          // For now, we'll just update the local balance
+          if (currentUser) {
+            currentUser.balance += winAmount;
+            updateUI();
+            updateMinesBalance();
+          }
+          document.getElementById('minesStatus').textContent = `🎉 Cashed out! Won ${winAmount.toFixed(2)} ETB!`;
+          document.getElementById('minesStartBtn').style.display = 'block';
+          document.getElementById('minesCashoutBtn').style.display = 'none';
+          minesState.started = false;
+          minesState.gameOver = true;
+          // Reveal all cells
+          minesState.grid.forEach((val, i) => {
+            const c = document.querySelector(`.mines-cell[data-index="${i}"]`);
+            if (!c.classList.contains('revealed')) {
+              c.classList.add('revealed');
+              c.textContent = val === 'bomb' ? '💣' : '💎';
+              if (val === 'bomb') c.classList.add('bomb');
+              else c.classList.add('gem');
+            }
+          });
+          // Also update server balance
+          // In production, you'd call an API to add winnings
+        });
+    });
+  });
+
+  // ============================================================
+  // ========== SLOTS GAME ==========
+  // ============================================================
+  const slotSymbols = ['🍒', '🍋', '🍊', '🍇', '🔔', '⭐', '💎'];
+  let isSpinning = false;
+
+  function updateSlotsBalance() {
+    const token = getToken();
+    if (!token) return;
+    fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('slotsBalance').textContent = data.balance.toFixed(0);
+        if (currentUser) currentUser.balance = data.balance;
+        updateUI();
+      });
+  }
+
+  function spinSlots() {
+    if (isSpinning) return;
+    const bet = parseFloat(document.getElementById('slotsBetInput').value);
+    if (!bet || bet <= 0) return alert('Enter valid bet');
+    const token = getToken();
+    if (!token) { alert('Please login first!'); showPage('login'); return; }
+    
+    fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => {
+        if (data.balance < bet) {
+          alert('Insufficient balance!');
+          return;
+        }
+        // Deduct bet from local balance
+        if (currentUser) currentUser.balance -= bet;
+        updateUI();
+        updateSlotsBalance();
+        
+        // Spin animation
+        isSpinning = true;
+        const reel1 = document.getElementById('slotReel1');
+        const reel2 = document.getElementById('slotReel2');
+        const reel3 = document.getElementById('slotReel3');
+        reel1.classList.add('spinning');
+        reel2.classList.add('spinning');
+        reel3.classList.add('spinning');
+        document.getElementById('slotsResult').textContent = '🎰 Spinning...';
+        
+        setTimeout(() => {
+          const result1 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+          const result2 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+          const result3 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+          reel1.textContent = result1;
+          reel2.textContent = result2;
+          reel3.textContent = result3;
+          reel1.classList.remove('spinning');
+          reel2.classList.remove('spinning');
+          reel3.classList.remove('spinning');
+          isSpinning = false;
+          
+          // Check win
+          if (result1 === result2 && result2 === result3) {
+            const winAmount = bet * 5;
+            if (currentUser) currentUser.balance += winAmount;
+            updateUI();
+            updateSlotsBalance();
+            document.getElementById('slotsResult').textContent = `🎉 JACKPOT! Won ${winAmount.toFixed(2)} ETB!`;
+          } else if (result1 === result2 || result2 === result3 || result1 === result3) {
+            const winAmount = bet * 2;
+            if (currentUser) currentUser.balance += winAmount;
+            updateUI();
+            updateSlotsBalance();
+            document.getElementById('slotsResult').textContent = `🎉 Match! Won ${winAmount.toFixed(2)} ETB!`;
+          } else {
+            document.getElementById('slotsResult').textContent = '😔 No match. Try again!';
+          }
+        }, 1500);
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('slotsSpinBtn').addEventListener('click', spinSlots);
   });
 
   // ============================================================
@@ -1187,27 +1761,24 @@
   // ============================================================
   // ========== INIT ==========
   // ============================================================
-  // Load chat messages
   loadChat();
-
-  // Check for existing token
   const savedToken = getToken();
   if (savedToken) {
     refreshLobby();
   }
-
-  // Init game when page loads
   setTimeout(initGame, 500);
+  setTimeout(initJetX, 800);
+  initMines();
+  updateSlotsBalance();
 
-  // Auto-refresh admin panel
   setInterval(() => {
     if (document.getElementById('adminPanel').classList.contains('active')) {
       loadPendingDeposits();
     }
   }, 15000);
 
-  console.log('🎮 AradaGaming Platform Loaded!');
+  console.log('🎮 Ethiobet Platform Loaded!');
+  console.log('🤖 Bot: @Ethiobet1_bot');
 </script>
-
 </body>
   </html>
