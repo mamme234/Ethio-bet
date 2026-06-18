@@ -4,6 +4,8 @@ const http = require('http');
 const WebSocket = require('ws');
 const TelegramBot = require('node-telegram-bot-api');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -16,20 +18,23 @@ const MERCHANT_PHONE = process.env.MERCHANT_PHONE || '0934600018';
 const ADMIN_IDS = (process.env.ADMIN_IDS || '7154361039').split(',').map(id => parseInt(id.trim()));
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key_change_me';
 
-console.log('🚀 Starting Ethiobet Server...');
-console.log('📱 Merchant Phone:', MERCHANT_PHONE);
+console.log('🚀 Starting Ethiobet Platform...');
+console.log('🤖 Bot: @Ethiobet1_bot');
+console.log('📱 Merchant:', MERCHANT_PHONE);
 console.log('👑 Admins:', ADMIN_IDS);
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080', 'https://ethio-bet.vercel.app', 'https://ethio-bet.onrender.com'],
+  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080', 'https://ethiobet.vercel.app', 'https://ethiobet.onrender.com'],
   credentials: true
 }));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve index.html from root
+// Serve index.html for root
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -38,9 +43,10 @@ app.get('/', (req, res) => {
 function loadDB() {
   if (!fs.existsSync(DB_PATH)) {
     fs.writeFileSync(DB_PATH, JSON.stringify({ 
-      users: {},
+      users: [],
       pendingDeposits: [],
-      completedDeposits: []
+      completedDeposits: [],
+      chatMessages: []
     }, null, 2));
   }
   return JSON.parse(fs.readFileSync(DB_PATH));
@@ -48,262 +54,171 @@ function loadDB() {
 function saveDB() { fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2)); }
 let db = loadDB();
 
-function getUser(telegramId) {
-  if (!db.users[telegramId]) {
-    db.users[telegramId] = { 
-      balance: 0,
-      totalBets: 0,
-      totalDeposits: 0,
-      createdAt: new Date().toISOString()
-    };
-    saveDB();
-  }
-  return db.users[telegramId];
+function findUser(phone) {
+  return db.users.find(u => u.phone === phone);
 }
 
-function isAdmin(chatId) {
-  return ADMIN_IDS.includes(chatId);
+function getUser(id) {
+  return db.users.find(u => u.id === id);
 }
+
+function isAdmin(id) {
+  return ADMIN_IDS.includes(id);
+}
+
+// ---------- AUTH ENDPOINTS ----------
+app.post('/api/register', async (req, res) => {
+  const { phone, password, name } = req.body;
+  if (!phone || !password) return res.status(400).json({ error: 'Phone and password required' });
+  if (findUser(phone)) return res.status(400).json({ error: 'User already exists' });
+  
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const newUser = {
+    id: Date.now(),
+    phone,
+    name: name || 'User',
+    password: hashedPassword,
+    balance: 0,
+    totalDeposits: 0,
+    totalBets: 0,
+    createdAt: new Date().toISOString()
+  };
+  db.users.push(newUser);
+  saveDB();
+  const token = jwt.sign({ id: newUser.id, phone }, JWT_SECRET);
+  res.json({ success: true, token, user: { id: newUser.id, phone, name: newUser.name, balance: newUser.balance } });
+});
+
+app.post('/api/login', async (req, res) => {
+  const { phone, password } = req.body;
+  const user = findUser(phone);
+  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+  const token = jwt.sign({ id: user.id, phone }, JWT_SECRET);
+  res.json({ success: true, token, user: { id: user.id, phone, name: user.name, balance: user.balance } });
+});
+
+app.get('/api/profile', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = getUser(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ id: user.id, phone: user.phone, name: user.name, balance: user.balance });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// ---------- DEPOSIT ENDPOINTS ----------
+app.get('/api/pending', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!isAdmin(decoded.id)) return res.status(403).json({ error: 'Unauthorized' });
+    res.json(db.pendingDeposits.filter(d => d.status === 'pending'));
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+app.post('/api/verify', async (req, res) => {
+  const { adminId, depositId, action } = req.body;
+  if (!isAdmin(adminId)) return res.status(403).json({ error: 'Unauthorized' });
+  const depositIndex = db.pendingDeposits.findIndex(d => d.id === depositId);
+  if (depositIndex === -1) return res.status(404).json({ error: 'Deposit not found' });
+  const deposit = db.pendingDeposits[depositIndex];
+  
+  if (action === 'approve') {
+    const user = db.users.find(u => u.id === deposit.telegramId || u.phone === deposit.telegramId.toString());
+    if (user) {
+      user.balance += deposit.amount;
+      user.totalDeposits += deposit.amount;
+    }
+    db.completedDeposits.push({ ...deposit, status: 'approved', verifiedBy: adminId, verifiedAt: new Date().toISOString() });
+    if (user) {
+      try { await bot.sendMessage(deposit.telegramId, `✅ Deposit Approved!\n💰 ${deposit.amount} ETB\n📊 New Balance: ${user.balance.toFixed(2)} ETB`); } catch(e) {}
+    }
+    db.pendingDeposits.splice(depositIndex, 1);
+    saveDB();
+    res.json({ success: true, balance: user ? user.balance : 0 });
+  } else if (action === 'reject') {
+    db.completedDeposits.push({ ...deposit, status: 'rejected', verifiedBy: adminId, verifiedAt: new Date().toISOString() });
+    try { await bot.sendMessage(deposit.telegramId, `❌ Deposit Rejected\nPlease send a clear screenshot.`); } catch(e) {}
+    db.pendingDeposits.splice(depositIndex, 1);
+    saveDB();
+    res.json({ success: true });
+  } else {
+    res.status(400).json({ error: 'Invalid action' });
+  }
+});
 
 // ---------- TELEGRAM BOT ----------
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
-// ---------- BOT COMMANDS ----------
-
-// /start - Welcome message with inline buttons
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  const user = getUser(chatId);
-  const isAdminUser = isAdmin(chatId);
-  
-  const welcomeMessage = 
+  bot.sendMessage(chatId,
     `✈️ *Welcome to Ethiobet!*\n\n` +
-    `💰 *Balance:* ${user.balance.toFixed(2)} ETB\n` +
-    `🏦 *Merchant:* ${MERCHANT_PHONE}\n\n` +
-    `📋 *How to deposit:*\n` +
-    `1️⃣ Click the "Deposit" button below\n` +
-    `2️⃣ Send the amount to *${MERCHANT_PHONE}* via Telebirr\n` +
-    `3️⃣ Take a screenshot of the confirmation\n` +
-    `4️⃣ Send the screenshot here\n` +
-    `5️⃣ Bot will auto-verify and credit you instantly!\n\n` +
-    `🎮 Click "Play Game" to start playing!\n\n` +
-    `📊 *Commands:*\n` +
-    `/balance - Check balance\n` +
-    `/bet <amount> - Place a bet\n` +
-    `/cashout - Cash out during flight\n` +
-    `/history - View deposit history\n` +
-    `/help - Show this message`;
-
-  const options = {
-    parse_mode: 'Markdown',
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: '🎮 Play Game', web_app: { url: FRONTEND_URL } },
-          { text: '💰 Deposit', callback_data: 'deposit' }
-        ],
-        [
-          { text: '📊 Balance', callback_data: 'balance' },
-          { text: '📜 History', callback_data: 'history' }
-        ],
-        [
-          { text: '❓ Help', callback_data: 'help' }
+    `🎮 Play crash games, slots, and more!\n` +
+    `💰 Deposit via Telebirr\n` +
+    `✅ Auto-verification\n\n` +
+    `Tap the button below to start playing!`,
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🎮 Play Now', web_app: { url: FRONTEND_URL } }],
+          [{ text: '💰 Deposit', callback_data: 'deposit' }],
+          [{ text: '📊 Balance', callback_data: 'balance' }]
         ]
-      ]
+      }
     }
-  };
-
-  if (isAdminUser) {
-    options.reply_markup.inline_keyboard.push([
-      { text: '🔑 Admin Panel', web_app: { url: FRONTEND_URL } }
-    ]);
-  }
-
-  bot.sendMessage(chatId, welcomeMessage, options);
+  );
 });
 
-// Handle callback queries (button clicks)
 bot.on('callback_query', (query) => {
   const chatId = query.message.chat.id;
-  const data = query.data;
-  
   bot.answerCallbackQuery(query.id);
-  
-  switch(data) {
+  switch(query.data) {
     case 'deposit':
-      const user = getUser(chatId);
-      bot.sendMessage(chatId,
-        `💳 *Deposit Instructions*\n\n` +
-        `1️⃣ Send the amount to: *${MERCHANT_PHONE}*\n` +
-        `2️⃣ Take a screenshot of the confirmation\n` +
-        `3️⃣ Send the screenshot here\n` +
-        `4️⃣ Bot will auto-verify and credit you!\n\n` +
-        `📱 *Your Balance:* ${user.balance.toFixed(2)} ETB\n\n` +
-        `⚠️ *Important:* Include your username in the payment reference.`
-      );
+      bot.sendMessage(chatId, `💳 Deposit Instructions\n\n1️⃣ Send to: ${MERCHANT_PHONE}\n2️⃣ Take a screenshot\n3️⃣ Send it here\n4️⃣ Auto-verified instantly!`);
       break;
-      
     case 'balance':
-      const userBalance = getUser(chatId);
-      bot.sendMessage(chatId, 
-        `💰 *Your Balance:* ${userBalance.balance.toFixed(2)} ETB`
-      );
-      break;
-      
-    case 'history':
-      const deposits = db.completedDeposits.filter(d => d.telegramId === chatId);
-      if (deposits.length === 0) {
-        bot.sendMessage(chatId, '📭 No deposit history.');
-      } else {
-        let text = '📊 *Deposit History*\n\n';
-        deposits.slice(-10).reverse().forEach(d => {
-          const status = d.status === 'approved' ? '✅' : '❌';
-          text += `${status} ${d.amount} ETB - ${new Date(d.createdAt).toLocaleDateString()}\n`;
-        });
-        bot.sendMessage(chatId, text);
-      }
-      break;
-      
-    case 'help':
-      bot.sendMessage(chatId,
-        `✈️ *Ethiobet Help*\n\n` +
-        `📋 *Commands:*\n` +
-        `/start - Main menu\n` +
-        `/balance - Check balance\n` +
-        `/bet <amount> - Place a bet\n` +
-        `/cashout - Cash out during flight\n` +
-        `/history - View deposit history\n` +
-        `/help - Show this message\n\n` +
-        `🏦 *Merchant:* ${MERCHANT_PHONE}\n\n` +
-        `📸 *Deposit Instructions:*\n` +
-        `1. Click "Deposit" button\n` +
-        `2. Send money to ${MERCHANT_PHONE}\n` +
-        `3. Screenshot the confirmation\n` +
-        `4. Send the screenshot here\n` +
-        `5. Bot auto-verifies and credits you`
-      );
+      const user = db.users.find(u => u.id === chatId || u.phone === chatId.toString());
+      bot.sendMessage(chatId, user ? `💰 Balance: ${user.balance.toFixed(2)} ETB` : '📊 Please login first.');
       break;
   }
 });
 
-// ---------- AUTO-VERIFICATION SYSTEM ----------
-// When a user sends a photo, the bot auto-verifies it
+// Auto-verification
 bot.on('photo', async (msg) => {
   const chatId = msg.chat.id;
-  
-  // Check if user has a pending deposit
   const pending = db.pendingDeposits.filter(d => d.telegramId === chatId && d.status === 'pending');
   if (pending.length === 0) {
-    return bot.sendMessage(chatId, 
-      '📸 No pending deposit found.\n\n' +
-      '💡 To deposit:\n' +
-      '1. Click the "Deposit" button\n' +
-      '2. Send money to ' + MERCHANT_PHONE + '\n' +
-      '3. Then send the screenshot here'
-    );
+    return bot.sendMessage(chatId, '📸 No pending deposit. Use the Deposit button first.');
   }
-  
-  // Get the largest photo
   const photo = msg.photo[msg.photo.length - 1];
   const fileId = photo.file_id;
   const deposit = pending[0];
-  
-  // ----- AUTO-VERIFY THE DEPOSIT -----
-  const user = getUser(chatId);
-  
-  // Credit the user
-  user.balance += deposit.amount;
-  user.totalDeposits += deposit.amount;
-  
-  // Mark as completed
-  db.completedDeposits.push({
-    ...deposit,
-    status: 'approved',
-    verifiedBy: 'auto',
-    verifiedAt: new Date().toISOString(),
-    photoFileId: fileId
-  });
-  
-  // Remove from pending
-  const depositIndex = db.pendingDeposits.findIndex(d => d.id === deposit.id);
-  if (depositIndex !== -1) {
-    db.pendingDeposits.splice(depositIndex, 1);
+  const user = db.users.find(u => u.id === chatId || u.phone === chatId.toString());
+  if (user) {
+    user.balance += deposit.amount;
+    user.totalDeposits += deposit.amount;
   }
+  db.completedDeposits.push({ ...deposit, status: 'approved', verifiedBy: 'auto', verifiedAt: new Date().toISOString(), photoFileId: fileId });
+  const idx = db.pendingDeposits.findIndex(d => d.id === deposit.id);
+  if (idx !== -1) db.pendingDeposits.splice(idx, 1);
   saveDB();
-  
-  // Notify the user
-  bot.sendMessage(chatId,
-    `✅ *Deposit Auto-Approved!*\n\n` +
-    `💰 Amount: ${deposit.amount} ETB\n` +
-    `📊 New Balance: ${user.balance.toFixed(2)} ETB\n` +
-    `🆔 Ref: ${deposit.id}\n\n` +
-    `🎮 Start playing with /bet`
-  );
-  
-  // Notify admins (for record keeping)
+  bot.sendMessage(chatId, `✅ Deposit Auto-Approved!\n💰 ${deposit.amount} ETB\n📊 New Balance: ${user ? user.balance.toFixed(2) : 'N/A'}`);
   ADMIN_IDS.forEach(adminId => {
-    bot.sendPhoto(adminId, fileId, {
-      caption: 
-        `📸 *Auto-Verified Deposit*\n\n` +
-        `👤 User: ${msg.from.first_name} (${chatId})\n` +
-        `💰 Amount: ${deposit.amount} ETB\n` +
-        `🆔 Ref: ${deposit.id}\n` +
-        `✅ Status: Auto-approved\n` +
-        `📅 Time: ${new Date().toISOString()}`
-    });
+    bot.sendPhoto(adminId, fileId, { caption: `📸 Auto-Verified Deposit\n👤 ${msg.from.first_name} (${chatId})\n💰 ${deposit.amount} ETB\n✅ Status: Auto-approved` });
   });
-});
-
-// ---------- DEPOSIT HANDLER (When user types /deposit) ----------
-bot.onText(/\/deposit (.+)/, (msg, match) => {
-  const chatId = msg.chat.id;
-  const amount = parseFloat(match[1]);
-  
-  if (isNaN(amount) || amount < 1) {
-    return bot.sendMessage(chatId, '⚠️ Enter a valid amount (min 1 ETB).');
-  }
-  
-  const depositId = `DEP_${Date.now()}_${chatId}`;
-  
-  db.pendingDeposits.push({
-    id: depositId,
-    telegramId: chatId,
-    amount: amount,
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  });
-  saveDB();
-  
-  bot.sendMessage(chatId,
-    `💳 *Deposit Request Created*\n\n` +
-    `💰 Amount: ${amount} ETB\n` +
-    `🏦 Send to: ${MERCHANT_PHONE}\n` +
-    `🆔 Reference: ${depositId}\n\n` +
-    `📸 *Instructions:*\n` +
-    `1. Open Telebirr\n` +
-    `2. Send ${amount} ETB to ${MERCHANT_PHONE}\n` +
-    `3. Take a screenshot of the confirmation\n` +
-    `4. Send the screenshot here\n\n` +
-    `✅ The bot will auto-verify and credit you instantly!`
-  );
-});
-
-// ---------- API ENDPOINTS ----------
-
-// Get pending deposits (for admin panel)
-app.get('/api/pending', (req, res) => {
-  const adminId = parseInt(req.query.adminId);
-  if (!isAdmin(adminId)) {
-    return res.status(403).json({ error: 'Unauthorized' });
-  }
-  res.json(db.pendingDeposits.filter(d => d.status === 'pending'));
-});
-
-// Get user balance
-app.get('/api/balance', (req, res) => {
-  const telegramId = parseInt(req.query.userId);
-  const user = getUser(telegramId);
-  res.json({ balance: user.balance });
 });
 
 // ---------- WEBSOCKET GAME ENGINE ----------
@@ -337,7 +252,6 @@ function startNewRound() {
   round.multiplier = 1.00;
   round.bets = {};
   broadcast({ type: 'round_started' });
-
   let start = Date.now();
   round.timer = setInterval(() => {
     let current = 1.00 + ((Date.now() - start) / 1000) * 1.2;
@@ -357,87 +271,58 @@ function startNewRound() {
 
 wss.on('connection', (ws, req) => {
   const urlParams = new URLSearchParams(req.url.split('?')[1]);
-  const telegramId = urlParams.get('userId');
-  if (!telegramId) {
-    ws.close();
-    return;
-  }
-  ws.telegramId = telegramId;
+  const userId = urlParams.get('userId');
+  if (!userId) { ws.close(); return; }
+  ws.userId = userId;
   ws.socketId = crypto.randomUUID();
-
-  const user = getUser(telegramId);
-  ws.send(JSON.stringify({ type: 'init', balance: user.balance, telegramId }));
+  const user = db.users.find(u => u.id === parseInt(userId) || u.phone === userId);
+  const balance = user ? user.balance : 0;
+  ws.send(JSON.stringify({ type: 'init', balance, userId }));
 
   ws.on('message', (msg) => {
     try {
       const data = JSON.parse(msg);
-      const user = getUser(ws.telegramId);
-      if (!user) return;
-
+      const user = db.users.find(u => u.id === parseInt(ws.userId) || u.phone === ws.userId);
+      if (!user) { ws.send(JSON.stringify({ type: 'error', message: 'User not found' })); return; }
       switch (data.type) {
         case 'place_bet': {
           const amount = parseFloat(data.amount);
-          if (isNaN(amount) || amount <= 0) {
-            return ws.send(JSON.stringify({ type: 'error', message: 'Invalid bet' }));
-          }
-          if (round.status !== 'flying' && round.status !== 'waiting') {
-            return ws.send(JSON.stringify({ type: 'error', message: 'Round not active' }));
-          }
-          if (round.bets[ws.socketId]) {
-            return ws.send(JSON.stringify({ type: 'error', message: 'Bet already placed' }));
-          }
-          if (user.balance < amount) {
-            return ws.send(JSON.stringify({ type: 'error', message: 'Insufficient balance' }));
-          }
+          if (isNaN(amount) || amount <= 0) return ws.send(JSON.stringify({ type: 'error', message: 'Invalid bet' }));
+          if (round.status !== 'flying' && round.status !== 'waiting') return ws.send(JSON.stringify({ type: 'error', message: 'Round not active' }));
+          if (round.bets[ws.socketId]) return ws.send(JSON.stringify({ type: 'error', message: 'Bet already placed' }));
+          if (user.balance < amount) return ws.send(JSON.stringify({ type: 'error', message: 'Insufficient balance' }));
           user.balance -= amount;
           saveDB();
-          round.bets[ws.socketId] = { telegramId: ws.telegramId, amount };
+          round.bets[ws.socketId] = { userId: ws.userId, amount };
           ws.send(JSON.stringify({ type: 'bet_placed', balance: user.balance }));
           break;
         }
         case 'cash_out': {
-          if (round.status !== 'flying') {
-            return ws.send(JSON.stringify({ type: 'error', message: 'Not flying' }));
-          }
+          if (round.status !== 'flying') return ws.send(JSON.stringify({ type: 'error', message: 'Not flying' }));
           const bet = round.bets[ws.socketId];
-          if (!bet) {
-            return ws.send(JSON.stringify({ type: 'error', message: 'No active bet' }));
-          }
+          if (!bet) return ws.send(JSON.stringify({ type: 'error', message: 'No active bet' }));
           const winAmount = bet.amount * round.multiplier;
           user.balance += winAmount;
           saveDB();
           delete round.bets[ws.socketId];
-          ws.send(JSON.stringify({
-            type: 'cash_out_success',
-            multiplier: round.multiplier,
-            winAmount,
-            balance: user.balance
-          }));
-          broadcast({ type: 'user_cashed_out', telegramId: ws.telegramId, multiplier: round.multiplier });
+          ws.send(JSON.stringify({ type: 'cash_out_success', multiplier: round.multiplier, winAmount, balance: user.balance }));
+          broadcast({ type: 'user_cashed_out', userId: ws.userId, multiplier: round.multiplier });
           break;
         }
-        default:
-          ws.send(JSON.stringify({ type: 'error', message: 'Unknown command' }));
+        default: ws.send(JSON.stringify({ type: 'error', message: 'Unknown command' }));
       }
-    } catch (err) {
-      ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON' }));
-    }
+    } catch (err) { ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON' })); }
   });
 
   ws.on('close', () => {
-    if (round.bets[ws.socketId]) {
-      delete round.bets[ws.socketId];
-    }
+    if (round.bets[ws.socketId]) delete round.bets[ws.socketId];
   });
 });
 
-// ---------- START THE GAME ----------
 setTimeout(startNewRound, 1000);
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running on ${BACKEND_URL}`);
-  console.log(`🤖 Bot is active with Auto-Verification`);
-  console.log(`🏦 Merchant: ${MERCHANT_PHONE}`);
-  console.log(`👑 Admins: ${ADMIN_IDS.join(', ')}`);
-  console.log(`✅ Auto-Verification is ENABLED`);
+  console.log(`🤖 Bot @Ethiobet1_bot is active`);
+  console.log(`✅ Auto-Verification ENABLED`);
 });
