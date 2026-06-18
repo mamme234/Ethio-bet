@@ -24,6 +24,42 @@
       position: relative;
       min-height: 100vh;
     }
+    .page { display: none; animation: fadeIn 0.3s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* SPLASH / WELCOME */
+    .splash {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+    }
+    .splash .logo {
+      font-size: 48px;
+      font-weight: 800;
+      color: #f0b90b;
+      margin-bottom: 8px;
+    }
+    .splash .logo span { color: #fff; }
+    .splash .sub { color: #6a7e9c; font-size: 16px; margin-bottom: 30px; }
+    .splash .btn-group { display: flex; gap: 16px; }
+    .splash .btn-group button {
+      padding: 12px 32px;
+      border: none;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .splash .btn-group .login-btn { background: #f0b90b; color: #0b0e14; }
+    .splash .btn-group .signup-btn { background: transparent; color: #fff; border: 1px solid #2f3e51; }
+    .splash .btn-group button:active { transform: scale(0.95); }
+
+    /* HEADER */
     .header {
       display: flex;
       justify-content: space-between;
@@ -32,8 +68,8 @@
       border-bottom: 1px solid rgba(255,255,255,0.05);
       margin-bottom: 6px;
     }
-    .logo { font-size: 18px; font-weight: 800; color: #f0b90b; }
-    .logo span { color: #fff; }
+    .header .logo { font-size: 18px; font-weight: 800; color: #f0b90b; cursor: pointer; }
+    .header .logo span { color: #fff; }
     .header .balance {
       color: #ffd966;
       font-weight: 700;
@@ -44,7 +80,8 @@
       font-size: 13px;
     }
     .header .logout-btn { color: #f28b82; font-size: 11px; cursor: pointer; background: none; border: none; margin-left: 6px; }
-    .header .login-link { color: #6a7e9c; text-decoration: none; font-size: 13px; margin-left: 8px; cursor: pointer; }
+
+    /* NAV TABS */
     .nav-tabs {
       display: flex;
       gap: 4px;
@@ -69,7 +106,9 @@
       flex-shrink: 0;
     }
     .nav-tabs button.active { background: #f0b90b; color: #0b0e14; }
-    .nav-tabs button:hover { color: #fff; }
+    .nav-tabs button:active { transform: scale(0.95); }
+
+    /* GAME GRID */
     .game-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -84,7 +123,7 @@
       cursor: pointer;
       transition: 0.2s;
     }
-    .game-card:hover { border-color: #f0b90b; transform: scale(1.02); }
+    .game-card:active { transform: scale(0.95); border-color: #f0b90b; }
     .game-card .icon { font-size: 26px; margin-bottom: 2px; }
     .game-card .name { font-size: 11px; font-weight: 600; color: #b0c8e5; }
     .game-card .tag {
@@ -96,6 +135,8 @@
       display: inline-block;
       margin-top: 2px;
     }
+
+    /* BOTTOM NAV */
     .bottom-nav {
       display: flex;
       justify-content: space-around;
@@ -124,29 +165,26 @@
       transition: 0.2s;
       padding: 4px 8px;
     }
+    .bottom-nav a:active { transform: scale(0.90); }
     .bottom-nav a.active { color: #f0b90b; }
     .bottom-nav a .emoji { font-size: 18px; }
-    .promo-banner {
-      background: linear-gradient(135deg, #1f3a2f, #2a8c5a);
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .promo-banner .text { font-weight: 700; font-size: 12px; }
-    .promo-banner .text small { display: block; font-weight: 400; font-size: 10px; opacity: 0.8; }
-    .promo-banner .btn {
-      background: #f0b90b;
-      color: #0b0e14;
-      padding: 4px 14px;
-      border-radius: 40px;
-      font-weight: 700;
-      font-size: 11px;
+
+    /* BACK BUTTON */
+    .back-btn {
+      background: none;
       border: none;
+      color: #6a7e9c;
+      font-size: 13px;
       cursor: pointer;
+      padding: 4px 0;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
+    .back-btn:active { transform: scale(0.95); }
+
+    /* AUTH */
     .auth-container { max-width: 360px; margin: 20px auto; }
     .auth-container h1 { font-size: 22px; margin-bottom: 2px; }
     .auth-container .sub { color: #6a7e9c; font-size: 13px; margin-bottom: 16px; }
@@ -175,10 +213,13 @@
       cursor: pointer;
       transition: 0.2s;
     }
-    .auth-container .btn:hover { background: #ffce3c; }
+    .auth-container .btn:active { transform: scale(0.95); }
     .auth-container .switch { text-align: center; margin-top: 14px; color: #6a7e9c; font-size: 13px; }
     .auth-container .switch a { color: #f0b90b; cursor: pointer; text-decoration: none; }
     .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 10px; }
+
+    /* GAME PAGES - Aviator, JetX, Mines, Slots, Sports, Dice, Wheel */
+    /* (all game styles kept identical to previous version) */
     .multiplier {
       text-align: center;
       font-size: 40px;
@@ -240,18 +281,17 @@
       cursor: pointer;
       transition: all 0.15s;
     }
+    .controls button:active { transform: scale(0.95); }
     #betBtn, #jetxBetBtn {
       background: linear-gradient(135deg, #f0b90b, #d99f0a);
       color: #0b0e14;
       box-shadow: 0 4px 16px rgba(240, 185, 11, 0.3);
     }
-    #betBtn:hover:not(:disabled), #jetxBetBtn:hover:not(:disabled) { transform: scale(1.02); }
     #cashoutBtn, #jetxCashoutBtn {
       background: linear-gradient(135deg, #2a8c5a, #1f6e46);
       color: #fff;
       box-shadow: 0 4px 16px rgba(42, 140, 90, 0.3);
     }
-    #cashoutBtn:hover:not(:disabled), #jetxCashoutBtn:hover:not(:disabled) { transform: scale(1.02); }
     button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
     .history {
       display: flex;
@@ -275,19 +315,8 @@
     }
     .badge.high { background: #1f3a2f; color: #6fcf97; }
     .badge.low { background: #3a1f1f; color: #f28b82; }
-    .back-btn {
-      background: none;
-      border: none;
-      color: #6a7e9c;
-      font-size: 13px;
-      cursor: pointer;
-      padding: 4px 0;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .back-btn:hover { color: #fff; }
+
+    /* WALLET */
     .wallet-card {
       background: #131a22;
       border-radius: 14px;
@@ -308,9 +337,11 @@
       cursor: pointer;
       transition: 0.2s;
     }
+    .wallet-actions button:active { transform: scale(0.95); }
     .wallet-actions .deposit-btn { background: #2a8c5a; color: #fff; }
     .wallet-actions .withdraw-btn { background: #8c2a2a; color: #fff; }
-    .wallet-actions button:hover { transform: scale(1.02); }
+
+    /* ADMIN PANEL */
     .admin-panel {
       margin-top: 10px;
       padding-top: 10px;
@@ -358,12 +389,12 @@
       cursor: pointer;
       transition: 0.2s;
     }
+    .deposit-card .actions button:active { transform: scale(0.95); }
     .btn-approve { background: #2a8c5a; color: #fff; }
-    .btn-approve:hover { background: #36b06e; }
     .btn-reject { background: #8c2a2a; color: #fff; }
-    .btn-reject:hover { background: #b03636; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .empty-deposits { color: #6a7e9c; text-align: center; padding: 12px; font-size: 12px; }
+
+    /* CHAT */
     .chat-messages {
       height: 280px;
       overflow-y: auto;
@@ -399,30 +430,81 @@
       cursor: pointer;
       font-size: 13px;
     }
-    .admin-badge {
+    .chat-input button:active { transform: scale(0.95); }
+
+    /* PROMOTIONS */
+    .promo-card {
+      background: linear-gradient(135deg, #1f3a2f, #2a8c5a);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .promo-card .text { font-weight: 700; font-size: 14px; }
+    .promo-card .text small { display: block; font-weight: 400; font-size: 11px; opacity: 0.8; }
+    .promo-card .btn {
       background: #f0b90b;
       color: #0b0e14;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 2px 8px;
+      padding: 4px 14px;
       border-radius: 40px;
-      display: inline-block;
-      margin-top: 2px;
-      text-transform: uppercase;
+      font-weight: 700;
+      font-size: 12px;
+      border: none;
+      cursor: pointer;
     }
-    .footer-text { color: #4a5e7a; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
-    .game-coming {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 300px;
-      text-align: center;
+    .promo-card .btn:active { transform: scale(0.95); }
+
+    /* SPORTS */
+    .match-card {
+      background: #131a22;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.04);
     }
-    .game-coming .big-icon { font-size: 60px; margin-bottom: 16px; }
-    .game-coming h2 { color: #f0b90b; margin-bottom: 6px; font-size: 20px; }
-    .game-coming p { color: #6a7e9c; font-size: 13px; }
-    .game-coming .btn { background: #f0b90b; border: none; padding: 10px 32px; border-radius: 40px; font-weight: 700; margin-top: 16px; cursor: pointer; color: #0b0e14; font-size: 14px; }
+    .match-card .teams { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .match-card .odds { display: flex; gap: 12px; justify-content: space-around; }
+    .match-card .odds button {
+      flex: 1;
+      background: #1b2532;
+      border: 1px solid #2f3e51;
+      border-radius: 40px;
+      padding: 6px 0;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 13px;
+    }
+    .match-card .odds button:active { transform: scale(0.95); }
+    .match-card .odds button.selected { background: #f0b90b; color: #0b0e14; border-color: #f0b90b; }
+    .match-card .time { color: #6a7e9c; font-size: 11px; margin-top: 4px; }
+    .bet-input-group { display: flex; gap: 8px; margin-top: 8px; }
+    .bet-input-group input {
+      flex: 1;
+      background: #1b2532;
+      border: 1px solid #2f3e51;
+      border-radius: 40px;
+      padding: 6px 12px;
+      color: #fff;
+      outline: none;
+      font-size: 13px;
+    }
+    .bet-input-group button {
+      background: #f0b90b;
+      border: none;
+      border-radius: 40px;
+      padding: 6px 16px;
+      font-weight: 700;
+      color: #0b0e14;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .bet-input-group button:active { transform: scale(0.95); }
+
+    /* MINES */
     .mines-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -441,10 +523,12 @@
       cursor: pointer;
       transition: 0.2s;
     }
-    .mines-cell:hover:not(.revealed) { border-color: #f0b90b; }
+    .mines-cell:active:not(.revealed) { transform: scale(0.92); }
     .mines-cell.revealed { cursor: default; }
     .mines-cell.bomb { background: #8c2a2a; border-color: #f28b82; }
     .mines-cell.gem { background: #1f3a2f; border-color: #6fcf97; }
+
+    /* SLOTS */
     .slot-machine {
       background: #131a22;
       border-radius: 14px;
@@ -473,82 +557,109 @@
     .slot-reel.spinning { animation: spin 0.3s ease-in-out infinite; }
     @keyframes spin { 0% { transform: translateY(-8px); } 50% { transform: translateY(8px); } 100% { transform: translateY(0); } }
 
-    /* Sports Betting */
-    .match-card {
-      background: #131a22;
-      border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: 1px solid rgba(255,255,255,0.04);
-    }
-    .match-card .teams {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    .match-card .odds {
-      display: flex;
-      gap: 12px;
-      justify-content: space-around;
-    }
-    .match-card .odds button {
-      flex: 1;
-      background: #1b2532;
-      border: 1px solid #2f3e51;
+    /* DICE */
+    .dice-result { font-size: 48px; margin: 10px 0; }
+    .dice-controls button {
+      background: #f0b90b;
+      border: none;
       border-radius: 40px;
-      padding: 6px 0;
-      color: #fff;
-      font-weight: 600;
+      padding: 10px 30px;
+      font-weight: 700;
+      color: #0b0e14;
       cursor: pointer;
-      transition: 0.2s;
-      font-size: 13px;
+      font-size: 16px;
+      margin: 4px;
     }
-    .match-card .odds button:hover { border-color: #f0b90b; background: #f0b90b; color: #0b0e14; }
-    .match-card .odds button.selected { background: #f0b90b; color: #0b0e14; border-color: #f0b90b; }
-    .match-card .time { color: #6a7e9c; font-size: 11px; margin-top: 4px; }
-    .bet-input-group { display: flex; gap: 8px; margin-top: 8px; }
-    .bet-input-group input { flex: 1; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 6px 12px; color: #fff; outline: none; font-size: 13px; }
-    .bet-input-group button { background: #f0b90b; border: none; border-radius: 40px; padding: 6px 16px; font-weight: 700; color: #0b0e14; cursor: pointer; font-size: 13px; }
-    .sports-history { margin-top: 16px; }
-    .sports-history .bet-item { background: #1a1f2b; border-radius: 8px; padding: 8px 12px; margin-bottom: 4px; display: flex; justify-content: space-between; font-size: 12px; }
-    .sports-history .won { color: #6fcf97; }
-    .sports-history .lost { color: #f28b82; }
-    .dice-game {
+    .dice-controls button:active { transform: scale(0.95); }
+
+    /* WHEEL */
+    .wheel-spin { font-size: 60px; margin: 10px 0; }
+
+    .footer-text { color: #4a5e7a; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
+    .game-coming {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin: 16px 0;
+      justify-content: center;
+      min-height: 300px;
+      text-align: center;
     }
-    .dice-result { font-size: 48px; margin: 10px 0; }
-    .dice-controls button { background: #f0b90b; border: none; border-radius: 40px; padding: 10px 30px; font-weight: 700; color: #0b0e14; cursor: pointer; font-size: 16px; margin: 4px; }
-    .wheel-game { text-align: center; }
-    .wheel-spin { font-size: 60px; margin: 10px 0; }
+    .game-coming .big-icon { font-size: 60px; margin-bottom: 16px; }
+    .game-coming h2 { color: #f0b90b; margin-bottom: 6px; font-size: 20px; }
+    .game-coming p { color: #6a7e9c; font-size: 13px; }
+    .game-coming .btn { background: #f0b90b; border: none; padding: 10px 32px; border-radius: 40px; font-weight: 700; margin-top: 16px; cursor: pointer; color: #0b0e14; font-size: 14px; }
+    .game-coming .btn:active { transform: scale(0.95); }
   </style>
 </head>
 <body>
 
 <div class="app" id="app">
 
-  <!-- ===== PAGE: LOBBY ===== -->
-  <div class="page active" id="page-lobby">
-    <div class="header">
+  <!-- ===== SPLASH / WELCOME PAGE ===== -->
+  <div class="page active" id="page-splash">
+    <div class="splash">
       <div class="logo">Ethio<span>bet</span></div>
+      <div class="sub">🎮 Play & win with Telebirr</div>
+      <div class="btn-group">
+        <button class="login-btn" onclick="showPage('login')">Login</button>
+        <button class="signup-btn" onclick="showPage('register')">Sign Up</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: LOGIN ===== -->
+  <div class="page" id="page-login">
+    <button class="back-btn" onclick="showPage('splash')">← Back</button>
+    <div class="auth-container">
+      <h1>🔐 Login</h1>
+      <div class="sub">Welcome back to Ethiobet</div>
+      <div id="loginError" class="auth-error"></div>
+      <label>Phone Number</label>
+      <input type="tel" id="loginPhone" placeholder="09XXXXXXXX">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter your password">
+      <button class="btn" onclick="login()">Continue</button>
+      <div class="switch">Don't have an account? <a onclick="showPage('register')">Sign Up</a></div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: REGISTER ===== -->
+  <div class="page" id="page-register">
+    <button class="back-btn" onclick="showPage('splash')">← Back</button>
+    <div class="auth-container">
+      <h1>📝 Sign Up</h1>
+      <div class="sub">Create your Ethiobet account</div>
+      <div id="registerError" class="auth-error"></div>
+      <label>Full Name</label>
+      <input type="text" id="registerName" placeholder="Your name">
+      <label>Phone Number</label>
+      <input type="tel" id="registerPhone" placeholder="09XXXXXXXX">
+      <label>Password</label>
+      <input type="password" id="registerPassword" placeholder="Create a password">
+      <button class="btn" onclick="register()">Create Account</button>
+      <div class="switch">Already have an account? <a onclick="showPage('login')">Login</a></div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: LOBBY (GAME DASHBOARD) ===== -->
+  <div class="page" id="page-lobby">
+    <div class="header">
+      <div class="logo" onclick="showPage('lobby')">Ethio<span>bet</span></div>
       <div id="lobbyUserInfo">
         <span class="balance" id="lobbyBalance">💰 0.00 ETB</span>
         <button class="logout-btn" onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
-        <span class="login-link" onclick="showPage('login')" id="loginLink">Login</span>
       </div>
     </div>
-    <div class="promo-banner">
-      <div class="text">🎉 Welcome Bonus <small>100% up to 1000 ETB</small></div>
-      <button class="btn" onclick="showPage('promotions')">Claim</button>
-    </div>
+
+    <!-- Navigation Tabs -->
     <div class="nav-tabs" id="navTabs">
       <button class="active" data-tab="all" onclick="filterGames('all')">All Games</button>
       <button data-tab="slots" onclick="filterGames('slots')">Slots</button>
       <button data-tab="crash" onclick="filterGames('crash')">Crash</button>
       <button data-tab="sports" onclick="filterGames('sports')">⚽ Sports</button>
     </div>
+
+    <!-- Game Grid -->
     <div class="game-grid" id="gameGrid">
       <div class="game-card" data-game="crash" onclick="showPage('game-aviator')">
         <div class="icon">✈️</div><div class="name">Aviator</div><div class="tag">Crash</div>
@@ -572,10 +683,13 @@
         <div class="icon">🎡</div><div class="name">Wheel</div><div class="tag">Casino</div>
       </div>
     </div>
+
+    <!-- Admin Panel -->
     <div class="admin-panel" id="adminPanel">
       <h2>🔑 Admin Panel <span id="pendingCount">0 pending</span></h2>
       <div id="adminDepositList"><div class="empty-deposits">No pending deposits</div></div>
     </div>
+
     <div class="bottom-nav">
       <a class="active" onclick="showPage('lobby')"><span class="emoji">🏠</span>Home</a>
       <a onclick="showPage('wallet')"><span class="emoji">💰</span>Wallet</a>
@@ -584,40 +698,6 @@
       <a onclick="showPage('more')"><span class="emoji">📋</span>More</a>
     </div>
     <div class="footer-text">⚡ @Ethiobet1_bot · Telebirr</div>
-  </div>
-
-  <!-- ===== PAGE: LOGIN ===== -->
-  <div class="page" id="page-login">
-    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <div class="auth-container">
-      <h1>🔐 Login</h1>
-      <div class="sub">Welcome back to Ethiobet</div>
-      <div id="loginError" class="auth-error"></div>
-      <label>Phone Number</label>
-      <input type="tel" id="loginPhone" placeholder="09XXXXXXXX">
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="Enter your password">
-      <button class="btn" onclick="login()">Continue</button>
-      <div class="switch">Don't have an account? <a onclick="showPage('register')">Sign Up</a></div>
-    </div>
-  </div>
-
-  <!-- ===== PAGE: REGISTER ===== -->
-  <div class="page" id="page-register">
-    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <div class="auth-container">
-      <h1>📝 Sign Up</h1>
-      <div class="sub">Create your Ethiobet account</div>
-      <div id="registerError" class="auth-error"></div>
-      <label>Full Name</label>
-      <input type="text" id="registerName" placeholder="Your name">
-      <label>Phone Number</label>
-      <input type="tel" id="registerPhone" placeholder="09XXXXXXXX">
-      <label>Password</label>
-      <input type="password" id="registerPassword" placeholder="Create a password">
-      <button class="btn" onclick="register()">Create Account</button>
-      <div class="switch">Already have an account? <a onclick="showPage('login')">Login</a></div>
-    </div>
   </div>
 
   <!-- ===== PAGE: WALLET ===== -->
@@ -642,23 +722,17 @@
   <div class="page" id="page-promotions">
     <button class="back-btn" onclick="showPage('lobby')">← Back</button>
     <h2 style="margin-bottom:10px;font-size:18px;">🎁 Promotions</h2>
-    <div style="background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div style="font-weight:700;font-size:14px;">💰 Deposit Bonus</div><div style="font-size:11px;color:#6a7e9c;">100% up to 1000 ETB</div></div>
-        <button class="btn" style="background:#f0b90b;border:none;padding:5px 14px;border-radius:40px;font-weight:700;font-size:12px;cursor:pointer;">Claim</button>
-      </div>
+    <div class="promo-card">
+      <div class="text">💰 Deposit Bonus <small>100% up to 1000 ETB</small></div>
+      <button class="btn" onclick="alert('Claim bonus!')">Claim</button>
     </div>
-    <div style="background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div style="font-weight:700;font-size:14px;">🎰 Spin Bonuses</div><div style="font-size:11px;color:#6a7e9c;">Free spins on selected slots</div></div>
-        <button class="btn" style="background:#f0b90b;border:none;padding:5px 14px;border-radius:40px;font-weight:700;font-size:12px;cursor:pointer;">Claim</button>
-      </div>
+    <div class="promo-card">
+      <div class="text">🎰 Spin Bonuses <small>Free spins on selected slots</small></div>
+      <button class="btn" onclick="alert('Claim bonus!')">Claim</button>
     </div>
-    <div style="background:#131a22;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div style="font-weight:700;font-size:14px;">🐔 Shamo</div><div style="font-size:11px;color:#6a7e9c;">Weekly cashback bonus</div></div>
-        <button class="btn" style="background:#f0b90b;border:none;padding:5px 14px;border-radius:40px;font-weight:700;font-size:12px;cursor:pointer;">Claim</button>
-      </div>
+    <div class="promo-card">
+      <div class="text">🐔 Shamo <small>Weekly cashback bonus</small></div>
+      <button class="btn" onclick="alert('Claim bonus!')">Claim</button>
     </div>
   </div>
 
@@ -797,9 +871,9 @@
     <div style="background:#131a22;border-radius:14px;padding:16px;text-align:center;">
       <div style="font-size:14px;color:#6a7e9c;">Roll a dice, win 2x if you guess correctly!</div>
       <div class="dice-result" id="diceResult">🎲</div>
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button class="btn" style="background:#f0b90b;border:none;padding:8px 24px;border-radius:40px;font-weight:700;cursor:pointer;" onclick="rollDice(1)">1-3</button>
-        <button class="btn" style="background:#f0b90b;border:none;padding:8px 24px;border-radius:40px;font-weight:700;cursor:pointer;" onclick="rollDice(2)">4-6</button>
+      <div class="dice-controls">
+        <button onclick="rollDice(1)">1-3</button>
+        <button onclick="rollDice(2)">4-6</button>
       </div>
       <div style="margin-top:12px;">
         <input type="number" id="diceBet" value="10" step="1" min="1" style="background:#1b2532;border:1px solid #2f3e51;border-radius:40px;padding:8px 14px;color:#fff;outline:none;width:100px;font-size:14px;text-align:center;">
@@ -829,7 +903,8 @@
   </div>
 
 </div>
-<!-- ===== END OF FIRST HALF ===== --><script>
+
+<script>
   // ============================================================
   // ========== CONFIGURATION ==========
   // ============================================================
@@ -838,8 +913,6 @@
   const ADMIN_IDS = [7154361039];
   const MERCHANT_PHONE = '0934600018';
   const BOT_USERNAME = 'Ethiobet1_bot';
-
-  console.log('🔗 Backend URL:', BACKEND_URL);
 
   // ============================================================
   // ========== TELEGRAM WEBAPP (Full Screen) ==========
@@ -892,13 +965,14 @@
     localStorage.setItem('token', token);
     currentUser = user;
     updateUI();
+    showPage('lobby');
   }
 
   function logout() {
     localStorage.removeItem('token');
     currentUser = null;
     updateUI();
-    showPage('lobby');
+    showPage('splash');
     if (ws) { ws.close(); ws = null; }
     if (jetxWs) { jetxWs.close(); jetxWs = null; }
   }
@@ -917,7 +991,6 @@
       const data = await res.json();
       if (data.success) {
         setAuth(data.token, data.user);
-        showPage('lobby');
         initGame(); initJetX();
       } else {
         error.textContent = '❌ ' + data.error;
@@ -943,7 +1016,6 @@
       const data = await res.json();
       if (data.success) {
         setAuth(data.token, data.user);
-        showPage('lobby');
         initGame(); initJetX();
       } else {
         error.textContent = '❌ ' + data.error;
@@ -961,12 +1033,10 @@
     const isLoggedIn = !!token && currentUser;
     const lobbyBalance = document.getElementById('lobbyBalance');
     const logoutBtn = document.getElementById('logoutBtn');
-    const loginLink = document.getElementById('loginLink');
 
     if (isLoggedIn && currentUser) {
       lobbyBalance.textContent = `💰 ${currentUser.balance.toFixed(2)} ETB`;
       logoutBtn.style.display = 'inline';
-      loginLink.style.display = 'none';
       if (ADMIN_IDS.includes(currentUser.id)) {
         document.getElementById('adminPanel').classList.add('active');
         loadPendingDeposits();
@@ -976,7 +1046,6 @@
     } else {
       lobbyBalance.textContent = '💰 0.00 ETB';
       logoutBtn.style.display = 'none';
-      loginLink.style.display = 'inline';
       document.getElementById('adminPanel').classList.remove('active');
     }
   }
@@ -1052,7 +1121,6 @@
           <div class="info">
             <div class="amount">💰 ${d.amount} ETB</div>
             <div class="user">👤 ${d.telegramId}</div>
-            <div class="user" style="font-size:9px;">🆔 ${d.id}</div>
           </div>
           <div class="actions">
             <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
@@ -1497,9 +1565,7 @@
   // ============================================================
   // ========== MINES GAME ==========
   // ============================================================
-  let minesState = {
-    grid: [], revealed: [], bombCount: 5, gameOver: false, gemsFound: 0, multiplier: 1.00, betAmount: 10, started: false
-  };
+  let minesState = { grid: [], revealed: [], bombCount: 5, gameOver: false, gemsFound: 0, multiplier: 1.00, betAmount: 10, started: false };
 
   function initMines() {
     const grid = document.getElementById('minesGrid');
@@ -1724,10 +1790,8 @@
   function selectBet(matchId, type) {
     selectedMatch = matchId;
     selectedBetType = type;
-    // Highlight selected button
     document.querySelectorAll(`.match-card[data-match="${matchId}"] .odds button`).forEach(b => b.classList.remove('selected'));
     document.querySelector(`.match-card[data-match="${matchId}"] .odds button[onclick*="${type}"]`).classList.add('selected');
-    // Show bet input
     document.querySelectorAll(`.match-card[data-match="${matchId}"] .bet-input-group`).forEach(el => el.style.display = 'flex');
   }
 
@@ -1749,7 +1813,7 @@
         alert(`Bet placed! Potential win: ${data.bet.potentialWin.toFixed(2)} ETB`);
         if (currentUser) currentUser.balance = data.newBalance;
         updateUI();
-        loadSportsMatches(); // refresh
+        loadSportsMatches();
       } else {
         alert('Error: ' + data.error);
       }
@@ -1775,7 +1839,7 @@
         return;
       }
       container.innerHTML = bets.map(b => `
-        <div class="bet-item ${b.status === 'won' ? 'won' : b.status === 'lost' ? 'lost' : ''}">
+        <div class="bet-item ${b.status === 'won' ? 'won' : b.status === 'lost' ? 'lost' : ''}" style="background:#1a1f2b;border-radius:8px;padding:6px 10px;margin-bottom:4px;display:flex;justify-content:space-between;font-size:12px;">
           <span>${b.match}</span>
           <span>${b.betLabel} @ ${b.odds.toFixed(2)}x</span>
           <span>${b.amount} ETB → ${b.status === 'won' ? b.wonAmount.toFixed(2) : b.status === 'active' ? 'Pending' : '0'}</span>
@@ -1792,15 +1856,12 @@
     if (!token) { alert('Please login first!'); showPage('login'); return; }
     const bet = parseFloat(document.getElementById('diceBet').value);
     if (!bet || bet <= 0) { alert('Enter valid bet'); return; }
-    // Check balance
     try {
       const res = await fetch(`${BACKEND_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
       const data = await res.json();
       if (data.balance < bet) { alert('Insufficient balance!'); return; }
-      // Deduct bet
       if (currentUser) currentUser.balance -= bet;
       updateUI();
-      // Roll dice
       const result = Math.floor(Math.random() * 6) + 1;
       document.getElementById('diceResult').textContent = '🎲 ' + result;
       const win = (choice === 1 && result <= 3) || (choice === 2 && result >= 4);
@@ -1812,7 +1873,6 @@
       } else {
         document.getElementById('diceStatus').textContent = `😔 You lost ${bet.toFixed(2)} ETB.`;
       }
-      // Update balance on server (simplified: just refresh)
       refreshWallet();
     } catch (err) { alert('Error'); }
   }
@@ -1831,7 +1891,6 @@
       if (data.balance < bet) { alert('Insufficient balance!'); return; }
       if (currentUser) currentUser.balance -= bet;
       updateUI();
-      // Spin wheel
       const colors = ['red', 'black', 'green', 'red', 'black', 'red', 'black', 'green'];
       const result = colors[Math.floor(Math.random() * colors.length)];
       const emojis = { red: '🔴', black: '⚫', green: '🟢' };
@@ -1865,9 +1924,18 @@
   // ============================================================
   // ========== INIT ==========
   // ============================================================
+  // Start with splash
+  showPage('splash');
+
   loadChat();
   const savedToken = getToken();
-  if (savedToken) refreshLobby();
+  if (savedToken) {
+    refreshLobby();
+    // After refresh, if logged in, go to lobby
+    setTimeout(() => {
+      if (currentUser) showPage('lobby');
+    }, 500);
+  }
   setTimeout(initGame, 500);
   setTimeout(initJetX, 800);
   initMines();
@@ -1879,7 +1947,6 @@
 
   console.log('🎮 Ethiobet Platform Loaded!');
   console.log('🤖 Bot: @Ethiobet1_bot');
-  console.log('🔑 JWT Secret: mamme dev');
 </script>
 </body>
-        </html>
+  </html>
