@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🪙 Plinko</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .plinko-board { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 12px 0; }
+    .plinko-cell { aspect-ratio: 1; background: #1b2532; border-radius: 50%; border: 1px solid #2f3e51; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #6a7e9c; transition: 0.3s; }
+    .plinko-cell.hit { background: #f0b90b; border-color: #f0b90b; color: #0b0e14; }
+    .plinko-cell.multiplier { background: #1f3a2f; border-color: #6fcf97; color: #6fcf97; }
+    .controls { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+    .controls input { flex: 1; min-width: 70px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 8px 14px; color: #fff; outline: none; font-size: 13px; }
+    .controls button { padding: 8px 20px; border: none; border-radius: 40px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .controls button:active { transform: scale(0.95); }
+    #dropBtn { background: #f0b90b; color: #0b0e14; }
+    .status { text-align: center; color: #6a7e9c; font-size: 12px; margin: 8px 0; }
+    .balance { color: #ffd966; font-weight: 700; }
+    .result-box { background: #131a22; border-radius: 12px; padding: 12px; text-align: center; margin-top: 10px; border: 1px solid rgba(255,255,255,0.04); }
+    .result-box .win { color: #6fcf97; font-size: 18px; font-weight: 700; }
+    .result-box .lose { color: #f28b82; font-size: 18px; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <h2 style="font-size:18px;">🪙 Plinko</h2>
+    <span>Balance: <span class="balance" id="balanceDisplay">0</span> ETB</span>
+  </div>
+  <div class="controls">
+    <input type="number" id="betInput" value="10" step="1" min="1">
+    <button id="dropBtn">🎯 Drop Ball</button>
+  </div>
+  <div class="plinko-board" id="plinkoBoard"></div>
+  <div class="result-box" id="resultBox">
+    <div style="color:#6a7e9c;">Drop the ball to win!</div>
+  </div>
+  <div class="status" id="statusMsg">Place your bet and drop!</div>
+</div>
+
+<script>
+  const BACKEND_URL = 'https://ethiobet.onrender.com';
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const token = localStorage.getItem('token');
+
+  const multipliers = [2, 1.5, 1, 0.5, 1, 1.5, 2];
+
+  function createBoard() {
+    const board = document.getElementById('plinkoBoard');
+    board.innerHTML = '';
+    // Row 0 (top)
+    for (let i = 0; i < 7; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'plinko-cell';
+      cell.dataset.row = 0;
+      cell.dataset.col = i;
+      cell.textContent = '●';
+      board.appendChild(cell);
+    }
+    // Row 1-5 (middle)
+    for (let row = 1; row < 6; row++) {
+      for (let col = 0; col < 7; col++) {
+        const cell = document.createElement('div');
+        cell.className = 'plinko-cell';
+        cell.dataset.row = row;
+        cell.dataset.col = col;
+        cell.textContent = '●';
+        board.appendChild(cell);
+      }
+    }
+    // Row 6 (bottom with multipliers)
+    for (let i = 0; i < 7; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'plinko-cell multiplier';
+      cell.dataset.row = 6;
+      cell.dataset.col = i;
+      cell.textContent = multipliers[i] + 'x';
+      board.appendChild(cell);
+    }
+  }
+
+  async function updateBalance() {
+    if (!token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById('balanceDisplay').textContent = data.balance.toFixed(0);
+    } catch (err) {}
+  }
+
+  function dropBall() {
+    const bet = parseFloat(document.getElementById('betInput').value);
+    if (!bet || bet <= 0) return alert('Enter valid bet');
+    if (!token) { alert('Please login first!'); return; }
+
+    // Simulate ball path
+    let col = 3; // start middle
+    const path = [];
+    for (let row = 0; row < 6; row++) {
+      const dir = Math.random() < 0.5 ? -1 : 1;
+      if (col + dir >= 0 && col + dir < 7) col += dir;
+      path.push(col);
+    }
+    const finalCol = col;
+    const multiplier = multipliers[finalCol];
+    const winAmount = bet * multiplier;
+
+    // Animate cells
+    const cells = document.querySelectorAll('.plinko-cell');
+    cells.forEach(c => c.classList.remove('hit'));
+    path.forEach((c, r) => {
+      const index = r * 7 + c;
+      if (cells[index]) setTimeout(() => cells[index].classList.add('hit'), (r + 1) * 200);
+    });
+    // Highlight final
+    setTimeout(() => {
+      const finalIndex = 6 * 7 + finalCol;
+      cells[finalIndex].classList.add('hit');
+      if (winAmount > bet) {
+        document.getElementById('resultBox').innerHTML = `<div class="win">🎉 You won ${winAmount.toFixed(2)} ETB!</div>`;
+      } else if (winAmount === bet) {
+        document.getElementById('resultBox').innerHTML = `<div style="color:#ffd966;font-size:18px;">🤝 You got your bet back</div>`;
+      } else {
+        document.getElementById('resultBox').innerHTML = `<div class="lose">😔 You lost ${bet.toFixed(2)} ETB</div>`;
+      }
+      updateBalance();
+    }, path.length * 200 + 300);
+  }
+
+  document.getElementById('dropBtn').addEventListener('click', dropBall);
+
+  createBoard();
+  updateBalance();
+  console.log('🪙 Plinko Loaded');
+</script>
+</body>
+</html>
