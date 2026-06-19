@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🎰 Slots</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .slot-machine { background: #131a22; border-radius: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.04); margin: 10px 0; }
+    .slot-reels { display: flex; gap: 10px; justify-content: center; margin: 12px 0; }
+    .slot-reel { width: 70px; height: 90px; background: #0f161e; border-radius: 10px; border: 2px solid #2f3e51; display: flex; align-items: center; justify-content: center; font-size: 40px; transition: 0.3s; }
+    .slot-reel.spinning { animation: spin 0.3s ease-in-out infinite; }
+    @keyframes spin { 0% { transform: translateY(-8px); } 50% { transform: translateY(8px); } 100% { transform: translateY(0); } }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+    .controls input { flex: 1; min-width: 70px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 8px 14px; color: #fff; outline: none; font-size: 13px; }
+    .controls button { flex: 1; background: #f0b90b; border: none; border-radius: 40px; padding: 10px; font-weight: 700; color: #0b0e14; cursor: pointer; font-size: 13px; }
+    .controls button:active { transform: scale(0.95); }
+    .result { text-align: center; color: #6a7e9c; font-size: 12px; margin-top: 8px; }
+    .balance { color: #ffd966; font-weight: 700; }
+    .info { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; color: #6a7e9c; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <h2 style="margin-bottom:6px;font-size:18px;">🎰 Slots</h2>
+  <div class="slot-machine">
+    <div class="info">
+      <span>Balance: <span class="balance" id="balanceDisplay">0</span> ETB</span>
+      <span>Bet: <span id="betDisplay">10</span> ETB</span>
+    </div>
+    <div class="slot-reels">
+      <div class="slot-reel" id="reel1">🍒</div>
+      <div class="slot-reel" id="reel2">🍋</div>
+      <div class="slot-reel" id="reel3">🍊</div>
+    </div>
+    <div class="controls">
+      <input type="number" id="betInput" value="10" step="1" min="1">
+      <button id="spinBtn">🎰 Spin</button>
+    </div>
+    <div class="result" id="resultMsg">Press spin to play!</div>
+  </div>
+  <div style="margin-top:10px;background:#131a22;border-radius:14px;padding:10px;border:1px solid rgba(255,255,255,0.04);text-align:center;font-size:12px;color:#6a7e9c;">
+    Symbols: 🍒 🍋 🍊 🍇 🔔 ⭐ 💎 &nbsp;|&nbsp; Match 3 = Win! 🎉
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // ========== CONFIGURATION ==========
+  // ============================================================
+  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const token = localStorage.getItem('token');
+  const symbols = ['🍒', '🍋', '🍊', '🍇', '🔔', '⭐', '💎'];
+  let isSpinning = false;
+
+  async function updateBalance() {
+    if (!token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById('balanceDisplay').textContent = data.balance.toFixed(0);
+    } catch (err) {}
+  }
+
+  document.getElementById('spinBtn').addEventListener('click', async () => {
+    if (isSpinning) return;
+    const bet = parseFloat(document.getElementById('betInput').value);
+    if (!bet || bet <= 0) return alert('Enter valid bet');
+    if (!token) { alert('Please login first!'); return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.balance < bet) { alert('Insufficient balance!'); return; }
+      // Deduct bet (simplified)
+      await fetch(`${BACKEND_URL}/api/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ balance: data.balance - bet })
+      });
+      isSpinning = true;
+      const reel1 = document.getElementById('reel1');
+      const reel2 = document.getElementById('reel2');
+      const reel3 = document.getElementById('reel3');
+      reel1.classList.add('spinning');
+      reel2.classList.add('spinning');
+      reel3.classList.add('spinning');
+      document.getElementById('resultMsg').textContent = '🎰 Spinning...';
+      setTimeout(() => {
+        const r1 = symbols[Math.floor(Math.random() * symbols.length)];
+        const r2 = symbols[Math.floor(Math.random() * symbols.length)];
+        const r3 = symbols[Math.floor(Math.random() * symbols.length)];
+        reel1.textContent = r1;
+        reel2.textContent = r2;
+        reel3.textContent = r3;
+        reel1.classList.remove('spinning');
+        reel2.classList.remove('spinning');
+        reel3.classList.remove('spinning');
+        isSpinning = false;
+        if (r1 === r2 && r2 === r3) {
+          const win = bet * 5;
+          document.getElementById('resultMsg').textContent = `🎉 JACKPOT! Won ${win.toFixed(2)} ETB!`;
+          // Credit win
+          updateBalance();
+          // Add win to balance (simplified)
+          fetch(`${BACKEND_URL}/api/profile`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).then(res => res.json()).then(data => {
+            fetch(`${BACKEND_URL}/api/profile`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ balance: data.balance + win })
+            });
+          });
+        } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+          const win = bet * 2;
+          document.getElementById('resultMsg').textContent = `🎉 Match! Won ${win.toFixed(2)} ETB!`;
+          fetch(`${BACKEND_URL}/api/profile`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).then(res => res.json()).then(data => {
+            fetch(`${BACKEND_URL}/api/profile`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ balance: data.balance + win })
+            });
+          });
+        } else {
+          document.getElementById('resultMsg').textContent = '😔 No match. Try again!';
+        }
+        updateBalance();
+      }, 1500);
+    } catch (err) { alert('Error spinning'); }
+  });
+
+  document.getElementById('betInput').addEventListener('change', function() {
+    document.getElementById('betDisplay').textContent = this.value || 10;
+  });
+
+  updateBalance();
+  console.log('🎰 Slots Loaded');
+</script>
+</body>
+</html>
