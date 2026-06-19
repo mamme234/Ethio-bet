@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>💬 Chat</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .messages { height: 350px; overflow-y: auto; background: #0f161e; border-radius: 14px; padding: 10px; margin-bottom: 10px; border: 1px solid #25303e; }
+    .message { margin-bottom: 6px; }
+    .message .user { color: #f0b90b; font-weight: 700; font-size: 12px; }
+    .message .msg { color: #b0c8e5; font-size: 13px; }
+    .message .time { color: #6a7e9c; font-size: 9px; margin-left: 6px; }
+    .input-area { display: flex; gap: 6px; }
+    .input-area input { flex: 1; padding: 8px 14px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; color: #fff; outline: none; font-size: 13px; }
+    .input-area input:focus { border-color: #f0b90b; }
+    .input-area button { padding: 8px 16px; background: #f0b90b; border: none; border-radius: 40px; font-weight: 700; color: #0b0e14; cursor: pointer; font-size: 13px; }
+    .input-area button:active { transform: scale(0.95); }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <h2 style="margin-bottom:10px;font-size:18px;">💬 Live Chat</h2>
+  <div class="messages" id="messages"></div>
+  <div class="input-area">
+    <input type="text" id="input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') send()">
+    <button onclick="send()">Send</button>
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const tgUser = tg?.initDataUnsafe?.user;
+  const name = tgUser?.first_name || 'Guest';
+
+  function loadMessages() {
+    const msgs = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+    const container = document.getElementById('messages');
+    if (msgs.length === 0) {
+      container.innerHTML = '<div style="color:#6a7e9c;text-align:center;padding:30px;">No messages yet. Be the first!</div>';
+      return;
+    }
+    container.innerHTML = msgs.map(m => `
+      <div class="message">
+        <span class="user">${m.user}</span>
+        <span class="msg">${m.msg}</span>
+        <span class="time">${new Date(m.time).toLocaleTimeString()}</span>
+      </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function send() {
+    const input = document.getElementById('input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    const msgs = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+    msgs.push({ user: name, msg, time: new Date().toISOString() });
+    localStorage.setItem('chatMessages', JSON.stringify(msgs));
+    input.value = '';
+    loadMessages();
+  }
+
+  loadMessages();
+  console.log('💬 Chat Loaded');
+</script>
+</body>
+</html>
