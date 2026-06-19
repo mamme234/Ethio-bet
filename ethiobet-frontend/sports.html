@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>⚽ World Cup Bets</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .match-card { background: #131a22; border-radius: 14px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.04); }
+    .match-card .teams { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .match-card .odds { display: flex; gap: 12px; justify-content: space-around; }
+    .match-card .odds button { flex: 1; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 6px 0; color: #fff; font-weight: 600; cursor: pointer; font-size: 13px; }
+    .match-card .odds button:active { transform: scale(0.95); }
+    .match-card .odds button.selected { background: #f0b90b; color: #0b0e14; border-color: #f0b90b; }
+    .match-card .time { color: #6a7e9c; font-size: 11px; margin-top: 4px; }
+    .bet-input-group { display: flex; gap: 8px; margin-top: 8px; }
+    .bet-input-group input { flex: 1; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 6px 12px; color: #fff; outline: none; font-size: 13px; }
+    .bet-input-group button { background: #f0b90b; border: none; border-radius: 40px; padding: 6px 16px; font-weight: 700; color: #0b0e14; cursor: pointer; font-size: 13px; }
+    .bet-input-group button:active { transform: scale(0.95); }
+    .history-item { background: #1a1f2b; border-radius: 8px; padding: 6px 10px; margin-bottom: 4px; display: flex; justify-content: space-between; font-size: 12px; }
+    .won { color: #6fcf97; }
+    .lost { color: #f28b82; }
+    .pending { color: #ffd966; }
+    h3 { font-size: 14px; color: #6a7e9c; margin: 12px 0 6px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <h2 style="margin-bottom:8px;font-size:18px;">⚽ World Cup Bets</h2>
+  <div id="matchesContainer"><div style="color:#6a7e9c;text-align:center;padding:20px;">Loading matches...</div></div>
+  <h3>📜 Your Bet History</h3>
+  <div id="historyContainer"><div style="color:#6a7e9c;font-size:12px;text-align:center;padding:10px;">No bets yet</div></div>
+</div>
+
+<script>
+  // ============================================================
+  // ========== CONFIGURATION ==========
+  // ============================================================
+  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const token = localStorage.getItem('token');
+  let selectedMatch = null, selectedBetType = null;
+
+  async function loadMatches() {
+    const container = document.getElementById('matchesContainer');
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/matches`);
+      const matches = await res.json();
+      if (matches.length === 0) {
+        container.innerHTML = '<div style="color:#6a7e9c;text-align:center;padding:20px;">No matches available</div>';
+        return;
+      }
+      container.innerHTML = matches.map(m => `
+        <div class="match-card" data-match="${m.id}">
+          <div class="teams">${m.home} vs ${m.away}</div>
+          <div class="odds">
+            <button onclick="selectBet('${m.id}', 'home')">${m.home} (${m.homeOdds.toFixed(2)})</button>
+            <button onclick="selectBet('${m.id}', 'draw')">Draw (${m.drawOdds.toFixed(2)})</button>
+            <button onclick="selectBet('${m.id}', 'away')">${m.away} (${m.awayOdds.toFixed(2)})</button>
+          </div>
+          <div class="time">⏳ ${new Date(m.startTime).toLocaleString()}</div>
+          <div class="bet-input-group" style="display:none;" id="bet-group-${m.id}">
+            <input type="number" id="bet-amount-${m.id}" placeholder="Amount" value="10" min="1">
+            <button onclick="placeBet('${m.id}')">Place Bet</button>
+          </div>
+        </div>
+      `).join('');
+      loadHistory();
+    } catch (err) {
+      container.innerHTML = '<div style="color:#f28b82;text-align:center;padding:20px;">Error loading matches</div>';
+    }
+  }
+
+  function selectBet(matchId, type) {
+    selectedMatch = matchId;
+    selectedBetType = type;
+    document.querySelectorAll(`.match-card[data-match="${matchId}"] .odds button`).forEach(b => b.classList.remove('selected'));
+    document.querySelector(`.match-card[data-match="${matchId}"] .odds button[onclick*="${type}"]`).classList.add('selected');
+    document.querySelectorAll(`.match-card[data-match="${matchId}"] .bet-input-group`).forEach(el => el.style.display = 'flex');
+  }
+
+  async function placeBet(matchId) {
+    if (!token) { alert('Please login first!'); return; }
+    if (!selectedMatch || selectedMatch !== matchId) { alert('Select a bet type first!'); return; }
+    const amount = parseFloat(document.getElementById(`bet-amount-${matchId}`).value);
+    if (!amount || amount <= 0) { alert('Enter a valid amount'); return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/sports/bet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ matchId, betType: selectedBetType, amount })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Bet placed! Potential win: ${data.bet.potentialWin.toFixed(2)} ETB`);
+        loadMatches();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch (err) { alert('Network error'); }
+  }
+
+  async function loadHistory() {
+    if (!token) {
+      document.getElementById('historyContainer').innerHTML = '<div style="color:#6a7e9c;font-size:12px;text-align:center;padding:10px;">Login to see your bets</div>';
+      return;
+    }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/sports/history`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const bets = await res.json();
+      const container = document.getElementById('historyContainer');
+      if (bets.length === 0) {
+        container.innerHTML = '<div style="color:#6a7e9c;font-size:12px;text-align:center;padding:10px;">No bets yet</div>';
+        return;
+      }
+      container.innerHTML = bets.map(b => `
+        <div class="history-item ${b.status === 'won' ? 'won' : b.status === 'lost' ? 'lost' : 'pending'}">
+          <span>${b.match}</span>
+          <span>${b.betLabel} @ ${b.odds.toFixed(2)}x</span>
+          <span>${b.amount} ETB → ${b.status === 'won' ? b.wonAmount.toFixed(2) : b.status === 'active' ? 'Pending' : '0'}</span>
+        </div>
+      `).join('');
+    } catch (err) { console.error(err); }
+  }
+
+  loadMatches();
+  console.log('⚽ Sports Loaded');
+</script>
+</body>
+</html>
