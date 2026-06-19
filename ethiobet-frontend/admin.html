@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🔑 Admin</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .deposit-card { background: #1a1f2b; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; border: 1px solid #2a3546; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 14px; }
+    .deposit-card .info .user { color: #889bb5; font-size: 11px; }
+    .deposit-card .actions { display: flex; gap: 4px; }
+    .deposit-card .actions button { padding: 4px 12px; border: none; border-radius: 40px; font-weight: 700; font-size: 11px; cursor: pointer; }
+    .btn-approve { background: #2a8c5a; color: #fff; }
+    .btn-reject { background: #8c2a2a; color: #fff; }
+    .empty { color: #6a7e9c; text-align: center; padding: 12px; font-size: 12px; }
+    h2 { color: #f0b90b; font-size: 16px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    h2 span { background: #f0b90b; color: #0b0e14; font-size: 11px; padding: 2px 10px; border-radius: 40px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <h2>🔑 Admin Panel <span id="count">0 pending</span></h2>
+  <div id="list"><div class="empty">No pending deposits</div></div>
+</div>
+
+<script>
+  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const token = localStorage.getItem('token');
+
+  async function loadPending() {
+    if (!token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/pending`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Unauthorized');
+      const deposits = await res.json();
+      document.getElementById('count').textContent = deposits.length + ' pending';
+      const container = document.getElementById('list');
+      if (deposits.length === 0) {
+        container.innerHTML = '<div class="empty">✅ No pending deposits</div>';
+        return;
+      }
+      container.innerHTML = deposits.map(d => `
+        <div class="deposit-card" id="dep-${d.id}">
+          <div class="info">
+            <div class="amount">💰 ${d.amount} ETB</div>
+            <div class="user">👤 ${d.telegramId}</div>
+          </div>
+          <div class="actions">
+            <button class="btn-approve" onclick="verify('${d.id}', 'approve')">✅ Approve</button>
+            <button class="btn-reject" onclick="verify('${d.id}', 'reject')">❌ Reject</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      document.getElementById('list').innerHTML = '<div class="empty">⚠️ Error loading</div>';
+    }
+  }
+
+  async function verify(depositId, action) {
+    if (!confirm(`Are you sure you want to ${action} this deposit?`)) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    const card = document.getElementById(`dep-${depositId}`);
+    const buttons = card.querySelectorAll('button');
+    buttons.forEach(b => b.disabled = true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ adminId: 7154361039, depositId, action })
+      });
+      const data = await res.json();
+      if (data.success) {
+        card.style.opacity = '0.3';
+        card.style.background = action === 'approve' ? '#1f3a2f' : '#3a1f1f';
+        setTimeout(loadPending, 1000);
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+      buttons.forEach(b => b.disabled = false);
+    }
+  }
+
+  loadPending();
+  console.log('🔑 Admin Panel Loaded');
+</script>
+</body>
+</html>
