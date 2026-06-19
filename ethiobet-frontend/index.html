@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🏠 Ethiobet</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 60px; min-height: 100vh; }
+    .page { display: none; animation: fadeIn 0.3s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* SPLASH */
+    .splash { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
+    .splash .logo { font-size: 48px; font-weight: 800; color: #f0b90b; margin-bottom: 8px; }
+    .splash .logo span { color: #fff; }
+    .splash .sub { color: #6a7e9c; font-size: 16px; margin-bottom: 30px; }
+    .splash .btn-group { display: flex; gap: 16px; }
+    .splash .btn-group button { padding: 12px 32px; border: none; border-radius: 40px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; }
+    .splash .btn-group .login-btn { background: #f0b90b; color: #0b0e14; }
+    .splash .btn-group .signup-btn { background: transparent; color: #fff; border: 1px solid #2f3e51; }
+    .splash .btn-group button:active { transform: scale(0.95); }
+
+    /* HEADER */
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 6px; }
+    .header .logo { font-size: 18px; font-weight: 800; color: #f0b90b; cursor: pointer; }
+    .header .logo span { color: #fff; }
+    .header .balance { color: #ffd966; font-weight: 700; background: rgba(240, 185, 11, 0.12); padding: 2px 12px; border-radius: 40px; border: 1px solid rgba(240, 185, 11, 0.2); font-size: 13px; }
+    .header .logout-btn { color: #f28b82; font-size: 11px; cursor: pointer; background: none; border: none; margin-left: 6px; }
+
+    /* NAV TABS */
+    .nav-tabs { display: flex; gap: 4px; overflow-x: auto; padding: 4px 0 8px; margin-bottom: 6px; scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tabs button { background: transparent; border: none; color: #6a7e9c; padding: 4px 14px; border-radius: 40px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .nav-tabs button.active { background: #f0b90b; color: #0b0e14; }
+    .nav-tabs button:active { transform: scale(0.95); }
+
+    /* GAME GRID */
+    .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .game-card { background: #131a22; border-radius: 14px; padding: 12px 6px; text-align: center; border: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: 0.2s; }
+    .game-card:active { transform: scale(0.95); border-color: #f0b90b; }
+    .game-card .icon { font-size: 26px; margin-bottom: 2px; }
+    .game-card .name { font-size: 11px; font-weight: 600; color: #b0c8e5; }
+    .game-card .tag { font-size: 8px; color: #6a7e9c; background: #1f2a37; padding: 1px 8px; border-radius: 40px; display: inline-block; margin-top: 2px; }
+
+    /* BOTTOM NAV */
+    .bottom-nav { display: flex; justify-content: space-around; padding: 8px 0 4px; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); max-width: 480px; width: 100%; background: #0b0e14; z-index: 100; }
+    .bottom-nav a { color: #6a7e9c; text-decoration: none; font-size: 10px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; padding: 4px 8px; }
+    .bottom-nav a:active { transform: scale(0.90); }
+    .bottom-nav a.active { color: #f0b90b; }
+    .bottom-nav a .emoji { font-size: 18px; }
+
+    /* AUTH */
+    .auth-container { max-width: 360px; margin: 20px auto; }
+    .auth-container h1 { font-size: 22px; margin-bottom: 2px; }
+    .auth-container .sub { color: #6a7e9c; font-size: 13px; margin-bottom: 16px; }
+    .auth-container label { display: block; font-size: 12px; font-weight: 600; color: #a0b3cc; margin-bottom: 3px; }
+    .auth-container input { width: 100%; padding: 10px 14px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; color: #fff; font-size: 14px; margin-bottom: 12px; outline: none; }
+    .auth-container input:focus { border-color: #f0b90b; }
+    .auth-container .btn { width: 100%; padding: 12px; background: #f0b90b; border: none; border-radius: 40px; font-size: 15px; font-weight: 700; color: #0b0e14; cursor: pointer; }
+    .auth-container .btn:active { transform: scale(0.95); }
+    .auth-container .switch { text-align: center; margin-top: 14px; color: #6a7e9c; font-size: 13px; }
+    .auth-container .switch a { color: #f0b90b; cursor: pointer; text-decoration: none; }
+    .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 10px; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+
+    .footer-text { color: #4a5e7a; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
+
+    .admin-panel { margin-top: 10px; padding-top: 10px; border-top: 2px solid rgba(240, 185, 11, 0.2); display: none; }
+    .admin-panel.active { display: block; }
+    .admin-panel h2 { color: #f0b90b; font-size: 14px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .admin-panel h2 span { background: #f0b90b; color: #0b0e14; font-size: 10px; padding: 2px 8px; border-radius: 40px; }
+    .deposit-card { background: #1a1f2b; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; border: 1px solid #2a3546; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 14px; }
+    .deposit-card .info .user { color: #889bb5; font-size: 11px; }
+    .deposit-card .actions { display: flex; gap: 4px; }
+    .deposit-card .actions button { padding: 4px 12px; border: none; border-radius: 40px; font-weight: 700; font-size: 11px; cursor: pointer; }
+    .btn-approve { background: #2a8c5a; color: #fff; }
+    .btn-reject { background: #8c2a2a; color: #fff; }
+    .empty-deposits { color: #6a7e9c; text-align: center; padding: 12px; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ===== SPLASH ===== -->
+  <div class="page active" id="page-splash">
+    <div class="splash">
+      <div class="logo">Ethio<span>bet</span></div>
+      <div class="sub">🎮 Play & win with Telebirr</div>
+      <div class="btn-group">
+        <button class="login-btn" onclick="showPage('login')">Login</button>
+        <button class="signup-btn" onclick="showPage('register')">Sign Up</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOGIN ===== -->
+  <div class="page" id="page-login">
+    <button class="back-btn" onclick="showPage('splash')">← Back</button>
+    <div class="auth-container">
+      <h1>🔐 Login</h1>
+      <div class="sub">Welcome back to Ethiobet</div>
+      <div id="loginError" class="auth-error"></div>
+      <label>Phone Number</label>
+      <input type="tel" id="loginPhone" placeholder="09XXXXXXXX">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter your password">
+      <button class="btn" onclick="login()">Continue</button>
+      <div class="switch">Don't have an account? <a onclick="showPage('register')">Sign Up</a></div>
+    </div>
+  </div>
+
+  <!-- ===== REGISTER ===== -->
+  <div class="page" id="page-register">
+    <button class="back-btn" onclick="showPage('splash')">← Back</button>
+    <div class="auth-container">
+      <h1>📝 Sign Up</h1>
+      <div class="sub">Create your Ethiobet account</div>
+      <div id="registerError" class="auth-error"></div>
+      <label>Full Name</label>
+      <input type="text" id="registerName" placeholder="Your name">
+      <label>Phone Number</label>
+      <input type="tel" id="registerPhone" placeholder="09XXXXXXXX">
+      <label>Password</label>
+      <input type="password" id="registerPassword" placeholder="Create a password">
+      <button class="btn" onclick="register()">Create Account</button>
+      <div class="switch">Already have an account? <a onclick="showPage('login')">Login</a></div>
+    </div>
+  </div>
+
+  <!-- ===== LOBBY ===== -->
+  <div class="page" id="page-lobby">
+    <div class="header">
+      <div class="logo" onclick="showPage('lobby')">Ethio<span>bet</span></div>
+      <div id="lobbyUserInfo">
+        <span class="balance" id="lobbyBalance">💰 0.00 ETB</span>
+        <button class="logout-btn" onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="active" data-tab="all" onclick="filterGames('all')">All Games</button>
+      <button data-tab="slots" onclick="filterGames('slots')">Slots</button>
+      <button data-tab="crash" onclick="filterGames('crash')">Crash</button>
+      <button data-tab="sports" onclick="filterGames('sports')">⚽ Sports</button>
+    </div>
+
+    <div class="game-grid" id="gameGrid">
+      <div class="game-card" data-game="crash" onclick="location.href='game-aviator.html'">
+        <div class="icon">✈️</div><div class="name">Aviator</div><div class="tag">Crash</div>
+      </div>
+      <div class="game-card" data-game="crash" onclick="location.href='game-jetx.html'">
+        <div class="icon">🚀</div><div class="name">JetX</div><div class="tag">Crash</div>
+      </div>
+      <div class="game-card" data-game="crash" onclick="location.href='game-mines.html'">
+        <div class="icon">💣</div><div class="name">Mines</div><div class="tag">Strategy</div>
+      </div>
+      <div class="game-card" data-game="slots" onclick="location.href='game-slots.html'">
+        <div class="icon">🎰</div><div class="name">Slots</div><div class="tag">Slot</div>
+      </div>
+      <div class="game-card" data-game="sports" onclick="location.href='sports.html'">
+        <div class="icon">⚽</div><div class="name">World Cup</div><div class="tag">Sports</div>
+      </div>
+      <div class="game-card" data-game="casino" onclick="location.href='game-dice.html'">
+        <div class="icon">🎲</div><div class="name">Dice</div><div class="tag">Casino</div>
+      </div>
+      <div class="game-card" data-game="casino" onclick="location.href='game-wheel.html'">
+        <div class="icon">🎡</div><div class="name">Wheel</div><div class="tag">Casino</div>
+      </div>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+      <h2>🔑 Admin Panel <span id="pendingCount">0 pending</span></h2>
+      <div id="adminDepositList"><div class="empty-deposits">No pending deposits</div></div>
+    </div>
+
+    <div class="bottom-nav">
+      <a class="active" onclick="showPage('lobby')"><span class="emoji">🏠</span>Home</a>
+      <a onclick="location.href='wallet.html'"><span class="emoji">💰</span>Wallet</a>
+      <a onclick="location.href='promotions.html'"><span class="emoji">🎁</span>Promos</a>
+      <a onclick="location.href='chat.html'"><span class="emoji">💬</span>Chat</a>
+      <a onclick="location.href='more.html'"><span class="emoji">📋</span>More</a>
+    </div>
+    <div class="footer-text">⚡ @Ethiobet1_bot · Telebirr</div>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  // ========== CONFIGURATION ==========
+  // ============================================================
+  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
+  const ADMIN_IDS = [7154361039];
+  const MERCHANT_PHONE = '0934600018';
+  const BOT_USERNAME = 'Ethiobet1_bot';
+
+  console.log('🔗 Backend URL:', BACKEND_URL);
+
+  // ============================================================
+  // ========== TELEGRAM WEBAPP ==========
+  // ============================================================
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+
+  const tgUser = tg?.initDataUnsafe?.user;
+  const telegramId = tgUser?.id || null;
+  const firstName = tgUser?.first_name || 'Guest';
+
+  // ============================================================
+  // ========== PAGE NAVIGATION ==========
+  // ============================================================
+  function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const page = document.getElementById('page-' + pageId);
+    if (page) page.classList.add('active');
+    if (pageId === 'lobby') refreshLobby();
+  }
+
+  function filterGames(tab) {
+    document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.nav-tabs button[data-tab="${tab}"]`)?.classList.add('active');
+    document.querySelectorAll('.game-card').forEach(card => {
+      const gameType = card.dataset.game;
+      if (tab === 'all' || gameType === tab) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // ============================================================
+  // ========== AUTH ==========
+  // ============================================================
+  let currentUser = null;
+
+  function getToken() { return localStorage.getItem('token'); }
+
+  function setAuth(token, user) {
+    localStorage.setItem('token', token);
+    currentUser = user;
+    updateUI();
+    showPage('lobby');
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    currentUser = null;
+    updateUI();
+    showPage('splash');
+  }
+
+  async function login() {
+    const phone = document.getElementById('loginPhone').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const error = document.getElementById('loginError');
+    if (!phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAuth(data.token, data.user);
+      } else {
+        error.textContent = '❌ ' + data.error;
+      }
+    } catch (err) {
+      error.textContent = '❌ Network error. Try again.';
+    }
+  }
+
+  async function register() {
+    const name = document.getElementById('registerName').value.trim();
+    const phone = document.getElementById('registerPhone').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const error = document.getElementById('registerError');
+    if (!name || !phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
+    if (password.length < 4) { error.textContent = '⚠️ Password must be at least 4 characters'; return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAuth(data.token, data.user);
+      } else {
+        error.textContent = '❌ ' + data.error;
+      }
+    } catch (err) {
+      error.textContent = '❌ Network error. Try again.';
+    }
+  }
+
+  // ============================================================
+  // ========== UI UPDATES ==========
+  // ============================================================
+  function updateUI() {
+    const token = getToken();
+    const isLoggedIn = !!token && currentUser;
+    const lobbyBalance = document.getElementById('lobbyBalance');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (isLoggedIn && currentUser) {
+      lobbyBalance.textContent = `💰 ${currentUser.balance.toFixed(2)} ETB`;
+      logoutBtn.style.display = 'inline';
+      if (ADMIN_IDS.includes(currentUser.id)) {
+        document.getElementById('adminPanel').classList.add('active');
+        loadPendingDeposits();
+      } else {
+        document.getElementById('adminPanel').classList.remove('active');
+      }
+    } else {
+      lobbyBalance.textContent = '💰 0.00 ETB';
+      logoutBtn.style.display = 'none';
+      document.getElementById('adminPanel').classList.remove('active');
+    }
+  }
+
+  async function refreshLobby() {
+    const token = getToken();
+    if (!token) { updateUI(); return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentUser = { ...currentUser, ...data };
+        updateUI();
+      } else {
+        logout();
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  // ============================================================
+  // ========== ADMIN PANEL ==========
+  // ============================================================
+  async function loadPendingDeposits() {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/pending`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Unauthorized');
+      const deposits = await res.json();
+      document.getElementById('pendingCount').textContent = deposits.length + ' pending';
+      const container = document.getElementById('adminDepositList');
+      if (deposits.length === 0) {
+        container.innerHTML = '<div class="empty-deposits">✅ No pending deposits</div>';
+        return;
+      }
+      container.innerHTML = deposits.map(d => `
+        <div class="deposit-card" id="dep-${d.id}">
+          <div class="info">
+            <div class="amount">💰 ${d.amount} ETB</div>
+            <div class="user">👤 ${d.telegramId}</div>
+          </div>
+          <div class="actions">
+            <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
+            <button class="btn-reject" onclick="verifyDeposit('${d.id}', 'reject')">❌ Reject</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      document.getElementById('adminDepositList').innerHTML = '<div class="empty-deposits">⚠️ Error loading</div>';
+    }
+  }
+
+  async function verifyDeposit(depositId, action) {
+    if (!confirm(`Are you sure you want to ${action} this deposit?`)) return;
+    const token = getToken();
+    if (!token) return;
+    const card = document.getElementById(`dep-${depositId}`);
+    const buttons = card.querySelectorAll('button');
+    buttons.forEach(b => b.disabled = true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ adminId: currentUser.id, depositId, action })
+      });
+      const data = await res.json();
+      if (data.success) {
+        card.style.opacity = '0.3';
+        card.style.background = action === 'approve' ? '#1f3a2f' : '#3a1f1f';
+        setTimeout(loadPendingDeposits, 1000);
+        if (currentUser) currentUser.balance = data.balance || currentUser.balance;
+        updateUI();
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+      buttons.forEach(b => b.disabled = false);
+    }
+  }
+
+  // ============================================================
+  // ========== INIT ==========
+  // ============================================================
+  showPage('splash');
+  const savedToken = getToken();
+  if (savedToken) {
+    refreshLobby();
+    setTimeout(() => { if (currentUser) showPage('lobby'); }, 500);
+  }
+  console.log('🏠 Ethiobet Lobby Loaded');
+</script>
+</body>
+  </html>
