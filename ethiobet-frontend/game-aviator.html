@@ -50,19 +50,13 @@
 </div>
 
 <script>
-  // ============================================================
-  // ========== CONFIGURATION ==========
-  // ============================================================
-  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
+  const BACKEND_URL = 'https://ethiobet.onrender.com';
   const tg = window.Telegram?.WebApp;
   if (tg) { tg.expand(); tg.ready(); }
   const tgUser = tg?.initDataUnsafe?.user;
   const telegramId = tgUser?.id || 'guest';
   const token = localStorage.getItem('token');
 
-  // ============================================================
-  // ========== WEBSOCKET ==========
-  // ============================================================
   let ws = null;
   let gameCanvas = null, ctx = null;
   let multiplier = 1.00, status = 'waiting', hasBet = false, history = [];
@@ -245,4 +239,4 @@
   console.log('✈️ Aviator Loaded');
 </script>
 </body>
-  </html>
+</html>
