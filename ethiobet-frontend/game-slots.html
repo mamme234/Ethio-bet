@@ -52,10 +52,7 @@
 </div>
 
 <script>
-  // ============================================================
-  // ========== CONFIGURATION ==========
-  // ============================================================
-  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
+  const BACKEND_URL = 'https://ethiobet.onrender.com';
   const tg = window.Telegram?.WebApp;
   if (tg) { tg.expand(); tg.ready(); }
   const token = localStorage.getItem('token');
@@ -84,12 +81,6 @@
       });
       const data = await res.json();
       if (data.balance < bet) { alert('Insufficient balance!'); return; }
-      // Deduct bet (simplified)
-      await fetch(`${BACKEND_URL}/api/profile`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ balance: data.balance - bet })
-      });
       isSpinning = true;
       const reel1 = document.getElementById('reel1');
       const reel2 = document.getElementById('reel2');
@@ -112,30 +103,10 @@
         if (r1 === r2 && r2 === r3) {
           const win = bet * 5;
           document.getElementById('resultMsg').textContent = `🎉 JACKPOT! Won ${win.toFixed(2)} ETB!`;
-          // Credit win
           updateBalance();
-          // Add win to balance (simplified)
-          fetch(`${BACKEND_URL}/api/profile`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }).then(res => res.json()).then(data => {
-            fetch(`${BACKEND_URL}/api/profile`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({ balance: data.balance + win })
-            });
-          });
         } else if (r1 === r2 || r2 === r3 || r1 === r3) {
           const win = bet * 2;
           document.getElementById('resultMsg').textContent = `🎉 Match! Won ${win.toFixed(2)} ETB!`;
-          fetch(`${BACKEND_URL}/api/profile`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }).then(res => res.json()).then(data => {
-            fetch(`${BACKEND_URL}/api/profile`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({ balance: data.balance + win })
-            });
-          });
         } else {
           document.getElementById('resultMsg').textContent = '😔 No match. Try again!';
         }
