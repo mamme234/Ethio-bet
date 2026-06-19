@@ -26,45 +26,20 @@ console.log('📱 Merchant:', MERCHANT_PHONE);
 console.log('👑 Admins:', ADMIN_IDS);
 console.log('🔗 Backend URL:', BACKEND_URL);
 console.log('🔗 Frontend URL:', FRONTEND_URL);
-console.log('🔑 JWT Secret set');
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
 
 // CORS configuration for production
-const allowedOrigins = [
-  FRONTEND_URL,
-  'http://localhost:3000',
-  'http://localhost:8080',
-  'https://ethiobet.vercel.app',
-  'https://ethiobet.onrender.com',
-  'https://ethiobet.vercel.app/',
-  'https://ethiobet.onrender.com/'
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('❌ Blocked by CORS:', origin);
-      callback(null, true); // Allow all for now (remove in production)
-    }
-  },
+  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080', 'https://ethiobet.vercel.app', 'https://ethiobet.onrender.com'],
   credentials: true
 }));
 app.use(express.json());
 
-// Health check endpoint (for Render)
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Serve index.html if frontend not deployed separately
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ---------- DATABASE ----------
@@ -102,12 +77,10 @@ app.post('/api/register', async (req, res) => {
   console.log('📝 Register attempt:', { phone, name });
   
   if (!phone || !password) {
-    console.log('❌ Missing phone or password');
     return res.status(400).json({ error: 'Phone and password required' });
   }
   
   if (findUser(phone)) {
-    console.log('❌ User already exists:', phone);
     return res.status(400).json({ error: 'User already exists' });
   }
   
@@ -150,14 +123,12 @@ app.post('/api/login', async (req, res) => {
   
   const user = findUser(phone);
   if (!user) {
-    console.log('❌ User not found:', phone);
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   
   try {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
-      console.log('❌ Invalid password for:', phone);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     console.log('✅ Login successful:', phone);
@@ -181,18 +152,12 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/profile', (req, res) => {
   const auth = req.headers.authorization;
-  if (!auth) {
-    console.log('❌ No auth header');
-    return res.status(401).json({ error: 'No token' });
-  }
+  if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const token = auth.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = getUser(decoded.id);
-    if (!user) {
-      console.log('❌ User not found for id:', decoded.id);
-      return res.status(404).json({ error: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ 
       id: user.id, 
       phone: user.phone, 
@@ -200,7 +165,6 @@ app.get('/api/profile', (req, res) => {
       balance: user.balance 
     });
   } catch (err) {
-    console.log('❌ Invalid token:', err.message);
     res.status(401).json({ error: 'Invalid token' });
   }
 });
@@ -248,7 +212,7 @@ app.post('/api/verify', async (req, res) => {
     db.completedDeposits.push({ ...deposit, status: 'rejected', verifiedBy: adminId, verifiedAt: new Date().toISOString() });
     try { 
       await bot.sendMessage(deposit.telegramId, 
-        `❌ *Deposit Rejected*\n\nPlease send a clear screenshot of the payment.`
+        `❌ *Deposit Rejected*\n\nPlease send a clear screenshot.`
       ); 
     } catch(e) {}
     db.pendingDeposits.splice(depositIndex, 1);
@@ -333,48 +297,6 @@ app.get('/api/sports/history', (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const bets = db.sportsBets.filter(b => b.userId === decoded.id);
     res.json(bets);
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-});
-
-// Admin: resolve a match
-app.post('/api/sports/resolve', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const token = auth.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
-    if (!isAdmin(decoded.id)) return res.status(403).json({ error: 'Unauthorized' });
-
-    const { matchId, winner } = req.body;
-    const match = db.matches.find(m => m.id === matchId);
-    if (!match) return res.status(404).json({ error: 'Match not found' });
-    if (match.status === 'finished') return res.status(400).json({ error: 'Already resolved' });
-
-    match.status = 'finished';
-    match.result = winner;
-    saveDB();
-
-    const bets = db.sportsBets.filter(b => b.matchId === matchId && b.status === 'active');
-    for (const bet of bets) {
-      if (bet.betType === winner) {
-        const user = getUser(bet.userId);
-        if (user) {
-          const winAmount = bet.amount * bet.odds;
-          user.balance += winAmount;
-          bet.status = 'won';
-          bet.wonAmount = winAmount;
-          try {
-            bot.sendMessage(bet.userId, `🎉 Your bet on ${bet.match} won! You won ${winAmount.toFixed(2)} ETB!`);
-          } catch(e) {}
-        }
-      } else {
-        bet.status = 'lost';
-      }
-    }
-    saveDB();
-    res.json({ success: true, settledBets: bets.length });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
   }
