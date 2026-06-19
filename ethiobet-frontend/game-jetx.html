@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🚀 JetX</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .multiplier { text-align: center; font-size: 40px; font-weight: 800; color: #fff; padding: 4px 0 2px; text-shadow: 0 0 40px rgba(255,107,107,0.25); background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 8px; }
+    canvas { width: 100%; aspect-ratio: 16 / 9; background: #0f161e; border-radius: 12px; display: block; margin: 4px 0 8px; border: 1px solid #25303e; }
+    .status { text-align: center; font-weight: 600; font-size: 12px; min-height: 20px; color: #6a7e9c; margin-bottom: 8px; }
+    .status-connected { color: #6fcf97; }
+    .status-error { color: #f28b82; }
+    .controls { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .controls input { flex: 2; min-width: 70px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 10px 14px; color: #fff; font-size: 14px; font-weight: 600; outline: none; }
+    .controls input:focus { border-color: #f0b90b; }
+    .controls button { flex: 1; min-width: 60px; border: none; border-radius: 40px; padding: 10px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+    .controls button:active { transform: scale(0.95); }
+    #betBtn { background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: #fff; box-shadow: 0 4px 16px rgba(255,107,107,0.3); }
+    #cashoutBtn { background: linear-gradient(135deg, #2a8c5a, #1f6e46); color: #fff; box-shadow: 0 4px 16px rgba(42,140,90,0.3); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .history { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); min-height: 26px; }
+    .history-label { color: #6a7e9c; font-size: 10px; font-weight: 600; }
+    .badge { background: #1f2a37; color: #b0c8e5; padding: 2px 10px; border-radius: 40px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,255,255,0.04); }
+    .badge.high { background: #1f3a2f; color: #6fcf97; }
+    .badge.low { background: #3a1f1f; color: #f28b82; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <div class="multiplier" id="multiplierDisplay">1.00x</div>
+  <canvas id="gameCanvas" width="800" height="450"></canvas>
+  <div class="status" id="statusMsg">⏳ Connecting...</div>
+  <div class="controls">
+    <input type="number" id="betInput" value="10" step="1" min="1">
+    <button id="betBtn" disabled>🚀 Bet</button>
+    <button id="cashoutBtn" disabled>💰 Cash Out</button>
+  </div>
+  <div class="history">
+    <span class="history-label">📊 History:</span>
+    <div id="historyContainer"></div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // ========== CONFIGURATION ==========
+  // ============================================================
+  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const tgUser = tg?.initDataUnsafe?.user;
+  const telegramId = tgUser?.id || 'guest';
+  const token = localStorage.getItem('token');
+
+  // ============================================================
+  // ========== WEBSOCKET ==========
+  // ============================================================
+  let ws = null;
+  let gameCanvas = null, ctx = null;
+  let multiplier = 1.00, status = 'waiting', hasBet = false, history = [];
+
+  function initGame() {
+    gameCanvas = document.getElementById('gameCanvas');
+    ctx = gameCanvas.getContext('2d');
+    drawCanvas(1.00, false, 0);
+    connectWS();
+  }
+
+  function connectWS() {
+    if (ws) { ws.close(); }
+    const WS_URL = BACKEND_URL.replace('http', 'ws');
+    ws = new WebSocket(`${WS_URL}/?userId=${telegramId}`);
+    ws.onopen = () => {
+      document.getElementById('statusMsg').textContent = '✅ Connected!';
+      document.getElementById('statusMsg').className = 'status status-connected';
+      document.getElementById('betBtn').disabled = false;
+    };
+    ws.onclose = () => {
+      document.getElementById('statusMsg').textContent = '❌ Disconnected. Reconnecting...';
+      document.getElementById('statusMsg').className = 'status status-error';
+      document.getElementById('betBtn').disabled = true;
+      document.getElementById('cashoutBtn').disabled = true;
+      setTimeout(connectWS, 3000);
+    };
+    ws.onerror = () => {
+      document.getElementById('statusMsg').textContent = '⚠️ Connection error.';
+      document.getElementById('statusMsg').className = 'status status-error';
+    };
+    ws.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      console.log('WS:', data);
+      switch(data.type) {
+        case 'init':
+          document.getElementById('betBtn').disabled = false;
+          break;
+        case 'round_started':
+          status = 'flying';
+          document.getElementById('statusMsg').textContent = '🚀 Flying! Cash out!';
+          document.getElementById('statusMsg').className = 'status';
+          document.getElementById('betBtn').disabled = true;
+          if (!hasBet) document.getElementById('betBtn').disabled = false;
+          break;
+        case 'multiplier_update':
+          multiplier = data.multiplier;
+          document.getElementById('multiplierDisplay').textContent = multiplier.toFixed(2) + 'x';
+          if (status !== 'crashed') drawCanvas(multiplier, false, 0);
+          break;
+        case 'game_crashed':
+          status = 'crashed';
+          multiplier = data.multiplier;
+          document.getElementById('multiplierDisplay').textContent = multiplier.toFixed(2) + 'x';
+          drawCanvas(multiplier, true, multiplier);
+          document.getElementById('statusMsg').textContent = '💥 Crashed!';
+          document.getElementById('statusMsg').className = 'status status-error';
+          document.getElementById('betBtn').disabled = false;
+          document.getElementById('cashoutBtn').disabled = true;
+          hasBet = false;
+          history.unshift(multiplier);
+          if (history.length > 15) history.pop();
+          renderHistory();
+          break;
+        case 'bet_placed':
+          hasBet = true;
+          document.getElementById('betBtn').disabled = true;
+          document.getElementById('cashoutBtn').disabled = false;
+          document.getElementById('statusMsg').textContent = '⏳ Bet placed!';
+          document.getElementById('statusMsg').className = 'status';
+          break;
+        case 'cash_out_success':
+          hasBet = false;
+          document.getElementById('cashoutBtn').disabled = true;
+          document.getElementById('betBtn').disabled = false;
+          document.getElementById('statusMsg').textContent = `✅ Cashed out at ${data.multiplier.toFixed(2)}x! Won ${data.winAmount.toFixed(2)} ETB!`;
+          document.getElementById('statusMsg').className = 'status status-connected';
+          drawCanvas(data.multiplier, false, 0);
+          break;
+        case 'error':
+          document.getElementById('statusMsg').textContent = '⚠️ ' + data.message;
+          document.getElementById('statusMsg').className = 'status status-error';
+          if (data.message.includes('balance')) document.getElementById('betBtn').disabled = false;
+          break;
+      }
+    };
+  }
+
+  function drawCanvas(currentMultiplier, crashed, crashValue) {
+    if (!gameCanvas) return;
+    const w = gameCanvas.width, h = gameCanvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = '#1e2a38';
+    ctx.lineWidth = 0.8;
+    for (let i = 0; i < 10; i++) {
+      const y = h - (i / 10) * h * 0.85 - 20;
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(w - 20, y);
+      ctx.stroke();
+      ctx.fillStyle = '#3e526a';
+      ctx.font = '10px monospace';
+      ctx.fillText((i * 5).toString() + 'x', 6, y + 4);
+    }
+    const maxX = w - 30, baseY = h - 20, scaleX = maxX / 8, scaleY = (h - 40) / 12;
+    ctx.beginPath();
+    ctx.strokeStyle = '#ff6b6b';
+    ctx.lineWidth = 4.5;
+    ctx.shadowColor = '#ff6b6b';
+    ctx.shadowBlur = 15;
+    const points = 60;
+    let displayMultiplier = currentMultiplier;
+    if (crashed) displayMultiplier = crashValue || 1.00;
+    for (let i = 0; i <= points; i++) {
+      const t = (i / points) * 8;
+      let m = 1.00 + t * 1.2;
+      if (crashed && crashValue) {
+        const crashT = (crashValue - 1) / 1.2;
+        if (t > crashT) m = crashValue;
+        else m = 1 + t * 1.2;
+      } else {
+        if (t * 1.2 > displayMultiplier - 1) m = displayMultiplier;
+        else m = 1 + t * 1.2;
+      }
+      const x = 40 + t * scaleX, y = baseY - (m - 1) * scaleY;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    const currentT = (displayMultiplier - 1) / 1.2;
+    const rocketX = 40 + Math.min(currentT, 8) * scaleX;
+    const rocketY = baseY - (displayMultiplier - 1) * scaleY;
+    ctx.beginPath();
+    ctx.fillStyle = '#ff6b6b';
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = '#ff6b6b';
+    ctx.arc(rocketX, rocketY, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd966';
+    ctx.arc(rocketX - 4, rocketY - 4, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    if (crashed) {
+      ctx.fillStyle = '#ff6b6b';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.shadowColor = '#ff0000';
+      ctx.shadowBlur = 30;
+      ctx.fillText('💥 CRASHED', w/2 - 130, 90);
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function renderHistory() {
+    const container = document.getElementById('historyContainer');
+    container.innerHTML = '';
+    history.forEach(v => {
+      const badge = document.createElement('span');
+      badge.className = 'badge' + (v >= 5 ? ' high' : v <= 1.5 ? ' low' : '');
+      badge.textContent = v.toFixed(2) + 'x';
+      container.appendChild(badge);
+    });
+  }
+
+  document.getElementById('betBtn').addEventListener('click', () => {
+    const amount = parseFloat(document.getElementById('betInput').value);
+    if (!amount || amount <= 0) return alert('Enter valid bet');
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'place_bet', amount }));
+    }
+  });
+
+  document.getElementById('cashoutBtn').addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'cash_out' }));
+    }
+  });
+
+  initGame();
+  console.log('🚀 JetX Loaded');
+</script>
+</body>
+</html>
