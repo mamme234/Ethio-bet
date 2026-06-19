@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>💣 Mines</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 12px 0; }
+    .mines-cell { aspect-ratio: 1; background: #1b2532; border-radius: 10px; border: 2px solid #2f3e51; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; transition: 0.2s; }
+    .mines-cell:active:not(.revealed) { transform: scale(0.92); }
+    .mines-cell.revealed { cursor: default; }
+    .mines-cell.bomb { background: #8c2a2a; border-color: #f28b82; }
+    .mines-cell.gem { background: #1f3a2f; border-color: #6fcf97; }
+    .controls { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+    .controls input { flex: 1; min-width: 70px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 8px 14px; color: #fff; outline: none; font-size: 13px; }
+    .controls button { padding: 8px 20px; border: none; border-radius: 40px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .controls button:active { transform: scale(0.95); }
+    #startBtn { background: #f0b90b; color: #0b0e14; }
+    #cashoutBtn { background: #2a8c5a; color: #fff; display: none; }
+    .status { text-align: center; color: #6a7e9c; font-size: 12px; margin: 8px 0; }
+    .balance { color: #ffd966; font-weight: 700; }
+    .stats { display: flex; justify-content: space-between; color: #6a7e9c; font-size: 12px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <h2 style="font-size:18px;">💣 Mines</h2>
+    <span>Balance: <span class="balance" id="balanceDisplay">0</span> ETB</span>
+  </div>
+  <div class="controls">
+    <input type="number" id="betInput" value="10" step="1" min="1">
+    <button id="startBtn">Start Game</button>
+    <button id="cashoutBtn">Cash Out</button>
+  </div>
+  <div class="status" id="statusMsg">Place your bet and start!</div>
+  <div class="mines-grid" id="minesGrid"></div>
+  <div class="stats">
+    <span>💎 Gems: <span id="gemsCount">0</span></span>
+    <span>💰 Multiplier: <span id="multiplierDisplay">1.00x</span></span>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // ========== CONFIGURATION ==========
+  // ============================================================
+  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const tgUser = tg?.initDataUnsafe?.user;
+  const token = localStorage.getItem('token');
+
+  // ============================================================
+  // ========== GAME STATE ==========
+  // ============================================================
+  let grid = [], revealed = [], gameOver = false, gemsFound = 0, multiplier = 1.00, betAmount = 10, started = false;
+  const BOMB_COUNT = 5;
+
+  function initMines() {
+    const gridEl = document.getElementById('minesGrid');
+    gridEl.innerHTML = '';
+    for (let i = 0; i < 25; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'mines-cell';
+      cell.dataset.index = i;
+      cell.textContent = '❓';
+      cell.addEventListener('click', () => minesClick(i));
+      gridEl.appendChild(cell);
+    }
+    started = false;
+    gameOver = false;
+    gemsFound = 0;
+    multiplier = 1.00;
+    document.getElementById('gemsCount').textContent = '0';
+    document.getElementById('multiplierDisplay').textContent = '1.00x';
+    document.getElementById('statusMsg').textContent = 'Place your bet and start!';
+    document.getElementById('startBtn').style.display = 'block';
+    document.getElementById('cashoutBtn').style.display = 'none';
+    updateBalance();
+  }
+
+  async function updateBalance() {
+    if (!token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById('balanceDisplay').textContent = data.balance.toFixed(0);
+    } catch (err) {}
+  }
+
+  function minesClick(index) {
+    if (!started || gameOver) return;
+    if (revealed.includes(index)) return;
+    const isBomb = grid[index] === 'bomb';
+    const cell = document.querySelector(`.mines-cell[data-index="${index}"]`);
+    if (isBomb) {
+      cell.classList.add('revealed', 'bomb');
+      cell.textContent = '💣';
+      gameOver = true;
+      document.getElementById('statusMsg').textContent = '💥 BOOM! Game Over!';
+      document.getElementById('startBtn').style.display = 'block';
+      document.getElementById('cashoutBtn').style.display = 'none';
+      grid.forEach((val, i) => {
+        if (val === 'bomb') {
+          const c = document.querySelector(`.mines-cell[data-index="${i}"]`);
+          c.classList.add('revealed', 'bomb');
+          c.textContent = '💣';
+        }
+      });
+    } else {
+      cell.classList.add('revealed', 'gem');
+      cell.textContent = '💎';
+      gemsFound++;
+      multiplier = 1.00 + (gemsFound * 0.25);
+      document.getElementById('gemsCount').textContent = gemsFound;
+      document.getElementById('multiplierDisplay').textContent = multiplier.toFixed(2) + 'x';
+      document.getElementById('statusMsg').textContent = `💎 Found! ${gemsFound} gems | ${multiplier.toFixed(2)}x`;
+      document.getElementById('cashoutBtn').style.display = 'block';
+    }
+  }
+
+  document.getElementById('startBtn').addEventListener('click', async () => {
+    const bet = parseFloat(document.getElementById('betInput').value);
+    if (!bet || bet <= 0) return alert('Enter valid bet');
+    if (!token) { alert('Please login first!'); return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.balance < bet) { alert('Insufficient balance!'); return; }
+      // Deduct bet from balance
+      await fetch(`${BACKEND_URL}/api/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ balance: data.balance - bet })
+      });
+      // Note: In production, use a proper bet endpoint.
+      // For now, we'll just update the UI.
+      grid = Array(25).fill('gem');
+      let bombs = 0;
+      while (bombs < BOMB_COUNT) {
+        const idx = Math.floor(Math.random() * 25);
+        if (grid[idx] === 'gem') { grid[idx] = 'bomb'; bombs++; }
+      }
+      betAmount = bet;
+      gemsFound = 0;
+      multiplier = 1.00;
+      gameOver = false;
+      started = true;
+      revealed = [];
+      document.getElementById('gemsCount').textContent = '0';
+      document.getElementById('multiplierDisplay').textContent = '1.00x';
+      document.getElementById('statusMsg').textContent = '💎 Click cells to find gems!';
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('cashoutBtn').style.display = 'none';
+      document.querySelectorAll('.mines-cell').forEach(c => { c.className = 'mines-cell'; c.textContent = '❓'; });
+      updateBalance();
+    } catch (err) { alert('Error starting game'); }
+  });
+
+  document.getElementById('cashoutBtn').addEventListener('click', async () => {
+    if (!started || gameOver) return;
+    const winAmount = betAmount * multiplier;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    // Credit the user
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      await fetch(`${BACKEND_URL}/api/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ balance: data.balance + winAmount })
+      });
+      document.getElementById('statusMsg').textContent = `🎉 Cashed out! Won ${winAmount.toFixed(2)} ETB!`;
+      document.getElementById('startBtn').style.display = 'block';
+      document.getElementById('cashoutBtn').style.display = 'none';
+      started = false;
+      gameOver = true;
+      grid.forEach((val, i) => {
+        const c = document.querySelector(`.mines-cell[data-index="${i}"]`);
+        if (!c.classList.contains('revealed')) {
+          c.classList.add('revealed');
+          c.textContent = val === 'bomb' ? '💣' : '💎';
+          if (val === 'bomb') c.classList.add('bomb');
+          else c.classList.add('gem');
+        }
+      });
+      updateBalance();
+    } catch (err) { alert('Error cashing out'); }
+  });
+
+  initMines();
+  updateBalance();
+  console.log('💣 Mines Loaded');
+</script>
+</body>
+</html>
