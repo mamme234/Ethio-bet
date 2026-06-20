@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🃏 Blackjack</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .blackjack-box { background: #131a22; border-radius: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.04); }
+    .hand { margin: 8px 0; padding: 8px; background: #0f161e; border-radius: 10px; }
+    .hand-title { font-size: 12px; color: #6a7e9c; margin-bottom: 4px; }
+    .hand-cards { font-size: 28px; letter-spacing: 4px; }
+    .hand-total { font-size: 14px; font-weight: 700; color: #ffd966; }
+    .actions { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+    .actions button { flex: 1; padding: 10px; border: none; border-radius: 40px; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.3s; }
+    .actions button:active { transform: scale(0.95); }
+    .hit { background: #f0b90b; color: #0b0e14; }
+    .stand { background: #2a8c5a; color: #fff; }
+    .new-game { background: #2a8c5a; color: #fff; }
+    .controls { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+    .controls input { flex: 1; min-width: 70px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 8px 14px; color: #fff; outline: none; font-size: 13px; }
+    .controls button { padding: 8px 20px; border: none; border-radius: 40px; font-weight: 700; font-size: 13px; cursor: pointer; background: #f0b90b; color: #0b0e14; }
+    .controls button:active { transform: scale(0.95); }
+    .status { text-align: center; color: #6a7e9c; font-size: 12px; margin: 8px 0; }
+    .balance { color: #ffd966; font-weight: 700; }
+    .result-msg { font-size: 18px; font-weight: 700; text-align: center; margin: 8px 0; }
+    .win { color: #6fcf97; }
+    .lose { color: #f28b82; }
+    .push { color: #ffd966; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <h2 style="margin-bottom:10px;font-size:18px;">🃏 Blackjack</h2>
+  <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+    <span>Balance: <span class="balance" id="balanceDisplay">0</span> ETB</span>
+  </div>
+  <div class="blackjack-box">
+    <div class="controls">
+      <input type="number" id="betInput" value="10" step="1" min="1">
+      <button id="dealBtn">🃏 Deal</button>
+    </div>
+    <div class="hand">
+      <div class="hand-title">👤 Your Hand</div>
+      <div class="hand-cards" id="playerCards">-</div>
+      <div class="hand-total">Total: <span id="playerTotal">0</span></div>
+    </div>
+    <div class="hand">
+      <div class="hand-title">🤖 Dealer's Hand</div>
+      <div class="hand-cards" id="dealerCards">-</div>
+      <div class="hand-total">Total: <span id="dealerTotal">0</span></div>
+    </div>
+    <div class="actions" id="actions">
+      <button class="hit" id="hitBtn">Hit</button>
+      <button class="stand" id="standBtn">Stand</button>
+    </div>
+    <div id="resultMsg" class="status">Place your bet and deal!</div>
+  </div>
+</div>
+
+<script>
+  const BACKEND_URL = 'https://ethiobet.onrender.com';
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const token = localStorage.getItem('token');
+  let deck = [], playerHand = [], dealerHand = [], gameOver = false, currentBet = 0;
+
+  const suits = ['♠', '♥', '♦', '♣'];
+  const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+  function createDeck() {
+    const d = [];
+    for (const suit of suits) {
+      for (const value of values) {
+        d.push({ suit, value });
+      }
+    }
+    return shuffle(d);
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function cardValue(card) {
+    if (card.value === 'A') return 11;
+    if (['J', 'Q', 'K'].includes(card.value)) return 10;
+    return parseInt(card.value);
+  }
+
+  function handTotal(hand) {
+    let total = 0;
+    let aces = 0;
+    for (const card of hand) {
+      if (card.value === 'A') aces++;
+      total += cardValue(card);
+    }
+    while (total > 21 && aces > 0) {
+      total -= 10;
+      aces--;
+    }
+    return total;
+  }
+
+  function cardDisplay(card) {
+    return `${card.value}${card.suit}`;
+  }
+
+  function render() {
+    document.getElementById('playerCards').textContent = playerHand.map(c => cardDisplay(c)).join(' ') || '-';
+    document.getElementById('playerTotal').textContent = handTotal(playerHand);
+    document.getElementById('dealerCards').textContent = dealerHand.map(c => cardDisplay(c)).join(' ') || '-';
+    document.getElementById('dealerTotal').textContent = handTotal(dealerHand);
+  }
+
+  async function updateBalance() {
+    if (!token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById('balanceDisplay').textContent = data.balance.toFixed(0);
+    } catch (err) {}
+  }
+
+  function setResult(msg, type) {
+    const el = document.getElementById('resultMsg');
+    el.textContent = msg;
+    el.className = type + ' result-msg';
+  }
+
+  async function deal() {
+    const bet = parseFloat(document.getElementById('betInput').value);
+    if (!bet || bet <= 0) return alert('Enter valid bet');
+    if (!token) { alert('Please login first!'); return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.balance < bet) { alert('Insufficient balance!'); return; }
+      currentBet = bet;
+      deck = createDeck();
+      playerHand = [];
+      dealerHand = [];
+      gameOver = false;
+      playerHand.push(deck.pop(), deck.pop());
+      dealerHand.push(deck.pop(), deck.pop());
+      render();
+      document.getElementById('actions').style.display = 'flex';
+      document.getElementById('resultMsg').className = 'status';
+      document.getElementById('resultMsg').textContent = 'Play your hand!';
+      if (handTotal(playerHand) === 21) {
+        stand();
+      }
+    } catch (err) { alert('Error dealing'); }
+  }
+
+  async function hit() {
+    if (gameOver) return;
+    playerHand.push(deck.pop());
+    render();
+    if (handTotal(playerHand) > 21) {
+      gameOver = true;
+      setResult('💥 Bust! You lost!', 'lose');
+      document.getElementById('actions').style.display = 'none';
+      await updateBalance();
+    }
+  }
+
+  async function stand() {
+    if (gameOver) return;
+    gameOver = true;
+    while (handTotal(dealerHand) < 17) {
+      dealerHand.push(deck.pop());
+    }
+    render();
+    const pTotal = handTotal(playerHand);
+    const dTotal = handTotal(dealerHand);
+    if (dTotal > 21) {
+      setResult(`🎉 Dealer bust! You won ${(currentBet * 2).toFixed(2)} ETB!`, 'win');
+    } else if (pTotal > dTotal) {
+      setResult(`🎉 You won ${(currentBet * 2).toFixed(2)} ETB!`, 'win');
+    } else if (pTotal === dTotal) {
+      setResult(`🤝 Push! You got your bet back.`, 'push');
+    } else {
+      setResult(`😔 You lost ${currentBet.toFixed(2)} ETB.`, 'lose');
+    }
+    document.getElementById('actions').style.display = 'none';
+    await updateBalance();
+  }
+
+  document.getElementById('dealBtn').addEventListener('click', deal);
+  document.getElementById('hitBtn').addEventListener('click', hit);
+  document.getElementById('standBtn').addEventListener('click', stand);
+
+  updateBalance();
+  console.log('🃏 Blackjack Loaded');
+</script>
+</body>
+  </html>
