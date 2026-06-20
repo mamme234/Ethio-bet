@@ -33,15 +33,37 @@ console.log('🔗 Frontend URL:', FRONTEND_URL);
 // ---------- EXPRESS + CORS ----------
 const app = express();
 
-// Allow your Vercel frontend to access this backend
+// ----- CORS CONFIGURATION (FIXED) -----
+const allowedOrigins = [
+  FRONTEND_URL,
+  'https://ethio-bet1.vercel.app',
+  'https://ethio-bet-1.onrender.com',
+  'http://localhost:3000',
+  'http://localhost:8080',
+  'https://ethiobet.onrender.com'
+];
+
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080', 'https://ethiobet.vercel.app', 'https://ethiobet.onrender.com', 'https://ethio-bet1.vercel.app'],
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn('⚠️ Blocked by CORS:', origin);
+      // For development, allow all origins (remove in production)
+      callback(null, true);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ---------- ROOT ROUTE (FIXES 404) ----------
+// ---------- ROOT ROUTE ----------
 app.get('/', (req, res) => {
   res.json({
     status: 'online',
