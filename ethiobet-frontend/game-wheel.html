@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🎡 Wheel of Fortune</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
+    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
+    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .back-btn:active { transform: scale(0.95); }
+    .wheel-box { background: #131a22; border-radius: 14px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.04); }
+    .wheel-result { font-size: 72px; margin: 10px 0; transition: 0.3s; }
+    .wheel-colors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+    .wheel-colors button { padding: 10px; border: none; border-radius: 40px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.3s; }
+    .wheel-colors button:active { transform: scale(0.95); }
+    .wheel-colors .red { background: #e74c3c; color: #fff; }
+    .wheel-colors .black { background: #2c3e50; color: #fff; }
+    .wheel-colors .green { background: #2ecc71; color: #0b0e14; }
+    .bet-input { display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+    .bet-input input { background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 8px 14px; color: #fff; outline: none; width: 120px; font-size: 14px; text-align: center; }
+    .bet-input button { background: #2a8c5a; border: none; border-radius: 40px; padding: 8px 20px; font-weight: 700; color: #fff; cursor: pointer; font-size: 13px; }
+    .bet-input button:active { transform: scale(0.95); }
+    .status { color: #6a7e9c; font-size: 13px; margin-top: 8px; }
+    .balance { color: #ffd966; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
+  <h2 style="margin-bottom:10px;font-size:18px;">🎡 Wheel of Fortune</h2>
+  <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+    <span>Balance: <span class="balance" id="balanceDisplay">0</span> ETB</span>
+  </div>
+  <div class="wheel-box">
+    <div class="wheel-result" id="wheelResult">🎡</div>
+    <div style="font-size:14px;color:#6a7e9c;margin-bottom:8px;">Pick a color and spin the wheel!</div>
+    <div class="wheel-colors">
+      <button class="red" onclick="spinWheel('red')">🔴 Red (2x)</button>
+      <button class="black" onclick="spinWheel('black')">⚫ Black (2x)</button>
+      <button class="green" onclick="spinWheel('green')">🟢 Green (10x)</button>
+    </div>
+    <div class="bet-input">
+      <input type="number" id="betInput" value="10" step="1" min="1">
+      <button id="placeBetBtn">Place Bet</button>
+    </div>
+    <div class="status" id="statusMsg">Place your bet and spin!</div>
+  </div>
+</div>
+
+<script>
+  const BACKEND_URL = 'https://ethiobet.onrender.com';
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.expand(); tg.ready(); }
+  const token = localStorage.getItem('token');
+  let currentBet = 0;
+  let isSpinning = false;
+
+  async function updateBalance() {
+    if (!token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById('balanceDisplay').textContent = data.balance.toFixed(0);
+    } catch (err) {}
+  }
+
+  document.getElementById('placeBetBtn').addEventListener('click', async () => {
+    const bet = parseFloat(document.getElementById('betInput').value);
+    if (!bet || bet <= 0) return alert('Enter valid bet');
+    if (!token) { alert('Please login first!'); return; }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.balance < bet) { alert('Insufficient balance!'); return; }
+      currentBet = bet;
+      document.getElementById('statusMsg').textContent = `✅ Bet placed! Choose a color.`;
+    } catch (err) { alert('Error placing bet'); }
+  });
+
+  async function spinWheel(color) {
+    if (!currentBet) { alert('Place a bet first!'); return; }
+    if (isSpinning) return;
+    isSpinning = true;
+    const colors = ['red', 'black', 'green', 'red', 'black', 'red', 'black', 'green'];
+    const result = colors[Math.floor(Math.random() * colors.length)];
+    const emojis = { red: '🔴', black: '⚫', green: '🟢' };
+    document.getElementById('wheelResult').textContent = emojis[result];
+    const win = result === color;
+    if (win) {
+      let multiplier = 1;
+      if (color === 'red' || color === 'black') multiplier = 2;
+      else if (color === 'green') multiplier = 10;
+      const winAmount = currentBet * multiplier;
+      document.getElementById('statusMsg').textContent = `🎉 You won ${winAmount.toFixed(2)} ETB!`;
+      updateBalance();
+    } else {
+      document.getElementById('statusMsg').textContent = `😔 You lost ${currentBet.toFixed(2)} ETB.`;
+    }
+    isSpinning = false;
+    currentBet = 0;
+  }
+
+  updateBalance();
+  console.log('🎡 Wheel of Fortune Loaded');
+</script>
+</body>
+    </html>
