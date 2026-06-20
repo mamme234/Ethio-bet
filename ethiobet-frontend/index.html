@@ -496,32 +496,22 @@
 
 <script>
   // ============================================================
-  // ========== CONFIGURATION ==========
+  // ========== DYNAMIC BACKEND URL ==========
   // ============================================================
-  // ✅ USING LOCALHOST FOR TESTING
-  const BACKEND_URL = 'http://localhost:8080';
-  
-  const ADMIN_IDS = [7154361039];
-  const MERCHANT_PHONE = '0934600018';
-  const BOT_USERNAME = 'Ethiobet1_bot';
+  const BACKEND_URL = (() => {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:8080';   // local backend
+    }
+    return 'https://ethio-bet-1.onrender.com'; // production
+  })();
 
   console.log('🔗 Backend URL:', BACKEND_URL);
 
   // ============================================================
-  // ========== TEST BACKEND CONNECTION ==========
+  // ========== ADMIN IDs (must match server) ==========
   // ============================================================
-  fetch(`${BACKEND_URL}/health`)
-    .then(res => {
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    })
-    .then(data => {
-      console.log('✅ Backend connected successfully:', data);
-    })
-    .catch(err => {
-      console.error('❌ Backend connection failed:', err);
-      alert('⚠️ Cannot connect to backend. Please make sure the server is running on localhost:8080');
-    });
+  const ADMIN_IDS = [7154361039]; // Change to match your server's ADMIN_IDS
 
   // ============================================================
   // ========== LOADING SCREEN ==========
@@ -611,11 +601,11 @@
       if (data.success) {
         setAuth(data.token, data.user);
       } else {
-        error.textContent = '❌ ' + data.error;
+        error.textContent = '❌ ' + (data.error || 'Login failed');
       }
     } catch (err) {
       console.error('❌ Login error:', err);
-      error.textContent = '❌ Network error. Try again.';
+      error.textContent = '❌ Network error. Is the backend running?';
     }
   }
 
@@ -649,11 +639,11 @@
       if (data.success) {
         setAuth(data.token, data.user);
       } else {
-        error.textContent = '❌ ' + data.error;
+        error.textContent = '❌ ' + (data.error || 'Registration failed');
       }
     } catch (err) {
       console.error('❌ Register error:', err);
-      error.textContent = '❌ Network error. Try again.';
+      error.textContent = '❌ Network error. Is the backend running?';
     }
   }
 
@@ -696,7 +686,9 @@
       } else {
         logout();
       }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error('Refresh error:', err);
+    }
   }
 
   // ============================================================
@@ -777,4 +769,4 @@
   console.log('🤖 Bot: @Ethiobet1_bot');
 </script>
 </body>
-        </html>
+  </html>
