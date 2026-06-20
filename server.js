@@ -13,12 +13,14 @@ const path = require('path');
 // ---------- CONFIG ----------
 const PORT = process.env.PORT || 8080;
 const DB_PATH = path.join(__dirname, 'db.json');
-const FRONTEND_PATH = path.join(__dirname, 'src', 'ethiobet-frontend');
+
+// FRONTEND URL - YOUR VERCEL DEPLOYMENT
+const FRONTEND_URL = 'https://ethio-bet1.vercel.app';
+
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const MERCHANT_PHONE = process.env.MERCHANT_PHONE || '0934600018';
 const ADMIN_IDS = (process.env.ADMIN_IDS || '7154361039').split(',').map(id => parseInt(id.trim()));
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
-const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${PORT}`;
 const JWT_SECRET = process.env.JWT_SECRET || 'mamme dev';
 
 console.log('🚀 Starting Ethiobet Platform...');
@@ -26,70 +28,41 @@ console.log('🤖 Bot: @Ethiobet1_bot');
 console.log('📱 Merchant:', MERCHANT_PHONE);
 console.log('👑 Admins:', ADMIN_IDS);
 console.log('🔗 Backend URL:', BACKEND_URL);
-console.log('📁 Frontend Path:', FRONTEND_PATH);
+console.log('🔗 Frontend URL:', FRONTEND_URL);
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
 
-// Allow all origins for testing - PRODUCTION: restrict to specific domains
+// Allow your Vercel frontend to access this backend
 app.use(cors({
-  origin: '*',
+  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080', 'https://ethiobet.vercel.app', 'https://ethiobet.onrender.com', 'https://ethio-bet1.vercel.app'],
   credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ---------- SERVE FRONTEND FROM src/ethiobet-frontend ----------
-// Check if frontend folder exists
-if (fs.existsSync(FRONTEND_PATH)) {
-  console.log('✅ Frontend folder found at:', FRONTEND_PATH);
-  app.use(express.static(FRONTEND_PATH));
-} else {
-  console.log('❌ Frontend folder NOT found at:', FRONTEND_PATH);
-  console.log('📁 Creating frontend folder...');
-  fs.mkdirSync(FRONTEND_PATH, { recursive: true });
+// ---------- SERVE STATIC FILES (optional - for local testing) ----------
+// If you want to serve files from a local folder for testing
+const LOCAL_FRONTEND_PATH = path.join(__dirname, 'src', 'ethiobet-frontend');
+if (fs.existsSync(LOCAL_FRONTEND_PATH)) {
+  app.use(express.static(LOCAL_FRONTEND_PATH));
+  console.log('📁 Local frontend found at:', LOCAL_FRONTEND_PATH);
 }
-
-// Serve index.html for the root route
-app.get('/', (req, res) => {
-  const indexPath = path.join(FRONTEND_PATH, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.send(`
-      <h1>🚀 Ethiobet Backend Running</h1>
-      <p>Frontend files not found. Please add your HTML files to:</p>
-      <code>${FRONTEND_PATH}</code>
-      <p>Current directory: ${__dirname}</p>
-    `);
-  }
-});
-
-// Serve all HTML files from frontend folder
-app.get('/:page.html', (req, res) => {
-  const page = req.params.page;
-  const filePath = path.join(FRONTEND_PATH, `${page}.html`);
-  if (fs.existsSync(filePath)) {
-    res.sendFile(filePath);
-  } else {
-    res.status(404).send(`Page "${page}.html" not found in ${FRONTEND_PATH}`);
-  }
-});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    frontendPath: FRONTEND_PATH,
-    frontendExists: fs.existsSync(FRONTEND_PATH)
+    frontendURL: FRONTEND_URL,
+    backendURL: BACKEND_URL
   });
 });
 
 // ---------- DATABASE ----------
 function loadDB() {
   if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(DB_PATH, JSON.stringify({ 
+    fs.writeFileSync(DB_PATH, JSON.stringify({
       users: [],
       pendingDeposits: [],
       completedDeposits: [],
@@ -119,15 +92,15 @@ function isAdmin(id) {
 app.post('/api/register', async (req, res) => {
   const { phone, password, name } = req.body;
   console.log('📝 Register attempt:', { phone, name });
-  
+
   if (!phone || !password) {
     return res.status(400).json({ error: 'Phone and password required' });
   }
-  
+
   if (findUser(phone)) {
     return res.status(400).json({ error: 'User already exists' });
   }
-  
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
@@ -143,17 +116,17 @@ app.post('/api/register', async (req, res) => {
     db.users.push(newUser);
     saveDB();
     console.log('✅ User registered:', phone);
-    
+
     const token = jwt.sign({ id: newUser.id, phone }, JWT_SECRET);
-    res.json({ 
-      success: true, 
-      token, 
-      user: { 
-        id: newUser.id, 
-        phone, 
-        name: newUser.name, 
-        balance: newUser.balance 
-      } 
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: newUser.id,
+        phone,
+        name: newUser.name,
+        balance: newUser.balance
+      }
     });
   } catch (err) {
     console.error('❌ Registration error:', err);
@@ -164,29 +137,29 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   const { phone, password } = req.body;
   console.log('🔐 Login attempt:', phone);
-  
+
   const user = findUser(phone);
   if (!user) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  
+
   try {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     console.log('✅ Login successful:', phone);
-    
+
     const token = jwt.sign({ id: user.id, phone }, JWT_SECRET);
-    res.json({ 
-      success: true, 
-      token, 
-      user: { 
-        id: user.id, 
-        phone: user.phone, 
-        name: user.name, 
-        balance: user.balance 
-      } 
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        phone: user.phone,
+        name: user.name,
+        balance: user.balance
+      }
     });
   } catch (err) {
     console.error('❌ Login error:', err);
@@ -202,11 +175,11 @@ app.get('/api/profile', (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = getUser(decoded.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ 
-      id: user.id, 
-      phone: user.phone, 
-      name: user.name, 
-      balance: user.balance 
+    res.json({
+      id: user.id,
+      phone: user.phone,
+      name: user.name,
+      balance: user.balance
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -233,7 +206,7 @@ app.post('/api/verify', async (req, res) => {
   const depositIndex = db.pendingDeposits.findIndex(d => d.id === depositId);
   if (depositIndex === -1) return res.status(404).json({ error: 'Deposit not found' });
   const deposit = db.pendingDeposits[depositIndex];
-  
+
   if (action === 'approve') {
     const user = db.users.find(u => u.id === deposit.telegramId || u.phone === deposit.telegramId.toString());
     if (user) {
@@ -242,11 +215,11 @@ app.post('/api/verify', async (req, res) => {
     }
     db.completedDeposits.push({ ...deposit, status: 'approved', verifiedBy: adminId, verifiedAt: new Date().toISOString() });
     if (user) {
-      try { 
-        await bot.sendMessage(deposit.telegramId, 
+      try {
+        await bot.sendMessage(deposit.telegramId,
           `✅ *Deposit Approved!*\n\n💰 Amount: ${deposit.amount} ETB\n📊 New Balance: ${user.balance.toFixed(2)} ETB`,
           { parse_mode: 'Markdown' }
-        ); 
+        );
       } catch(e) {}
     }
     db.pendingDeposits.splice(depositIndex, 1);
@@ -254,10 +227,10 @@ app.post('/api/verify', async (req, res) => {
     res.json({ success: true, balance: user ? user.balance : 0 });
   } else if (action === 'reject') {
     db.completedDeposits.push({ ...deposit, status: 'rejected', verifiedBy: adminId, verifiedAt: new Date().toISOString() });
-    try { 
-      await bot.sendMessage(deposit.telegramId, 
+    try {
+      await bot.sendMessage(deposit.telegramId,
         `❌ *Deposit Rejected*\n\nPlease send a clear screenshot.`
-      ); 
+      );
     } catch(e) {}
     db.pendingDeposits.splice(depositIndex, 1);
     saveDB();
@@ -416,7 +389,7 @@ bot.on('callback_query', (query) => {
   const chatId = query.message.chat.id;
   bot.answerCallbackQuery(query.id);
   if (query.data === 'deposit') {
-    bot.sendMessage(chatId, 
+    bot.sendMessage(chatId,
       `💳 *Deposit Instructions*\n\n` +
       `1️⃣ Send to: *${MERCHANT_PHONE}* via Telebirr\n` +
       `2️⃣ Take a screenshot\n` +
@@ -442,24 +415,24 @@ bot.on('photo', async (msg) => {
     user.balance += deposit.amount;
     user.totalDeposits += deposit.amount;
   }
-  db.completedDeposits.push({ 
-    ...deposit, 
-    status: 'approved', 
-    verifiedBy: 'auto', 
-    verifiedAt: new Date().toISOString(), 
-    photoFileId: fileId 
+  db.completedDeposits.push({
+    ...deposit,
+    status: 'approved',
+    verifiedBy: 'auto',
+    verifiedAt: new Date().toISOString(),
+    photoFileId: fileId
   });
   const idx = db.pendingDeposits.findIndex(d => d.id === deposit.id);
   if (idx !== -1) db.pendingDeposits.splice(idx, 1);
   saveDB();
-  bot.sendMessage(chatId, 
+  bot.sendMessage(chatId,
     `✅ *Deposit Auto-Approved!*\n\n` +
     `💰 Amount: ${deposit.amount} ETB\n` +
     `📊 New Balance: ${user ? user.balance.toFixed(2) : 'N/A'}`,
     { parse_mode: 'Markdown' }
   );
   ADMIN_IDS.forEach(adminId => {
-    bot.sendPhoto(adminId, fileId, { 
+    bot.sendPhoto(adminId, fileId, {
       caption: `📸 *Auto-Verified Deposit*\n👤 ${msg.from.first_name} (${chatId})\n💰 ${deposit.amount} ETB\n✅ Status: Auto-approved`,
       parse_mode: 'Markdown'
     });
@@ -571,7 +544,6 @@ server.listen(PORT, () => {
   console.log(`🤖 Bot @Ethiobet1_bot is active`);
   console.log(`✅ Auto-Verification ENABLED`);
   console.log(`📊 Database: ${DB_PATH}`);
-  console.log(`📁 Frontend Path: ${FRONTEND_PATH}`);
-  console.log(`📁 Frontend Exists: ${fs.existsSync(FRONTEND_PATH)}`);
+  console.log(`🌐 Frontend URL: ${FRONTEND_URL}`);
   console.log(`📊 Total Users: ${db.users.length}`);
 });
