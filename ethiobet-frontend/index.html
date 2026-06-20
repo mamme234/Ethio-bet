@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🎮 Ethiobet - 100+ Games</title>
+  <title>🎮 Ethiobet</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -95,7 +95,61 @@
     .splash .btn-group .login-btn:hover { box-shadow: 0 6px 30px rgba(240,185,11,0.5); transform: translateY(-2px); }
     .splash .btn-group .signup-btn:hover { border-color: #f0b90b; }
 
-    /* ===== HEADER ===== */
+    /* ===== AUTH ===== */
+    .auth-container { max-width: 360px; margin: 20px auto; }
+    .auth-container h1 { font-size: 22px; margin-bottom: 2px; }
+    .auth-container .sub { color: #6a7e9c; font-size: 13px; margin-bottom: 16px; }
+    .auth-container label { display: block; font-size: 12px; font-weight: 600; color: #a0b3cc; margin-bottom: 3px; }
+    .auth-container input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #1b2532;
+      border: 1px solid #2f3e51;
+      border-radius: 40px;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: 0.3s;
+    }
+    .auth-container input:focus { border-color: #f0b90b; box-shadow: 0 0 20px rgba(240,185,11,0.1); }
+    .auth-container .btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #f0b90b, #d99f0a);
+      border: none;
+      border-radius: 40px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #0b0e14;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 4px 20px rgba(240,185,11,0.2);
+    }
+    .auth-container .btn:active { transform: scale(0.95); }
+    .auth-container .switch { text-align: center; margin-top: 14px; color: #6a7e9c; font-size: 13px; }
+    .auth-container .switch a { color: #f0b90b; cursor: pointer; text-decoration: none; }
+    .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 10px; }
+    .back-btn {
+      background: none;
+      border: none;
+      color: #6a7e9c;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 0;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: 0.3s;
+    }
+    .back-btn:hover { color: #fff; }
+    .back-btn:active { transform: scale(0.95); }
+    .page { display: none; animation: fadeIn 0.3s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== HEADER (Dashboard) ===== */
     .header { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 6px; }
     .header .logo { font-size: 18px; font-weight: 800; color: #f0b90b; cursor: pointer; }
     .header .logo span { color: #fff; }
@@ -147,24 +201,6 @@
       display: inline-block;
       margin-top: 2px;
     }
-    .game-card .provider {
-      font-size: 7px;
-      color: #4a5e7a;
-      margin-top: 2px;
-      display: block;
-    }
-    .game-card .badge-new {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      background: #f0b90b;
-      color: #0b0e14;
-      font-size: 6px;
-      font-weight: 700;
-      padding: 1px 6px;
-      border-radius: 40px;
-      text-transform: uppercase;
-    }
     .game-card .badge-hot {
       position: absolute;
       top: 4px;
@@ -177,11 +213,11 @@
       border-radius: 40px;
       text-transform: uppercase;
     }
-    .game-card .badge-tourney {
+    .game-card .badge-new {
       position: absolute;
       top: 4px;
       right: 4px;
-      background: #6fcf97;
+      background: #f0b90b;
       color: #0b0e14;
       font-size: 6px;
       font-weight: 700;
@@ -224,60 +260,9 @@
     .bottom-nav a.active { color: #f0b90b; }
     .bottom-nav a .emoji { font-size: 18px; }
 
-    /* ===== AUTH ===== */
-    .auth-container { max-width: 360px; margin: 20px auto; }
-    .auth-container h1 { font-size: 22px; margin-bottom: 2px; }
-    .auth-container .sub { color: #6a7e9c; font-size: 13px; margin-bottom: 16px; }
-    .auth-container label { display: block; font-size: 12px; font-weight: 600; color: #a0b3cc; margin-bottom: 3px; }
-    .auth-container input {
-      width: 100%;
-      padding: 10px 14px;
-      background: #1b2532;
-      border: 1px solid #2f3e51;
-      border-radius: 40px;
-      color: #fff;
-      font-size: 14px;
-      margin-bottom: 12px;
-      outline: none;
-      transition: 0.3s;
-    }
-    .auth-container input:focus { border-color: #f0b90b; box-shadow: 0 0 20px rgba(240,185,11,0.1); }
-    .auth-container .btn {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #f0b90b, #d99f0a);
-      border: none;
-      border-radius: 40px;
-      font-size: 15px;
-      font-weight: 700;
-      color: #0b0e14;
-      cursor: pointer;
-      transition: 0.3s;
-      box-shadow: 0 4px 20px rgba(240,185,11,0.2);
-    }
-    .auth-container .btn:hover { box-shadow: 0 6px 30px rgba(240,185,11,0.4); transform: translateY(-2px); }
-    .auth-container .btn:active { transform: scale(0.95); }
-    .auth-container .switch { text-align: center; margin-top: 14px; color: #6a7e9c; font-size: 13px; }
-    .auth-container .switch a { color: #f0b90b; cursor: pointer; text-decoration: none; }
-    .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 10px; }
-    .back-btn {
-      background: none;
-      border: none;
-      color: #6a7e9c;
-      font-size: 13px;
-      cursor: pointer;
-      padding: 4px 0;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: 0.3s;
-    }
-    .back-btn:hover { color: #fff; }
-    .back-btn:active { transform: scale(0.95); }
-
     .footer-text { color: #4a5e7a; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
 
+    /* ===== ADMIN PANEL ===== */
     .admin-panel { margin-top: 10px; padding-top: 10px; border-top: 2px solid rgba(240, 185, 11, 0.2); display: none; }
     .admin-panel.active { display: block; }
     .admin-panel h2 { color: #f0b90b; font-size: 14px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
@@ -289,24 +274,11 @@
     .deposit-card .actions button { padding: 4px 12px; border: none; border-radius: 40px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.3s; }
     .deposit-card .actions button:active { transform: scale(0.95); }
     .btn-approve { background: #2a8c5a; color: #fff; }
-    .btn-approve:hover { background: #36b06e; }
     .btn-reject { background: #8c2a2a; color: #fff; }
-    .btn-reject:hover { background: #b03636; }
     .empty-deposits { color: #6a7e9c; text-align: center; padding: 12px; font-size: 12px; }
-
-    /* ===== SCROLLBAR ===== */
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #f0b90b; border-radius: 10px; }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 400px) {
-      .game-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-      .game-card { padding: 8px 4px; }
-      .game-card .icon { font-size: 22px; }
-      .game-card .name { font-size: 9px; }
-      .nav-tabs button { font-size: 10px; padding: 4px 10px; }
-    }
   </style>
 </head>
 <body>
@@ -320,8 +292,8 @@
     <div class="loading-text">LOADING 100+ GAMES...</div>
   </div>
 
-  <!-- ===== SPLASH ===== -->
-  <div class="page" id="page-splash">
+  <!-- ===== PAGE: SPLASH ===== -->
+  <div class="page active" id="page-splash">
     <div class="splash">
       <div class="logo">Ethio<span>bet</span></div>
       <div class="sub">🎮 100+ Games · Play & win with Telebirr</div>
@@ -332,7 +304,7 @@
     </div>
   </div>
 
-  <!-- ===== LOGIN ===== -->
+  <!-- ===== PAGE: LOGIN ===== -->
   <div class="page" id="page-login">
     <button class="back-btn" onclick="showPage('splash')">← Back</button>
     <div class="auth-container">
@@ -348,7 +320,7 @@
     </div>
   </div>
 
-  <!-- ===== REGISTER ===== -->
+  <!-- ===== PAGE: REGISTER ===== -->
   <div class="page" id="page-register">
     <button class="back-btn" onclick="showPage('splash')">← Back</button>
     <div class="auth-container">
@@ -366,7 +338,7 @@
     </div>
   </div>
 
-  <!-- ===== LOBBY (100+ GAMES) ===== -->
+  <!-- ===== PAGE: DASHBOARD (LOBBY) ===== -->
   <div class="page" id="page-lobby">
     <div class="header">
       <div class="logo" onclick="showPage('lobby')">Ethio<span>bet</span></div>
@@ -455,38 +427,8 @@
       <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
         <div class="icon">⚔️</div><div class="name">Amazons Battle</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">🐸</div><div class="name">Frog Story</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">🍹</div><div class="name">Cocktail Rush</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">🌊</div><div class="name">Drops of Water</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">🌳</div><div class="name">Lucky Wood</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">🛡️</div><div class="name">Mighty Sparta</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">📜</div><div class="name">Secrets of Alchemy</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">🌲</div><div class="name">Sherwood Secrets</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">⚡</div><div class="name">Super Dice</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">🎲</div><div class="name">Dice of Magic</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
-        <div class="icon">✨</div><div class="name">Supreme Dice</div><div class="tag">Slot</div>
-      </div>
 
-      <!-- JACKPOT GAMES -->
+      <!-- JACKPOT -->
       <div class="game-card" data-game="jackpot" onclick="alert('Coming Soon!')">
         <div class="icon">🏆</div><div class="name">Mega Jackpot</div><div class="tag">Jackpot</div><div class="badge-hot">HOT</div>
       </div>
@@ -499,9 +441,6 @@
       <div class="game-card" data-game="jackpot" onclick="alert('Coming Soon!')">
         <div class="icon">🦁</div><div class="name">Lion Jackpot</div><div class="tag">Jackpot</div>
       </div>
-      <div class="game-card" data-game="jackpot" onclick="alert('Coming Soon!')">
-        <div class="icon">🌌</div><div class="name">Galaxy Jackpot</div><div class="tag">Jackpot</div><div class="badge-new">NEW</div>
-      </div>
 
       <!-- SPORTS -->
       <div class="game-card" data-game="sports" onclick="location.href='sports.html'">
@@ -513,17 +452,8 @@
       <div class="game-card" data-game="sports" onclick="alert('Coming Soon!')">
         <div class="icon">🏈</div><div class="name">American Football</div><div class="tag">Sports</div>
       </div>
-      <div class="game-card" data-game="sports" onclick="alert('Coming Soon!')">
-        <div class="icon">🎾</div><div class="name">Tennis</div><div class="tag">Sports</div>
-      </div>
-      <div class="game-card" data-game="sports" onclick="alert('Coming Soon!')">
-        <div class="icon">🏏</div><div class="name">Cricket</div><div class="tag">Sports</div>
-      </div>
-      <div class="game-card" data-game="sports" onclick="alert('Coming Soon!')">
-        <div class="icon">🏑</div><div class="name">Hockey</div><div class="tag">Sports</div>
-      </div>
 
-      <!-- CASINO GAMES -->
+      <!-- CASINO -->
       <div class="game-card" data-game="casino" onclick="alert('Coming Soon!')">
         <div class="icon">🎡</div><div class="name">Wheel of Fortune</div><div class="tag">Casino</div>
       </div>
@@ -533,17 +463,8 @@
       <div class="game-card" data-game="casino" onclick="alert('Coming Soon!')">
         <div class="icon">🃏</div><div class="name">Blackjack</div><div class="tag">Casino</div><div class="badge-new">NEW</div>
       </div>
-      <div class="game-card" data-game="casino" onclick="alert('Coming Soon!')">
-        <div class="icon">🎱</div><div class="name">Billiards</div><div class="tag">Casino</div>
-      </div>
-      <div class="game-card" data-game="casino" onclick="alert('Coming Soon!')">
-        <div class="icon">♠️</div><div class="name">Poker</div><div class="tag">Casino</div>
-      </div>
-      <div class="game-card" data-game="casino" onclick="alert('Coming Soon!')">
-        <div class="icon">🎯</div><div class="name">Darts</div><div class="tag">Casino</div>
-      </div>
 
-      <!-- NEW GAMES -->
+      <!-- NEW -->
       <div class="game-card" data-game="new" onclick="alert('Coming Soon!')">
         <div class="icon">🚀</div><div class="name">Space Crash</div><div class="tag">New</div><div class="badge-new">NEW</div>
       </div>
@@ -552,15 +473,6 @@
       </div>
       <div class="game-card" data-game="new" onclick="alert('Coming Soon!')">
         <div class="icon">🤖</div><div class="name">Robot Wars</div><div class="tag">New</div><div class="badge-new">NEW</div>
-      </div>
-      <div class="game-card" data-game="new" onclick="alert('Coming Soon!')">
-        <div class="icon">🧙</div><div class="name">Wizard Quest</div><div class="tag">New</div><div class="badge-new">NEW</div>
-      </div>
-      <div class="game-card" data-game="new" onclick="alert('Coming Soon!')">
-        <div class="icon">🏝️</div><div class="name">Island Adventure</div><div class="tag">New</div><div class="badge-new">NEW</div>
-      </div>
-      <div class="game-card" data-game="new" onclick="alert('Coming Soon!')">
-        <div class="icon">🌋</div><div class="name">Volcano Rush</div><div class="tag">New</div><div class="badge-new">NEW</div>
       </div>
     </div>
 
@@ -575,7 +487,7 @@
       <a onclick="location.href='wallet.html'"><span class="emoji">💰</span>Wallet</a>
       <a onclick="location.href='promotions.html'"><span class="emoji">🎁</span>Promos</a>
       <a onclick="location.href='chat.html'"><span class="emoji">💬</span>Chat</a>
-      <a onclick="location.href='more.html'"><span class="emoji">📋</span>More</a>
+      <a onclick="location.href='admin.html'"><span class="emoji">🔑</span>Admin</a>
     </div>
     <div class="footer-text">⚡ @Ethiobet1_bot · 100+ Games · Telebirr</div>
   </div>
@@ -586,7 +498,7 @@
   // ============================================================
   // ========== CONFIGURATION ==========
   // ============================================================
-  // ✅ YOUR BACKEND URL - UPDATE THIS
+  // ⚠️ CHANGE THIS TO YOUR RENDER BACKEND URL ⚠️
   const BACKEND_URL = 'https://ethiobet.onrender.com';
   
   const ADMIN_IDS = [7154361039];
@@ -824,4 +736,4 @@
   console.log('🤖 Bot: @Ethiobet1_bot');
 </script>
 </body>
-        </html>
+      </html>
