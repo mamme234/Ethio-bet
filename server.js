@@ -13,11 +13,12 @@ const path = require('path');
 // ---------- CONFIG ----------
 const PORT = process.env.PORT || 8080;
 const DB_PATH = path.join(__dirname, 'db.json');
+const FRONTEND_PATH = path.join(__dirname, 'src', 'ethiobet-frontend');
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const MERCHANT_PHONE = process.env.MERCHANT_PHONE || '0934600018';
 const ADMIN_IDS = (process.env.ADMIN_IDS || '7154361039').split(',').map(id => parseInt(id.trim()));
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${PORT}`;
 const JWT_SECRET = process.env.JWT_SECRET || 'mamme dev';
 
 console.log('🚀 Starting Ethiobet Platform...');
@@ -25,22 +26,64 @@ console.log('🤖 Bot: @Ethiobet1_bot');
 console.log('📱 Merchant:', MERCHANT_PHONE);
 console.log('👑 Admins:', ADMIN_IDS);
 console.log('🔗 Backend URL:', BACKEND_URL);
-console.log('🔗 Frontend URL:', FRONTEND_URL);
-console.log('🔑 JWT Secret set');
+console.log('📁 Frontend Path:', FRONTEND_PATH);
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
 
-// CORS configuration for production
+// Allow all origins for testing - PRODUCTION: restrict to specific domains
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:3000', 'http://localhost:8080', 'https://ethiobet.vercel.app', 'https://ethiobet.onrender.com'],
+  origin: '*',
   credentials: true
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ---------- SERVE FRONTEND FROM src/ethiobet-frontend ----------
+// Check if frontend folder exists
+if (fs.existsSync(FRONTEND_PATH)) {
+  console.log('✅ Frontend folder found at:', FRONTEND_PATH);
+  app.use(express.static(FRONTEND_PATH));
+} else {
+  console.log('❌ Frontend folder NOT found at:', FRONTEND_PATH);
+  console.log('📁 Creating frontend folder...');
+  fs.mkdirSync(FRONTEND_PATH, { recursive: true });
+}
+
+// Serve index.html for the root route
+app.get('/', (req, res) => {
+  const indexPath = path.join(FRONTEND_PATH, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.send(`
+      <h1>🚀 Ethiobet Backend Running</h1>
+      <p>Frontend files not found. Please add your HTML files to:</p>
+      <code>${FRONTEND_PATH}</code>
+      <p>Current directory: ${__dirname}</p>
+    `);
+  }
+});
+
+// Serve all HTML files from frontend folder
+app.get('/:page.html', (req, res) => {
+  const page = req.params.page;
+  const filePath = path.join(FRONTEND_PATH, `${page}.html`);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).send(`Page "${page}.html" not found in ${FRONTEND_PATH}`);
+  }
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    frontendPath: FRONTEND_PATH,
+    frontendExists: fs.existsSync(FRONTEND_PATH)
+  });
 });
 
 // ---------- DATABASE ----------
@@ -528,5 +571,7 @@ server.listen(PORT, () => {
   console.log(`🤖 Bot @Ethiobet1_bot is active`);
   console.log(`✅ Auto-Verification ENABLED`);
   console.log(`📊 Database: ${DB_PATH}`);
+  console.log(`📁 Frontend Path: ${FRONTEND_PATH}`);
+  console.log(`📁 Frontend Exists: ${fs.existsSync(FRONTEND_PATH)}`);
   console.log(`📊 Total Users: ${db.users.length}`);
 });
