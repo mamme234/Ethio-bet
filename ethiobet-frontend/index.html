@@ -498,8 +498,8 @@
   // ============================================================
   // ========== CONFIGURATION ==========
   // ============================================================
-  // ✅ UPDATED BACKEND URL – FIXED
-  const BACKEND_URL = 'https://ethio-bet-1.onrender.com';
+  // ✅ USING LOCALHOST FOR TESTING
+  const BACKEND_URL = 'http://localhost:8080';
   
   const ADMIN_IDS = [7154361039];
   const MERCHANT_PHONE = '0934600018';
@@ -520,7 +520,7 @@
     })
     .catch(err => {
       console.error('❌ Backend connection failed:', err);
-      alert('⚠️ Cannot connect to backend. Please check your connection.');
+      alert('⚠️ Cannot connect to backend. Please make sure the server is running on localhost:8080');
     });
 
   // ============================================================
