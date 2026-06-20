@@ -41,13 +41,29 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ---------- SERVE STATIC FILES (optional - for local testing) ----------
-// If you want to serve files from a local folder for testing
-const LOCAL_FRONTEND_PATH = path.join(__dirname, 'src', 'ethiobet-frontend');
-if (fs.existsSync(LOCAL_FRONTEND_PATH)) {
-  app.use(express.static(LOCAL_FRONTEND_PATH));
-  console.log('📁 Local frontend found at:', LOCAL_FRONTEND_PATH);
-}
+// ---------- ROOT ROUTE (FIXES 404) ----------
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'Ethiobet Backend is running!',
+    version: '3.0.0',
+    bot: '@Ethiobet1_bot',
+    endpoints: {
+      health: '/health',
+      register: 'POST /api/register',
+      login: 'POST /api/login',
+      profile: 'GET /api/profile',
+      pending: 'GET /api/pending',
+      verify: 'POST /api/verify',
+      matches: 'GET /api/matches',
+      sportsBet: 'POST /api/sports/bet',
+      sportsHistory: 'GET /api/sports/history',
+      sportsResolve: 'POST /api/sports/resolve'
+    },
+    frontend: FRONTEND_URL,
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -55,7 +71,8 @@ app.get('/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     frontendURL: FRONTEND_URL,
-    backendURL: BACKEND_URL
+    backendURL: BACKEND_URL,
+    users: db ? db.users.length : 0
   });
 });
 
