@@ -26,6 +26,7 @@ console.log('📱 Merchant:', MERCHANT_PHONE);
 console.log('👑 Admins:', ADMIN_IDS);
 console.log('🔗 Backend URL:', BACKEND_URL);
 console.log('🔗 Frontend URL:', FRONTEND_URL);
+console.log('🔑 JWT Secret set');
 
 // ---------- EXPRESS + CORS ----------
 const app = express();
@@ -302,6 +303,48 @@ app.get('/api/sports/history', (req, res) => {
   }
 });
 
+// Admin: resolve a match
+app.post('/api/sports/resolve', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!isAdmin(decoded.id)) return res.status(403).json({ error: 'Unauthorized' });
+
+    const { matchId, winner } = req.body;
+    const match = db.matches.find(m => m.id === matchId);
+    if (!match) return res.status(404).json({ error: 'Match not found' });
+    if (match.status === 'finished') return res.status(400).json({ error: 'Already resolved' });
+
+    match.status = 'finished';
+    match.result = winner;
+    saveDB();
+
+    const bets = db.sportsBets.filter(b => b.matchId === matchId && b.status === 'active');
+    for (const bet of bets) {
+      if (bet.betType === winner) {
+        const user = getUser(bet.userId);
+        if (user) {
+          const winAmount = bet.amount * bet.odds;
+          user.balance += winAmount;
+          bet.status = 'won';
+          bet.wonAmount = winAmount;
+          try {
+            bot.sendMessage(bet.userId, `🎉 Your bet on ${bet.match} won! You won ${winAmount.toFixed(2)} ETB!`);
+          } catch(e) {}
+        }
+      } else {
+        bet.status = 'lost';
+      }
+    }
+    saveDB();
+    res.json({ success: true, settledBets: bets.length });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
 // ---------- TELEGRAM BOT ----------
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
@@ -309,7 +352,7 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId,
     `⚽ *Welcome to Ethiobet!*\n\n` +
-    `🎮 Play casino games & bet on sports!\n` +
+    `🎮 100+ Games & Sports Betting\n` +
     `💰 Deposit via Telebirr\n` +
     `✅ Auto-verification\n\n` +
     `Tap the button below to start!`,
@@ -485,4 +528,5 @@ server.listen(PORT, () => {
   console.log(`🤖 Bot @Ethiobet1_bot is active`);
   console.log(`✅ Auto-Verification ENABLED`);
   console.log(`📊 Database: ${DB_PATH}`);
+  console.log(`📊 Total Users: ${db.users.length}`);
 });
