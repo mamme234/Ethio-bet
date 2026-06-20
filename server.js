@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 8080;
 const DB_PATH = path.join(__dirname, 'db.json');
 
 // FRONTEND URL - YOUR VERCEL DEPLOYMENT
-const FRONTEND_URL = 'https://ethio-bet1.vercel.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://ethio-bet1.vercel.app';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const MERCHANT_PHONE = process.env.MERCHANT_PHONE || '0934600018';
@@ -33,7 +33,7 @@ console.log('🔗 Frontend URL:', FRONTEND_URL);
 // ---------- EXPRESS + CORS ----------
 const app = express();
 
-// ----- CORS CONFIGURATION (FIXED) -----
+// ----- CORS CONFIGURATION -----
 const allowedOrigins = [
   FRONTEND_URL,
   'https://ethio-bet1.vercel.app',
@@ -45,14 +45,12 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       console.warn('⚠️ Blocked by CORS:', origin);
-      // For development, allow all origins (remove in production)
-      callback(null, true);
+      callback(null, true); // allow all for dev
     }
   },
   credentials: true,
@@ -80,7 +78,10 @@ app.get('/', (req, res) => {
       matches: 'GET /api/matches',
       sportsBet: 'POST /api/sports/bet',
       sportsHistory: 'GET /api/sports/history',
-      sportsResolve: 'POST /api/sports/resolve'
+      sportsResolve: 'POST /api/sports/resolve',
+      promotions: 'GET /api/promotions',
+      claimPromotion: 'POST /api/promotions/claim',
+      adWatch: 'POST /api/promotions/ad-watch'
     },
     frontend: FRONTEND_URL,
     timestamp: new Date().toISOString()
@@ -127,6 +128,19 @@ function isAdmin(id) {
   return ADMIN_IDS.includes(id);
 }
 
+// Ensure promotions object exists for a user
+function ensurePromotions(user) {
+  if (!user.promotions) {
+    user.promotions = {
+      claimedTasks: [],
+      dailyLastClaim: null,
+      adWatchCount: 0
+    };
+    saveDB();
+  }
+  return user.promotions;
+}
+
 // ---------- AUTH ENDPOINTS ----------
 app.post('/api/register', async (req, res) => {
   const { phone, password, name } = req.body;
@@ -150,7 +164,12 @@ app.post('/api/register', async (req, res) => {
       balance: 0,
       totalDeposits: 0,
       totalBets: 0,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      promotions: {
+        claimedTasks: [],
+        dailyLastClaim: null,
+        adWatchCount: 0
+      }
     };
     db.users.push(newUser);
     saveDB();
@@ -400,6 +419,124 @@ app.post('/api/sports/resolve', (req, res) => {
   }
 });
 
+// ================================================================
+// ========== PROMOTIONS ENDPOINTS ==========
+// ================================================================
+
+// GET promotions status
+app.get('/api/promotions', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = getUser(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const promo = ensurePromotions(user);
+    res.json({
+      claimedTasks: promo.claimedTasks || [],
+      dailyLastClaim: promo.dailyLastClaim || null,
+      adWatchCount: promo.adWatchCount || 0
+    });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// Increment ad watch count
+app.post('/api/promotions/ad-watch', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = getUser(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const promo = ensurePromotions(user);
+    promo.adWatchCount = (promo.adWatchCount || 0) + 1;
+    saveDB();
+    res.json({ success: true, adWatchCount: promo.adWatchCount });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// Claim a promotion task or daily reward
+app.post('/api/promotions/claim', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const token = auth.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = getUser(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const { taskId } = req.body;
+    if (!taskId) return res.status(400).json({ error: 'Missing taskId' });
+
+    const promo = ensurePromotions(user);
+    const claimedTasks = promo.claimedTasks || [];
+    const now = Date.now();
+
+    // Define rewards (in ETB)
+    const rewards = {
+      startBot: 1,
+      joinChannel: 1,
+      joinGroup: 1,
+      playGames: 2,
+      watchAds: 2,
+      joinLive: 1,
+      daily: 2
+    };
+
+    // Handle daily reward
+    if (taskId === 'daily') {
+      const last = promo.dailyLastClaim || 0;
+      const oneDay = 24 * 60 * 60 * 1000;
+      if (now - last < oneDay) {
+        return res.status(400).json({ error: 'Daily reward already claimed today' });
+      }
+      promo.dailyLastClaim = now;
+    } else {
+      // Regular task: check if already claimed
+      if (claimedTasks.includes(taskId)) {
+        return res.status(400).json({ error: 'Task already claimed' });
+      }
+
+      // Special check for watchAds: require 10 ads watched
+      if (taskId === 'watchAds') {
+        const count = promo.adWatchCount || 0;
+        if (count < 10) {
+          return res.status(400).json({ error: `Watch ${10 - count} more ads to claim` });
+        }
+        // Optionally reset ad count after claim (or keep it)
+        // promo.adWatchCount = 0; // decide if you want to reset
+      }
+
+      // Mark as claimed
+      claimedTasks.push(taskId);
+      promo.claimedTasks = claimedTasks;
+    }
+
+    // Add reward
+    const amount = rewards[taskId] || 0;
+    user.balance += amount;
+    saveDB();
+
+    res.json({
+      success: true,
+      newBalance: user.balance,
+      claimedTasks: promo.claimedTasks,
+      dailyLastClaim: promo.dailyLastClaim,
+      adWatchCount: promo.adWatchCount
+    });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
 // ---------- TELEGRAM BOT ----------
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
@@ -578,6 +715,7 @@ wss.on('connection', (ws, req) => {
 
 setTimeout(startNewRound, 1000);
 
+// ---------- START SERVER ----------
 server.listen(PORT, () => {
   console.log(`🚀 Server running on ${BACKEND_URL}`);
   console.log(`🤖 Bot @Ethiobet1_bot is active`);
