@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🎮 Ethiobet</title>
+  <title>Ethiobet</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -368,7 +368,7 @@
       <div class="game-card" data-game="crash" onclick="location.href='game-mines.html'">
         <div class="icon">💣</div><div class="name">Mines</div><div class="tag">Strategy</div>
       </div>
-      <div class="game-card" data-game="crash" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="crash" onclick="location.href='game-chicken.html'">
         <div class="icon">🐔</div><div class="name">Chicken Crash</div><div class="tag">Crash</div>
       </div>
       <div class="game-card" data-game="crash" onclick="alert('Coming Soon!')">
@@ -498,7 +498,7 @@
   // ============================================================
   // ========== CONFIGURATION ==========
   // ============================================================
-  // ⚠️ CHANGE THIS TO YOUR RENDER BACKEND URL ⚠️
+  // ⚠️ BACKEND URL - MAKE SURE THIS IS CORRECT ⚠️
   const BACKEND_URL = 'https://ethiobet.onrender.com';
   
   const ADMIN_IDS = [7154361039];
@@ -506,6 +506,22 @@
   const BOT_USERNAME = 'Ethiobet1_bot';
 
   console.log('🔗 Backend URL:', BACKEND_URL);
+
+  // ============================================================
+  // ========== TEST BACKEND CONNECTION ==========
+  // ============================================================
+  fetch(`${BACKEND_URL}/health`)
+    .then(res => {
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    })
+    .then(data => {
+      console.log('✅ Backend connected successfully:', data);
+    })
+    .catch(err => {
+      console.error('❌ Backend connection failed:', err);
+      alert('⚠️ Cannot connect to backend. Please check your connection.');
+    });
 
   // ============================================================
   // ========== LOADING SCREEN ==========
@@ -574,20 +590,31 @@
     const phone = document.getElementById('loginPhone').value.trim();
     const password = document.getElementById('loginPassword').value;
     const error = document.getElementById('loginError');
-    if (!phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
+    error.textContent = '';
+    
+    if (!phone || !password) {
+      error.textContent = '⚠️ Please fill in all fields';
+      return;
+    }
+    
     try {
+      console.log('📤 Sending login request to:', `${BACKEND_URL}/api/login`);
       const res = await fetch(`${BACKEND_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password })
       });
+      
       const data = await res.json();
+      console.log('📥 Login response:', data);
+      
       if (data.success) {
         setAuth(data.token, data.user);
       } else {
         error.textContent = '❌ ' + data.error;
       }
     } catch (err) {
+      console.error('❌ Login error:', err);
       error.textContent = '❌ Network error. Try again.';
     }
   }
@@ -597,21 +624,35 @@
     const phone = document.getElementById('registerPhone').value.trim();
     const password = document.getElementById('registerPassword').value;
     const error = document.getElementById('registerError');
-    if (!name || !phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
-    if (password.length < 4) { error.textContent = '⚠️ Password must be at least 4 characters'; return; }
+    error.textContent = '';
+    
+    if (!name || !phone || !password) {
+      error.textContent = '⚠️ Please fill in all fields';
+      return;
+    }
+    if (password.length < 4) {
+      error.textContent = '⚠️ Password must be at least 4 characters';
+      return;
+    }
+    
     try {
+      console.log('📤 Sending register request to:', `${BACKEND_URL}/api/register`);
       const res = await fetch(`${BACKEND_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, phone, password })
       });
+      
       const data = await res.json();
+      console.log('📥 Register response:', data);
+      
       if (data.success) {
         setAuth(data.token, data.user);
       } else {
         error.textContent = '❌ ' + data.error;
       }
     } catch (err) {
+      console.error('❌ Register error:', err);
       error.textContent = '❌ Network error. Try again.';
     }
   }
@@ -736,4 +777,4 @@
   console.log('🤖 Bot: @Ethiobet1_bot');
 </script>
 </body>
-      </html>
+        </html>
