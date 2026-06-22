@@ -3,170 +3,121 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🎯 Keno</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <title>Keno - Ethiobet</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
-    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
-    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
-    .back-btn:active { transform: scale(0.95); }
-    .keno-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin: 10px 0; }
-    .keno-cell { aspect-ratio: 1; background: #1b2532; border-radius: 8px; border: 1px solid #2f3e51; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.3s; color: #6a7e9c; }
-    .keno-cell.selected { background: #f0b90b; border-color: #f0b90b; color: #0b0e14; }
-    .keno-cell.hit { background: #2a8c5a; border-color: #6fcf97; color: #fff; }
-    .controls { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
-    .controls input { flex: 1; min-width: 70px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 8px 14px; color: #fff; outline: none; font-size: 13px; }
-    .controls button { padding: 8px 20px; border: none; border-radius: 40px; font-weight: 700; font-size: 13px; cursor: pointer; }
-    .controls button:active { transform: scale(0.95); }
-    #drawBtn { background: #f0b90b; color: #0b0e14; }
-    #clearBtn { background: #8c2a2a; color: #fff; }
-    .status { text-align: center; color: #6a7e9c; font-size: 12px; margin: 8px 0; }
-    .balance { color: #ffd966; font-weight: 700; }
-    .payout { background: #131a22; border-radius: 12px; padding: 12px; margin-top: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.04); }
-    .payout .win { color: #6fcf97; font-size: 18px; font-weight: 700; }
-    .payout .lose { color: #f28b82; font-size: 18px; font-weight: 700; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:#0b0e14; color:#fff; min-height:100vh; display:flex; justify-content:center; padding:0; margin:0; overflow-x:hidden; }
+    .app { max-width:480px; width:100%; background:#0b0e14; padding:12px 16px 20px; min-height:100vh; }
+    .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
+    .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; }
+    .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
+    .board { display:grid; grid-template-columns:repeat(8,1fr); gap:4px; margin:12px 0; }
+    .cell { background:#1a1f2b; border:1px solid #2a3546; border-radius:4px; padding:6px 0; text-align:center; font-size:14px; font-weight:600; cursor:pointer; transition:0.15s; }
+    .cell.selected { background:#f0b90b; color:#0b0e14; border-color:#f0b90b; }
+    .cell.hit { background:#2a8c5a; color:#fff; border-color:#2a8c5a; }
+    .cell.miss { background:#8c2a2a; color:#fff; border-color:#8c2a2a; }
+    .controls { display:flex; gap:8px; margin:8px 0; flex-wrap:wrap; }
+    .controls button { padding:8px 16px; border:none; border-radius:40px; font-weight:700; cursor:pointer; transition:0.15s; flex:1; }
+    .controls button:active { transform:scale(0.95); }
+    .btn-draw { background:linear-gradient(135deg,#f0b90b,#d99f0a); color:#0b0e14; }
+    .btn-reset { background:#2a3546; color:#fff; }
+    .result { margin-top:8px; font-weight:700; }
   </style>
 </head>
 <body>
-
 <div class="app">
-  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-    <h2 style="font-size:18px;">🎯 Keno</h2>
-    <span>Balance: <span class="balance" id="balanceDisplay">0</span> ETB</span>
+  <div class="header">
+    <button class="back" onclick="history.back()">← Back</button>
+    <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
   </div>
+  <div style="font-size:18px;font-weight:700;">🎯 Keno</div>
+  <div class="board" id="kenoBoard"></div>
   <div class="controls">
-    <input type="number" id="betInput" value="10" step="1" min="1">
-    <button id="drawBtn">🎯 Draw</button>
-    <button id="clearBtn">🗑️ Clear</button>
+    <button class="btn-draw" onclick="draw()">Draw</button>
+    <button class="btn-reset" onclick="reset()">Reset</button>
   </div>
-  <div class="keno-grid" id="kenoGrid"></div>
-  <div class="payout" id="resultBox">
-    <div style="color:#6a7e9c;">Select numbers (1-10) and draw!</div>
-  </div>
-  <div class="status" id="statusMsg">Pick your numbers and draw!</div>
+  <div class="result" id="kenoResult">Pick numbers (1-40) then Draw</div>
 </div>
-
 <script>
-  const BACKEND_URL = 'https://ethiobet.onrender.com';
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.expand(); tg.ready(); }
-  const token = localStorage.getItem('token');
-  let selected = [];
-  let isDrawing = false;
+  const BACKEND_URL = (() => {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
+    return 'https://ethio-bet-1.onrender.com';
+  })();
 
-  const payoutTable = {
-    0: 0, 1: 0, 2: 0, 3: 0.5, 4: 1, 5: 2, 6: 4, 7: 8, 8: 16, 9: 32, 10: 64
-  };
+  function getToken() { return localStorage.getItem('token'); }
+  let balance = 0;
+  let selected = new Set();
+  const totalNums = 40;
+  const drawCount = 10;
 
-  function createGrid() {
-    const grid = document.getElementById('kenoGrid');
-    grid.innerHTML = '';
-    for (let i = 1; i <= 40; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'keno-cell';
-      cell.dataset.num = i;
-      cell.textContent = i;
-      cell.addEventListener('click', () => toggleNumber(i));
-      grid.appendChild(cell);
-    }
-  }
-
-  function toggleNumber(num) {
-    if (isDrawing) return;
-    const idx = selected.indexOf(num);
-    if (idx > -1) {
-      selected.splice(idx, 1);
-    } else if (selected.length < 10) {
-      selected.push(num);
-    }
-    updateUI();
-  }
-
-  function updateUI() {
-    document.querySelectorAll('.keno-cell').forEach(cell => {
-      const num = parseInt(cell.dataset.num);
-      cell.classList.remove('selected', 'hit');
-      if (selected.includes(num)) cell.classList.add('selected');
-    });
-    document.getElementById('statusMsg').textContent = `Selected: ${selected.length}/10 numbers`;
-  }
-
-  async function updateBalance() {
+  async function fetchBalance() {
+    const token = getToken();
     if (!token) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await res.json();
-      document.getElementById('balanceDisplay').textContent = data.balance.toFixed(0);
-    } catch (err) {}
+      if (res.ok) {
+        const data = await res.json();
+        balance = data.balance;
+        document.getElementById('balanceDisplay').textContent = `💰 ${balance.toFixed(2)} ETB`;
+      }
+    } catch (e) {}
   }
 
-  async function drawNumbers() {
-    if (selected.length === 0) return alert('Select at least 1 number!');
-    if (isDrawing) return;
-    const bet = parseFloat(document.getElementById('betInput').value);
-    if (!bet || bet <= 0) return alert('Enter valid bet');
-    if (!token) { alert('Please login first!'); return; }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.balance < bet) { alert('Insufficient balance!'); return; }
-      isDrawing = true;
-      document.getElementById('statusMsg').textContent = '🎯 Drawing...';
-      document.getElementById('drawBtn').disabled = true;
-
-      // Draw 20 numbers
-      const allNums = Array.from({ length: 40 }, (_, i) => i + 1);
-      const shuffled = allNums.sort(() => Math.random() - 0.5);
-      const drawn = shuffled.slice(0, 20);
-
-      // Highlight hits
-      document.querySelectorAll('.keno-cell').forEach(cell => {
-        const num = parseInt(cell.dataset.num);
-        if (drawn.includes(num)) cell.classList.add('hit');
-      });
-
-      // Count matches
-      const matches = selected.filter(n => drawn.includes(n)).length;
-      const multiplier = payoutTable[matches] || 0;
-      const winAmount = bet * multiplier;
-
-      setTimeout(() => {
-        const box = document.getElementById('resultBox');
-        if (winAmount > bet) {
-          box.innerHTML = `<div class="win">🎉 Matched ${matches}! Won ${winAmount.toFixed(2)} ETB!</div>`;
-        } else if (winAmount === bet) {
-          box.innerHTML = `<div style="color:#ffd966;font-size:18px;">🤝 Matched ${matches}! Got your bet back</div>`;
-        } else {
-          box.innerHTML = `<div class="lose">😔 Matched ${matches}. Lost ${bet.toFixed(2)} ETB</div>`;
-        }
-        document.getElementById('statusMsg').textContent = `Draw complete!`;
-        document.getElementById('drawBtn').disabled = false;
-        isDrawing = false;
-        updateBalance();
-        // Reset hits after a moment
-        setTimeout(() => {
-          document.querySelectorAll('.keno-cell.hit').forEach(c => c.classList.remove('hit'));
-        }, 3000);
-      }, 1500);
-    } catch (err) { alert('Error drawing'); }
+  function renderBoard() {
+    const board = document.getElementById('kenoBoard');
+    board.innerHTML = '';
+    for (let i=1; i<=totalNums; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (selected.has(i)) cell.classList.add('selected');
+      cell.textContent = i;
+      cell.dataset.num = i;
+      cell.onclick = () => toggle(i);
+      board.appendChild(cell);
+    }
   }
 
-  document.getElementById('drawBtn').addEventListener('click', drawNumbers);
-  document.getElementById('clearBtn').addEventListener('click', () => {
-    selected = [];
-    updateUI();
-    document.getElementById('resultBox').innerHTML = '<div style="color:#6a7e9c;">Select numbers (1-10) and draw!</div>';
-  });
+  function toggle(num) {
+    if (selected.has(num)) selected.delete(num);
+    else if (selected.size < 10) selected.add(num);
+    renderBoard();
+  }
 
-  createGrid();
-  updateBalance();
-  console.log('🎯 Keno Loaded');
+  function reset() {
+    selected.clear();
+    document.getElementById('kenoResult').textContent = 'Pick numbers (1-40) then Draw';
+    renderBoard();
+  }
+
+  function draw() {
+    if (selected.size < 1) { alert('Select at least 1 number'); return; }
+    const allNums = Array.from({length:totalNums}, (_,i) => i+1);
+    const shuffled = allNums.sort(() => Math.random() - 0.5);
+    const drawn = shuffled.slice(0, drawCount);
+    const hits = [...selected].filter(n => drawn.includes(n));
+    const win = hits.length * 2; // dummy payout
+    // Show result
+    const board = document.getElementById('kenoBoard');
+    board.querySelectorAll('.cell').forEach(cell => {
+      const num = parseInt(cell.dataset.num);
+      if (drawn.includes(num)) {
+        cell.classList.add('hit');
+      } else if (selected.has(num)) {
+        cell.classList.add('miss');
+      }
+    });
+    document.getElementById('kenoResult').textContent = `🎉 ${hits.length} hits! Win ${win} ETB`;
+    // Update balance (in real app, call backend)
+    balance += win;
+    document.getElementById('balanceDisplay').textContent = `💰 ${balance.toFixed(2)} ETB`;
+    // Disable selection after draw? We'll allow reset.
+  }
+
+  fetchBalance();
+  renderBoard();
 </script>
 </body>
 </html>
