@@ -11,16 +11,14 @@
     .app { max-width:480px; width:100%; background:#0b0e14; padding:12px 16px 20px; min-height:100vh; display:flex; flex-direction:column; }
     .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
     .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; padding:4px 8px; }
-    .header .back:active { transform:scale(0.9); }
     .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
-    .game-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; margin:10px 0; background:linear-gradient(145deg,#131a22,#1a1f2b); border-radius:20px; padding:20px 16px; min-height:320px; border:1px solid rgba(255,255,255,0.04); }
-    .multiplier { font-size:72px; font-weight:900; color:#f0b90b; text-shadow:0 0 60px rgba(240,185,11,0.15); transition:color 0.15s ease; will-change:transform; }
-    .multiplier.crashed { color:#ff6b6b; text-shadow:0 0 60px rgba(255,107,107,0.25); }
+    .game-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:10px 0; background:linear-gradient(145deg,#131a22,#1a1f2b); border-radius:20px; padding:12px; min-height:320px; border:1px solid rgba(255,255,255,0.04); }
+    canvas { width:100%; height:auto; border-radius:8px; background:#0b0e14; }
     .status-text { font-size:14px; color:#6a7e9c; margin-top:6px; min-height:22px; }
     .connection-status { font-size:11px; text-align:center; margin-top:4px; min-height:18px; }
     .connection-status.connected { color:#2a8c5a; }
     .connection-status.disconnected { color:#ff6b6b; }
-    .controls { display:flex; gap:10px; margin-top:16px; width:100%; max-width:320px; }
+    .controls { display:flex; gap:10px; margin-top:12px; width:100%; max-width:320px; }
     .controls input { flex:1; padding:10px 14px; background:#1b2532; border:1px solid #2f3e51; border-radius:40px; color:#fff; font-size:14px; outline:none; min-width:0; }
     .controls input:focus { border-color:#f0b90b; }
     .controls button { padding:10px 18px; border:none; border-radius:40px; font-weight:700; font-size:14px; cursor:pointer; transition:0.15s; flex:1; min-width:70px; }
@@ -28,14 +26,14 @@
     .controls button:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
     .btn-bet { background:linear-gradient(135deg,#f0b90b,#d99f0a); color:#0b0e14; box-shadow:0 4px 20px rgba(240,185,11,0.15); }
     .btn-cashout { background:#2a8c5a; color:#fff; }
-    .history { margin-top:16px; color:#6a7e9c; font-size:12px; text-align:center; width:100%; border-top:1px solid rgba(255,255,255,0.04); padding-top:10px; max-height:70px; overflow-y:auto; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; }
+    .bet-amount { color:#889bb5; font-size:12px; margin-top:4px; }
+    .win-amount { color:#ffd966; font-size:14px; font-weight:700; margin-top:2px; }
+    .history { margin-top:12px; color:#6a7e9c; font-size:12px; text-align:center; width:100%; border-top:1px solid rgba(255,255,255,0.04); padding-top:10px; max-height:70px; overflow-y:auto; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; }
     .history .crash-point { display:inline-block; background:#1a1f2b; padding:2px 10px; border-radius:40px; font-weight:600; color:#f0b90b; font-size:11px; }
     .history .crash-point.low { color:#6a7e9c; }
     .history .crash-point.medium { color:#f0b90b; }
     .history .crash-point.high { color:#ff6b6b; }
-    .bet-amount { color:#889bb5; font-size:12px; margin-top:4px; }
-    .win-amount { color:#ffd966; font-size:14px; font-weight:700; margin-top:2px; }
-    .profit-badge { display:inline-block; background:rgba(42,140,90,0.2); color:#2a8c5a; padding:0 10px; border-radius:40px; font-size:12px; font-weight:600; margin-top:2px; }
+    .profit-badge { display:inline-block; background:rgba(42,140,90,0.2); color:#2a8c5a; padding:0 10px; border-radius:40px; font-size:12px; font-weight:600; }
     .profit-badge.loss { background:rgba(255,107,107,0.15); color:#ff6b6b; }
   </style>
 </head>
@@ -46,7 +44,7 @@
     <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
   </div>
   <div class="game-area">
-    <div class="multiplier" id="multiplierDisplay">1.00x</div>
+    <canvas id="graphCanvas" width="400" height="250"></canvas>
     <div class="status-text" id="statusText">Waiting for next round...</div>
     <div class="connection-status connected" id="connectionStatus">● Connected</div>
     <div class="controls">
@@ -59,7 +57,7 @@
       <div class="win-amount" id="winDisplay"></div>
     </div>
     <div class="history" id="historyContainer">
-      <span style="color:#4a5e7a;width:100%;font-size:11px;">History will appear here</span>
+      <span style="color:#4a5e7a;width:100%;font-size:11px;">History</span>
     </div>
   </div>
 </div>
@@ -75,8 +73,7 @@
 
   // ===== USER =====
   function getToken() { return localStorage.getItem('token'); }
-  let currentBalance = 0;
-  let userId = null;
+  let currentBalance = 0, userId = null;
 
   async function fetchBalance() {
     const token = getToken();
@@ -95,22 +92,22 @@
   }
 
   // ===== WEBSOCKET =====
-  let ws = null;
-  let reconnectTimer = null;
-  let isConnected = false;
-
+  let ws = null, reconnectTimer = null, isConnected = false;
   let roundState = {
-    status: 'waiting',   // 'waiting', 'flying', 'crashed'
+    status: 'waiting',
     multiplier: 1.00,
     crashPoint: 0,
-    canBet: true,
-    canCashout: false,
-    myBet: null,
     myBetPlaced: false,
     hasCashedOut: false,
+    myBet: null,
   };
+  // Graph data
+  let graphPoints = [{x:0, y:1}];
+  let isCrashed = false;
+  let crashX = 0;
 
-  const multiplierEl = document.getElementById('multiplierDisplay');
+  const canvas = document.getElementById('graphCanvas');
+  const ctx = canvas.getContext('2d');
   const statusText = document.getElementById('statusText');
   const connectionStatus = document.getElementById('connectionStatus');
   const betBtn = document.getElementById('betBtn');
@@ -124,21 +121,11 @@
   function connectWebSocket() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
     const token = getToken();
-    if (!token) {
-      setConnectionStatus('disconnected', '⚠️ Please login first');
-      return;
-    }
-    if (!userId) {
-      fetchBalance().then(() => { if (userId) connectWebSocket(); });
-      return;
-    }
+    if (!token) { setConnectionStatus('disconnected', '⚠️ Please login first'); return; }
+    if (!userId) { fetchBalance().then(() => { if (userId) connectWebSocket(); }); return; }
 
     ws = new WebSocket(`${WS_URL}?userId=${userId}`);
-    ws.onopen = () => {
-      isConnected = true;
-      setConnectionStatus('connected', '● Connected');
-      updateUI();
-    };
+    ws.onopen = () => { isConnected = true; setConnectionStatus('connected', '● Connected'); updateUI(); };
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
@@ -148,12 +135,9 @@
     ws.onclose = () => {
       isConnected = false;
       setConnectionStatus('disconnected', '● Disconnected. Reconnecting...');
-      betBtn.disabled = true;
-      cashoutBtn.disabled = true;
+      betBtn.disabled = true; cashoutBtn.disabled = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
-      reconnectTimer = setTimeout(() => {
-        if (!isConnected) connectWebSocket();
-      }, 3000);
+      reconnectTimer = setTimeout(() => { if (!isConnected) connectWebSocket(); }, 3000);
     };
     ws.onerror = (err) => console.error('WebSocket error', err);
   }
@@ -170,18 +154,22 @@
         roundState.multiplier = 1.00;
         roundState.myBetPlaced = false;
         roundState.hasCashedOut = false;
-        roundState.canBet = true;
-        roundState.canCashout = false;
+        isCrashed = false;
+        graphPoints = [{x:0, y:1}];
+        crashX = 0;
         betDisplay.textContent = '';
         winDisplay.textContent = '';
+        drawGraph();
         updateUI();
         break;
       case 'multiplier_update':
         if (roundState.status === 'flying') {
           roundState.multiplier = data.multiplier;
-          multiplierEl.textContent = data.multiplier.toFixed(2) + 'x';
+          const x = roundState.multiplier;
+          graphPoints.push({x: x, y: x});
+          if (graphPoints.length > 200) graphPoints.shift();
+          drawGraph();
           if (roundState.myBetPlaced && !roundState.hasCashedOut) {
-            roundState.canCashout = true;
             cashoutBtn.disabled = false;
           }
         }
@@ -189,10 +177,11 @@
       case 'game_crashed':
         roundState.status = 'crashed';
         roundState.crashPoint = data.multiplier;
-        roundState.canBet = false;
-        roundState.canCashout = false;
-        multiplierEl.textContent = data.multiplier.toFixed(2) + 'x';
-        multiplierEl.className = 'multiplier crashed';
+        isCrashed = true;
+        crashX = data.multiplier;
+        // push final point
+        graphPoints.push({x: data.multiplier, y: data.multiplier});
+        drawGraph();
         statusText.textContent = `💥 Crashed at ${data.multiplier.toFixed(2)}x`;
         cashoutBtn.disabled = true;
         addHistory(data.multiplier);
@@ -205,9 +194,9 @@
         setTimeout(() => {
           if (roundState.status === 'crashed') {
             roundState.status = 'waiting';
-            roundState.canBet = true;
             statusText.textContent = 'Waiting for next round...';
-            multiplierEl.className = 'multiplier';
+            graphPoints = [{x:0, y:1}];
+            drawGraph();
             updateUI();
           }
         }, 3000);
@@ -220,32 +209,83 @@
         betDisplay.textContent = `💰 Bet: ${data.amount.toFixed(2)} ETB`;
         winDisplay.textContent = '';
         betBtn.disabled = true;
-        if (roundState.status === 'flying') {
-          roundState.canCashout = true;
-          cashoutBtn.disabled = false;
-        }
+        if (roundState.status === 'flying') cashoutBtn.disabled = false;
         updateUI();
         break;
       case 'cash_out_success':
         roundState.hasCashedOut = true;
-        roundState.canCashout = false;
+        cashoutBtn.disabled = true;
         currentBalance = data.balance;
         document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
         winDisplay.textContent = `🎉 Won ${data.winAmount.toFixed(2)} ETB at ${data.multiplier.toFixed(2)}x`;
         winDisplay.className = 'win-amount profit-badge';
         betDisplay.textContent = `💰 Bet: ${roundState.myBet.amount.toFixed(2)} ETB`;
-        cashoutBtn.disabled = true;
         betBtn.disabled = true;
         updateUI();
         break;
       case 'error':
-        console.error('Server error:', data.message);
         alert('⚠️ ' + data.message);
         fetchBalance();
         updateUI();
         break;
-      default:
-        console.log('Unknown message:', data.type);
+    }
+  }
+
+  // ===== GRAPH DRAWING =====
+  function drawGraph() {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    // Background
+    ctx.fillStyle = '#0b0e14';
+    ctx.fillRect(0,0,w,h);
+    // Grid
+    ctx.strokeStyle = '#1a1f2b';
+    ctx.lineWidth = 0.5;
+    for (let i=0; i<=10; i++) {
+      const y = h - (i/10)*h;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+    // Graph line
+    if (graphPoints.length < 2) return;
+    const maxX = Math.max(10, ...graphPoints.map(p => p.x));
+    const scaleX = w / maxX;
+    const maxY = Math.max(1.5, ...graphPoints.map(p => p.y));
+    const scaleY = h / maxY;
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#f0b90b';
+    ctx.lineWidth = 2.5;
+    for (let i=0; i<graphPoints.length; i++) {
+      const px = graphPoints[i].x * scaleX;
+      const py = h - graphPoints[i].y * scaleY;
+      if (i===0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Plane icon at current point
+    if (graphPoints.length > 0 && !isCrashed) {
+      const last = graphPoints[graphPoints.length-1];
+      const px = last.x * scaleX;
+      const py = h - last.y * scaleY;
+      ctx.font = '20px sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('✈️', px-12, py-10);
+      // Show multiplier at plane
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = '#f0b90b';
+      ctx.fillText(last.y.toFixed(2)+'x', px-10, py-25);
+    }
+    // Crash marker
+    if (isCrashed) {
+      const px = crashX * scaleX;
+      const py = h - crashX * scaleY;
+      ctx.fillStyle = '#ff6b6b';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('💥', px-12, py-15);
     }
   }
 
@@ -262,7 +302,7 @@
 
   function renderHistory() {
     if (history.length === 0) {
-      historyContainer.innerHTML = '<span style="color:#4a5e7a;width:100%;font-size:11px;">No history yet</span>';
+      historyContainer.innerHTML = '<span style="color:#4a5e7a;width:100%;font-size:11px;">No history</span>';
       return;
     }
     let html = '';
@@ -278,11 +318,7 @@
 
   function updateUI() {
     const token = getToken();
-    if (!token || !isConnected) {
-      betBtn.disabled = true;
-      cashoutBtn.disabled = true;
-      return;
-    }
+    if (!token || !isConnected) { betBtn.disabled = true; cashoutBtn.disabled = true; return; }
     if (roundState.status === 'waiting') {
       betBtn.disabled = false;
       cashoutBtn.disabled = true;
@@ -299,46 +335,19 @@
 
   // ===== ACTIONS =====
   function placeBet() {
-    if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
-      alert('Not connected to server.');
-      return;
-    }
-    if (roundState.status !== 'flying' && roundState.status !== 'waiting') {
-      alert('Round not active.');
-      return;
-    }
-    if (roundState.myBetPlaced) {
-      alert('Bet already placed.');
-      return;
-    }
-
+    if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) { alert('Not connected.'); return; }
+    if (roundState.status !== 'flying' && roundState.status !== 'waiting') { alert('Round not active.'); return; }
+    if (roundState.myBetPlaced) { alert('Bet already placed.'); return; }
     const amount = parseFloat(betInput.value);
-    if (!amount || amount <= 0) {
-      alert('Enter a valid bet amount.');
-      return;
-    }
-    if (amount > currentBalance) {
-      alert(`Insufficient balance! You have ${currentBalance.toFixed(2)} ETB.`);
-      return;
-    }
-
+    if (!amount || amount <= 0) { alert('Enter a valid bet.'); return; }
+    if (amount > currentBalance) { alert(`Insufficient balance! You have ${currentBalance.toFixed(2)} ETB.`); return; }
     ws.send(JSON.stringify({ type: 'place_bet', amount }));
   }
 
   function cashOut() {
-    if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
-      alert('Not connected.');
-      return;
-    }
-    if (!roundState.myBetPlaced || roundState.hasCashedOut) {
-      alert('No active bet to cash out.');
-      return;
-    }
-    if (roundState.status !== 'flying') {
-      alert('Round is not flying.');
-      return;
-    }
-
+    if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) { alert('Not connected.'); return; }
+    if (!roundState.myBetPlaced || roundState.hasCashedOut) { alert('No active bet.'); return; }
+    if (roundState.status !== 'flying') { alert('Round is not flying.'); return; }
     ws.send(JSON.stringify({ type: 'cash_out' }));
   }
 
@@ -349,25 +358,22 @@
     const token = getToken();
     if (!token) {
       setConnectionStatus('disconnected', '⚠️ Please login first');
-      betBtn.disabled = true;
-      cashoutBtn.disabled = true;
+      betBtn.disabled = true; cashoutBtn.disabled = true;
       return;
     }
-
     await fetchBalance();
     connectWebSocket();
-
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && !isConnected) connectWebSocket();
     });
-
     setInterval(fetchBalance, 15000);
+    // Initial graph
+    drawGraph();
   })();
 
   const tg = window.Telegram?.WebApp;
   if (tg) { tg.expand(); tg.ready(); }
-
-  console.log('✈️ Aviator loaded');
+  console.log('✈️ Aviator with plane loaded');
 </script>
 </body>
-  </html>
+</html>
