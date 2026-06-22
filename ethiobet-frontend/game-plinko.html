@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Wheel - Ethiobet</title>
+  <title>Plinko - Ethiobet</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif; }
     body { background:#0b0e14; color:#fff; min-height:100vh; display:flex; justify-content:center; padding:0; margin:0; overflow-x:hidden; }
@@ -11,12 +11,12 @@
     .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
     .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; }
     .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
-    .wheel-container { display:flex; justify-content:center; align-items:center; margin:12px 0; }
-    canvas { border-radius:50%; box-shadow:0 0 30px rgba(240,185,11,0.1); }
+    .plinko-board { position:relative; width:100%; height:400px; background:#1a1f2b; border-radius:16px; border:1px solid #2a3546; overflow:hidden; }
+    .ball { position:absolute; width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #f0b90b, #d99f0a); box-shadow:0 0 20px rgba(240,185,11,0.3); transition:all 0.1s linear; }
     .controls { display:flex; gap:8px; margin-top:12px; }
     .controls button { padding:10px 20px; border:none; border-radius:40px; font-weight:700; cursor:pointer; transition:0.15s; flex:1; }
     .controls button:active { transform:scale(0.95); }
-    .btn-spin { background:linear-gradient(135deg,#f0b90b,#d99f0a); color:#0b0e14; }
+    .btn-drop { background:linear-gradient(135deg,#f0b90b,#d99f0a); color:#0b0e14; }
     .result { text-align:center; margin-top:8px; font-weight:700; }
   </style>
 </head>
@@ -26,14 +26,12 @@
     <button class="back" onclick="history.back()">← Back</button>
     <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
   </div>
-  <div style="font-size:18px;font-weight:700;">🎡 Wheel</div>
-  <div class="wheel-container">
-    <canvas id="wheelCanvas" width="300" height="300"></canvas>
-  </div>
+  <div style="font-size:18px;font-weight:700;">🟡 Plinko</div>
+  <div class="plinko-board" id="plinkoBoard"></div>
   <div class="controls">
-    <button class="btn-spin" onclick="spin()">Spin</button>
+    <button class="btn-drop" onclick="dropBall()">Drop Ball</button>
   </div>
-  <div class="result" id="wheelResult">Spin to win!</div>
+  <div class="result" id="plinkoResult">Drop a ball!</div>
 </div>
 <script>
   const BACKEND_URL = (() => {
@@ -44,15 +42,6 @@
 
   function getToken() { return localStorage.getItem('token'); }
   let balance = 0;
-  const segments = [
-    { label: '1x', color: '#2a3546', multiplier: 1 },
-    { label: '2x', color: '#3a4a5e', multiplier: 2 },
-    { label: '5x', color: '#2a6a8c', multiplier: 5 },
-    { label: '10x', color: '#8c6a2a', multiplier: 10 },
-    { label: '20x', color: '#2a8c5a', multiplier: 20 },
-    { label: '50x', color: '#8c2a2a', multiplier: 50 },
-  ];
-  let currentAngle = 0;
 
   async function fetchBalance() {
     const token = getToken();
@@ -69,77 +58,40 @@
     } catch (e) {}
   }
 
-  function drawWheel(angle) {
-    const canvas = document.getElementById('wheelCanvas');
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width, h = canvas.height;
-    const center = w/2, radius = w/2 - 10;
-    ctx.clearRect(0,0,w,h);
-    const slice = (2 * Math.PI) / segments.length;
-    for (let i=0; i<segments.length; i++) {
-      const start = angle + i * slice;
-      const end = start + slice;
-      ctx.beginPath();
-      ctx.moveTo(center, center);
-      ctx.arc(center, center, radius, start, end);
-      ctx.closePath();
-      ctx.fillStyle = segments[i].color;
-      ctx.fill();
-      ctx.strokeStyle = '#0b0e14';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      // label
-      ctx.save();
-      ctx.translate(center, center);
-      ctx.rotate(start + slice/2);
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#fff';
-      ctx.font = '14px sans-serif';
-      ctx.fillText(segments[i].label, radius * 0.7, 0);
-      ctx.restore();
-    }
-    // pointer
-    ctx.beginPath();
-    ctx.moveTo(center, 10);
-    ctx.lineTo(center-10, 30);
-    ctx.lineTo(center+10, 30);
-    ctx.closePath();
-    ctx.fillStyle = '#f0b90b';
-    ctx.fill();
-  }
+  function dropBall() {
+    const board = document.getElementById('plinkoBoard');
+    const ball = document.createElement('div');
+    ball.className = 'ball';
+    const startX = Math.random() * (board.clientWidth - 20);
+    ball.style.left = startX + 'px';
+    ball.style.top = '0px';
+    board.appendChild(ball);
 
-  function spin() {
-    const spins = 5 + Math.random() * 5;
-    const targetSegment = Math.floor(Math.random() * segments.length);
-    const targetAngle = currentAngle + spins * 2 * Math.PI + targetSegment * (2*Math.PI/segments.length);
-    const startAngle = currentAngle;
-    const duration = 3000;
-    const startTime = performance.now();
-
-    function animate(time) {
-      const elapsed = time - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const angle = startAngle + (targetAngle - startAngle) * eased;
-      currentAngle = angle;
-      drawWheel(angle);
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        const idx = targetSegment;
-        const multiplier = segments[idx].multiplier;
+    let y = 0;
+    const interval = setInterval(() => {
+      y += 5;
+      if (y >= board.clientHeight - 30) {
+        clearInterval(interval);
+        // Determine multiplier based on landing position (simplified)
+        const x = parseFloat(ball.style.left);
+        const multiplier = Math.max(0.2, Math.min(2.0, x / board.clientWidth * 2));
         const win = 10 * multiplier;
         balance += win;
         document.getElementById('balanceDisplay').textContent = `💰 ${balance.toFixed(2)} ETB`;
-        document.getElementById('wheelResult').textContent = `🎉 ${multiplier}x! Win ${win.toFixed(2)} ETB`;
+        document.getElementById('plinkoResult').textContent = `🎉 Landed at ${multiplier.toFixed(2)}x! Win ${win.toFixed(2)} ETB`;
+        setTimeout(() => ball.remove(), 1500);
+        return;
       }
-    }
-    requestAnimationFrame(animate);
+      // Random horizontal drift
+      const drift = (Math.random() - 0.5) * 6;
+      let left = parseFloat(ball.style.left) + drift;
+      left = Math.max(0, Math.min(board.clientWidth - 20, left));
+      ball.style.left = left + 'px';
+      ball.style.top = y + 'px';
+    }, 30);
   }
 
   fetchBalance();
-  drawWheel(0);
 </script>
 </body>
 </html>
