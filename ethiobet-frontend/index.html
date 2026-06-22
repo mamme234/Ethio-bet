@@ -8,7 +8,6 @@
   <!-- ===== AD SDK ===== -->
   <script src='//libtl.com/sdk.js' data-zone='11177585' data-sdk='show_11177585'></script>
   <style>
-    /* ===== ALL STYLES (same as before) ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; overflow-x: hidden; }
     .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 60px; min-height: 100vh; position: relative; }
@@ -82,17 +81,17 @@
       text-align: center;
       border: 1px solid rgba(255,255,255,0.04);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
     }
     .game-card::before {
       content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
       background: radial-gradient(circle, rgba(240,185,11,0.05) 0%, transparent 70%);
-      opacity: 0; transition: opacity 0.3s ease;
+      opacity: 0; transition: opacity 0.2s ease;
     }
     .game-card:hover::before { opacity: 1; }
-    .game-card:hover { transform: translateY(-4px); border-color: rgba(240,185,11,0.3); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+    .game-card:hover { transform: translateY(-2px); border-color: rgba(240,185,11,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .game-card:active { transform: scale(0.95); }
     .game-card .icon { font-size: 28px; margin-bottom: 4px; display: block; }
     .game-card .name { font-size: 10px; font-weight: 600; color: #b0c8e5; }
@@ -108,7 +107,7 @@
       max-width: 480px; width: 100%;
       background: rgba(11,14,20,0.95); backdrop-filter: blur(16px); z-index: 100;
     }
-    .bottom-nav a { color: #6a7e9c; text-decoration: none; font-size: 10px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; padding: 4px 8px; transition: 0.3s; }
+    .bottom-nav a { color: #6a7e9c; text-decoration: none; font-size: 10px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; padding: 4px 8px; transition: 0.2s; }
     .bottom-nav a:active { transform: scale(0.90); }
     .bottom-nav a.active { color: #f0b90b; }
     .bottom-nav a .emoji { font-size: 18px; }
@@ -124,7 +123,7 @@
     .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 14px; }
     .deposit-card .info .user { color: #889bb5; font-size: 11px; }
     .deposit-card .actions { display: flex; gap: 4px; }
-    .deposit-card .actions button { padding: 4px 12px; border: none; border-radius: 40px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.3s; }
+    .deposit-card .actions button { padding: 4px 12px; border: none; border-radius: 40px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; }
     .deposit-card .actions button:active { transform: scale(0.95); }
     .btn-approve { background: #2a8c5a; color: #fff; }
     .btn-reject { background: #8c2a2a; color: #fff; }
@@ -138,9 +137,9 @@
     .promo-task .info .reward { color: #f0b90b; font-weight: 700; font-size: 12px; }
     .promo-task .info .progress { font-size: 11px; color: #ffd966; margin-top: 2px; }
     .promo-task .actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .promo-task .actions .link-btn { background: rgba(240,185,11,0.15); color: #f0b90b; border: 1px solid rgba(240,185,11,0.3); padding: 4px 12px; border-radius: 40px; font-size: 11px; cursor: pointer; transition: 0.3s; text-decoration: none; }
+    .promo-task .actions .link-btn { background: rgba(240,185,11,0.15); color: #f0b90b; border: 1px solid rgba(240,185,11,0.3); padding: 4px 12px; border-radius: 40px; font-size: 11px; cursor: pointer; transition: 0.2s; text-decoration: none; }
     .promo-task .actions .link-btn:hover { background: rgba(240,185,11,0.25); }
-    .promo-task button { padding: 4px 16px; border: none; border-radius: 40px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.3s; }
+    .promo-task button { padding: 4px 16px; border: none; border-radius: 40px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; }
     .promo-task button.claim { background: linear-gradient(135deg, #f0b90b, #d99f0a); color: #0b0e14; }
     .promo-task button.claim:active { transform: scale(0.95); }
     .promo-task button.completed { background: #2a8c5a; color: #fff; cursor: default; }
@@ -231,120 +230,109 @@
     </div>
 
     <div class="game-grid" id="gameGrid">
-      <!-- CRASH GAMES -->
-      <div class="game-card" data-game="crash" onclick="location.href='game-aviator.html'">
+      <!-- ===== CRASH GAMES ===== -->
+      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=aviator'">
         <div class="icon">✈️</div><div class="name">Aviator</div><div class="tag">Crash</div><div class="badge-hot">HOT</div>
       </div>
-      <div class="game-card" data-game="crash" onclick="location.href='game-jetx.html'">
+      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=jetx'">
         <div class="icon">🚀</div><div class="name">JetX</div><div class="tag">Crash</div>
       </div>
-      <div class="game-card" data-game="crash" onclick="location.href='game-mines.html'">
+      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=mines'">
         <div class="icon">💣</div><div class="name">Mines</div><div class="tag">Strategy</div>
       </div>
-      <div class="game-card" data-game="crash" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=chiken'">
         <div class="icon">🐔</div><div class="name">Chicken Crash</div><div class="tag">Crash</div>
       </div>
-      <div class="game-card" data-game="crash" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=plinko'">
         <div class="icon">🪙</div><div class="name">PlinkoX</div><div class="tag">Crash</div><div class="badge-new">NEW</div>
       </div>
-      <div class="game-card" data-game="crash" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=keno'">
         <div class="icon">🎯</div><div class="name">Keno</div><div class="tag">Crash</div>
       </div>
 
-      <!-- SLOTS -->
-      <div class="game-card" data-game="slots" onclick="location.href='game-slots.html'">
-        <div class="icon">🎰</div><div class="name">Golden Dragon</div><div class="tag">Slot</div><div class="badge-hot">HOT</div>
+      <!-- ===== SLOTS ===== -->
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=golden'">
+        <div class="icon">🐉</div><div class="name">Golden Dragon</div><div class="tag">Slot</div><div class="badge-hot">HOT</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=dragon'">
         <div class="icon">🐉</div><div class="name">Dragon Luck</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=burn'">
         <div class="icon">🔥</div><div class="name">Burn Wilds</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=fortune'">
         <div class="icon">💎</div><div class="name">Fortune Coins</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=royal'">
         <div class="icon">👑</div><div class="name">Royal Secrets</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=power'">
         <div class="icon">⚡</div><div class="name">Power Hot 100</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=burning'">
         <div class="icon">🍒</div><div class="name">20 Burning Hot</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=safari'">
         <div class="icon">🌴</div><div class="name">Safari Star</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=mystic'">
         <div class="icon">🧙</div><div class="name">Mystic Witch</div><div class="tag">Slot</div><div class="badge-new">NEW</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=treasure'">
         <div class="icon">🏺</div><div class="name">Treasure Bowl</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=tiger'">
         <div class="icon">🐅</div><div class="name">Treasure Tiger</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=candy'">
         <div class="icon">🍬</div><div class="name">Candy Palace</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=mythical'">
         <div class="icon">🌙</div><div class="name">Mythical Treasure</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=olympus'">
         <div class="icon">🏛️</div><div class="name">Olympus Glory</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=vampire'">
         <div class="icon">🧛</div><div class="name">Vampire Night</div><div class="tag">Slot</div>
       </div>
-      <div class="game-card" data-game="slots" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=amazons'">
         <div class="icon">⚔️</div><div class="name">Amazons Battle</div><div class="tag">Slot</div>
       </div>
 
-      <!-- JACKPOT -->
-      <div class="game-card" data-game="jackpot" onclick="alert('Coming Soon!')">
+      <!-- ===== JACKPOT ===== -->
+      <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=mega'">
         <div class="icon">🏆</div><div class="name">Mega Jackpot</div><div class="tag">Jackpot</div><div class="badge-hot">HOT</div>
       </div>
-      <div class="game-card" data-game="jackpot" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=diamond'">
         <div class="icon">💎</div><div class="name">Diamond Jackpot</div><div class="tag">Jackpot</div>
       </div>
-      <div class="game-card" data-game="jackpot" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=royal'">
         <div class="icon">👑</div><div class="name">Royal Jackpot</div><div class="tag">Jackpot</div>
       </div>
-      <div class="game-card" data-game="jackpot" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=lion'">
         <div class="icon">🦁</div><div class="name">Lion Jackpot</div><div class="tag">Jackpot</div>
       </div>
 
-      <!-- SPORTS -->
-      <div class="game-card" data-game="sports" onclick="location.href='sports.html'">
+      <!-- ===== SPORTS ===== -->
+      <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=worldcup'">
         <div class="icon">⚽</div><div class="name">World Cup</div><div class="tag">Sports</div><div class="badge-hot">HOT</div>
       </div>
-      <div class="game-card" data-game="sports" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=basketball'">
         <div class="icon">🏀</div><div class="name">Basketball</div><div class="tag">Sports</div>
       </div>
-      <div class="game-card" data-game="sports" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=football'">
         <div class="icon">🏈</div><div class="name">American Football</div><div class="tag">Sports</div>
       </div>
 
-      <!-- CASINO -->
-      <div class="game-card" data-game="casino" onclick="alert('Coming Soon!')">
-        <div class="icon">🎡</div><div class="name">Wheel of Fortune</div><div class="tag">Casino</div>
-      </div>
-      <div class="game-card" data-game="casino" onclick="alert('Coming Soon!')">
-        <div class="icon">🎲</div><div class="name">Dice</div><div class="tag">Casino</div>
-      </div>
-      <div class="game-card" data-game="casino" onclick="alert('Coming Soon!')">
-        <div class="icon">🃏</div><div class="name">Blackjack</div><div class="tag">Casino</div><div class="badge-new">NEW</div>
-      </div>
-
-      <!-- NEW -->
-      <div class="game-card" data-game="new" onclick="alert('Coming Soon!')">
+      <!-- ===== NEW ===== -->
+      <div class="game-card" data-game="new" onclick="location.href='new.html?game=spacecrash'">
         <div class="icon">🚀</div><div class="name">Space Crash</div><div class="tag">New</div><div class="badge-new">NEW</div>
       </div>
-      <div class="game-card" data-game="new" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="new" onclick="location.href='new.html?game=zombie'">
         <div class="icon">🧟</div><div class="name">Zombie Hunt</div><div class="tag">New</div><div class="badge-new">NEW</div>
       </div>
-      <div class="game-card" data-game="new" onclick="alert('Coming Soon!')">
+      <div class="game-card" data-game="new" onclick="location.href='new.html?game=robot'">
         <div class="icon">🤖</div><div class="name">Robot Wars</div><div class="tag">New</div><div class="badge-new">NEW</div>
       </div>
     </div>
@@ -417,7 +405,7 @@
   // ========== LOADING SCREEN ==========
   // ============================================================
   window.addEventListener('load', function() {
-    setTimeout(() => document.getElementById('loadingScreen').classList.add('hidden'), 1500);
+    setTimeout(() => document.getElementById('loadingScreen').classList.add('hidden'), 1000);
   });
 
   // ============================================================
@@ -482,9 +470,14 @@
         body: JSON.stringify({ phone, password })
       });
       const data = await res.json();
-      if (data.success) setAuth(data.token, data.user);
-      else error.textContent = '❌ ' + (data.error || 'Login failed');
-    } catch (err) { error.textContent = '❌ Network error. Is the backend running?'; }
+      if (data.success) {
+        setAuth(data.token, data.user);
+      } else {
+        error.textContent = '❌ ' + (data.error || 'Login failed');
+      }
+    } catch (err) {
+      error.textContent = '❌ Network error. Is the backend running?';
+    }
   }
 
   async function register() {
@@ -502,9 +495,14 @@
         body: JSON.stringify({ name, phone, password })
       });
       const data = await res.json();
-      if (data.success) setAuth(data.token, data.user);
-      else error.textContent = '❌ ' + (data.error || 'Registration failed');
-    } catch (err) { error.textContent = '❌ Network error. Is the backend running?'; }
+      if (data.success) {
+        setAuth(data.token, data.user);
+      } else {
+        error.textContent = '❌ ' + (data.error || 'Registration failed');
+      }
+    } catch (err) {
+      error.textContent = '❌ Network error. Is the backend running?';
+    }
   }
 
   // ============================================================
@@ -542,8 +540,15 @@
         const data = await res.json();
         currentUser = { ...currentUser, ...data };
         updateUI();
-      } else logout();
-    } catch (err) { console.error(err); }
+        return true;
+      } else {
+        logout();
+        return false;
+      }
+    } catch (err) {
+      console.error('Refresh error:', err);
+      return false;
+    }
   }
 
   // ============================================================
@@ -715,21 +720,17 @@
       return;
     }
 
-    // Disable button temporarily
     const container = document.getElementById('promoContainer');
     const adBtn = container.querySelector('.ad-watch');
     if (adBtn) adBtn.disabled = true;
 
     try {
-      // Call the ad SDK - rewarded interstitial
       if (typeof show_11177585 === 'function') {
-        await show_11177585(); // This returns a promise when ad completes
+        await show_11177585();
       } else {
-        // Fallback: simulate ad for testing
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
-      // Ad watched successfully - increment count on server
       const res = await fetch(`${BACKEND_URL}/api/promotions/ad-watch`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -737,9 +738,7 @@
       const data = await res.json();
       if (data.success) {
         promoStatus.adWatchCount = data.adWatchCount;
-        // Refresh UI
         renderPromotions();
-        // Update balance if needed? Not yet, only after claim.
       } else {
         alert('Failed to record ad view. Try again.');
       }
@@ -759,7 +758,6 @@
       return;
     }
 
-    // Disable all buttons optimistically
     const container = document.getElementById('promoContainer');
     const btns = container.querySelectorAll('button');
     btns.forEach(b => b.disabled = true);
@@ -775,7 +773,6 @@
         if (currentUser) currentUser.balance = data.newBalance;
         promoStatus.claimedTasks = data.claimedTasks || [];
         promoStatus.dailyLastClaim = data.dailyLastClaim || null;
-        // adWatchCount might be reset or unchanged; we'll keep it from server if returned
         if (data.adWatchCount !== undefined) promoStatus.adWatchCount = data.adWatchCount;
         updateUI();
         renderPromotions();
@@ -792,13 +789,21 @@
   // ============================================================
   // ========== INIT ==========
   // ============================================================
-  showPage('splash');
-  const savedToken = getToken();
-  if (savedToken) {
-    refreshLobby();
-    setTimeout(() => { if (currentUser) showPage('lobby'); }, 1000);
+  async function initApp() {
+    const savedToken = getToken();
+    if (savedToken) {
+      const ok = await refreshLobby();
+      if (ok && currentUser) {
+        showPage('lobby');
+      } else {
+        showPage('splash');
+      }
+    } else {
+      showPage('splash');
+    }
   }
 
+  initApp();
   console.log('🎮 Ethiobet 100+ Games Loaded');
 </script>
 </body>
