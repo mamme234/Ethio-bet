@@ -1,810 +1,892 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🎮 Ethiobet</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- ===== AD SDK ===== -->
-  <script src='//libtl.com/sdk.js' data-zone='11177585' data-sdk='show_11177585'></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; overflow-x: hidden; }
-    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 60px; min-height: 100vh; position: relative; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎰 Ethiobet - Best Online Casino in Ethiopia</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Ad SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='11177585' data-sdk='show_11177585'></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: #0a0c10; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; overflow-x: hidden; }
+        .app { max-width: 480px; width: 100%; background: #0a0c10; padding: 0 12px 70px; min-height: 100vh; position: relative; }
 
-    /* ===== LOADING SPLASH ===== */
-    .loading-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(135deg, #0b0e14 0%, #1a1f2b 50%, #0b0e14 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 9999; transition: opacity 0.8s ease, visibility 0.8s ease;
-    }
-    .loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .loading-logo { font-size: 64px; font-weight: 900; color: #f0b90b; text-shadow: 0 0 60px rgba(240,185,11,0.3); animation: pulse 1.5s ease-in-out infinite; }
-    .loading-logo span { color: #fff; }
-    .loading-spinner { margin-top: 30px; width: 48px; height: 48px; border: 4px solid rgba(240,185,11,0.1); border-top-color: #f0b90b; border-radius: 50%; animation: spin 0.8s linear infinite; }
-    .loading-text { margin-top: 16px; color: #6a7e9c; font-size: 14px; letter-spacing: 2px; animation: fadeText 1.5s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes fadeText { 0%,100%{opacity:0.5} 50%{opacity:1} }
+        /* ===== LOADING SPLASH ===== */
+        .loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0a0c10 0%, #1a1f2b 50%, #0a0c10 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        .loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loading-logo { font-size: 64px; font-weight: 900; color: #f7c948; text-shadow: 0 0 60px rgba(247, 201, 72, 0.3); animation: pulse 1.5s ease-in-out infinite; }
+        .loading-logo span { color: #fff; }
+        .loading-spinner { margin-top: 30px; width: 48px; height: 48px; border: 4px solid rgba(247, 201, 72, 0.1); border-top-color: #f7c948; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .loading-text { margin-top: 16px; color: #6a7e9c; font-size: 14px; letter-spacing: 2px; animation: fadeText 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeText { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
-    /* ===== SPLASH ===== */
-    .splash { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
-    .splash .logo { font-size: 48px; font-weight: 800; color: #f0b90b; margin-bottom: 8px; }
-    .splash .logo span { color: #fff; }
-    .splash .sub { color: #6a7e9c; font-size: 16px; margin-bottom: 30px; }
-    .splash .btn-group { display: flex; gap: 16px; }
-    .splash .btn-group button { padding: 12px 32px; border: none; border-radius: 40px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
-    .splash .btn-group .login-btn { background: linear-gradient(135deg, #f0b90b, #d99f0a); color: #0b0e14; box-shadow: 0 4px 20px rgba(240,185,11,0.3); }
-    .splash .btn-group .signup-btn { background: transparent; color: #fff; border: 1px solid #2f3e51; }
-    .splash .btn-group button:active { transform: scale(0.95); }
+        /* ===== SPLASH ===== */
+        .splash { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
+        .splash .logo { font-size: 48px; font-weight: 800; color: #f7c948; margin-bottom: 8px; }
+        .splash .logo span { color: #fff; }
+        .splash .sub { color: #6a7e9c; font-size: 16px; margin-bottom: 30px; }
+        .splash .btn-group { display: flex; gap: 16px; }
+        .splash .btn-group button { padding: 12px 32px; border: none; border-radius: 40px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .splash .btn-group .login-btn { background: linear-gradient(135deg, #f7c948, #d99f0a); color: #0a0c10; box-shadow: 0 4px 20px rgba(247, 201, 72, 0.3); }
+        .splash .btn-group .signup-btn { background: transparent; color: #fff; border: 1px solid #2f3e51; }
+        .splash .btn-group button:active { transform: scale(0.95); }
 
-    /* ===== AUTH ===== */
-    .auth-container { max-width: 360px; margin: 20px auto; }
-    .auth-container h1 { font-size: 22px; margin-bottom: 2px; }
-    .auth-container .sub { color: #6a7e9c; font-size: 13px; margin-bottom: 16px; }
-    .auth-container label { display: block; font-size: 12px; font-weight: 600; color: #a0b3cc; margin-bottom: 3px; }
-    .auth-container input { width: 100%; padding: 10px 14px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; color: #fff; font-size: 14px; margin-bottom: 12px; outline: none; transition: 0.3s; }
-    .auth-container input:focus { border-color: #f0b90b; box-shadow: 0 0 20px rgba(240,185,11,0.1); }
-    .auth-container .btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #f0b90b, #d99f0a); border: none; border-radius: 40px; font-size: 15px; font-weight: 700; color: #0b0e14; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 20px rgba(240,185,11,0.2); }
-    .auth-container .btn:active { transform: scale(0.95); }
-    .auth-container .switch { text-align: center; margin-top: 14px; color: #6a7e9c; font-size: 13px; }
-    .auth-container .switch a { color: #f0b90b; cursor: pointer; text-decoration: none; }
-    .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 10px; }
-    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; transition: 0.3s; }
-    .back-btn:hover { color: #fff; }
-    .back-btn:active { transform: scale(0.95); }
-    .page { display: none; animation: fadeIn 0.3s ease; }
-    .page.active { display: block; }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        /* ===== AUTH ===== */
+        .auth-container { max-width: 360px; margin: 20px auto; }
+        .auth-container h1 { font-size: 22px; margin-bottom: 2px; }
+        .auth-container .sub { color: #6a7e9c; font-size: 13px; margin-bottom: 16px; }
+        .auth-container label { display: block; font-size: 12px; font-weight: 600; color: #a0b3cc; margin-bottom: 3px; }
+        .auth-container input { width: 100%; padding: 10px 14px; background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; color: #fff; font-size: 14px; margin-bottom: 12px; outline: none; transition: 0.3s; }
+        .auth-container input:focus { border-color: #f7c948; box-shadow: 0 0 20px rgba(247, 201, 72, 0.1); }
+        .auth-container .btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #f7c948, #d99f0a); border: none; border-radius: 40px; font-size: 15px; font-weight: 700; color: #0a0c10; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 20px rgba(247, 201, 72, 0.2); }
+        .auth-container .btn:active { transform: scale(0.95); }
+        .auth-container .switch { text-align: center; margin-top: 14px; color: #6a7e9c; font-size: 13px; }
+        .auth-container .switch a { color: #f7c948; cursor: pointer; text-decoration: none; }
+        .auth-error { color: #f28b82; font-size: 13px; text-align: center; margin-bottom: 10px; }
+        .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; transition: 0.3s; }
+        .back-btn:hover { color: #fff; }
+        .back-btn:active { transform: scale(0.95); }
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 
-    /* ===== HEADER ===== */
-    .header { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 6px; }
-    .header .logo { font-size: 18px; font-weight: 800; color: #f0b90b; cursor: pointer; }
-    .header .logo span { color: #fff; }
-    .header .balance { color: #ffd966; font-weight: 700; background: rgba(240,185,11,0.12); padding: 2px 12px; border-radius: 40px; border: 1px solid rgba(240,185,11,0.2); font-size: 13px; }
-    .header .logout-btn { color: #f28b82; font-size: 11px; cursor: pointer; background: none; border: none; margin-left: 6px; }
+        /* ===== HEADER (ATTRACTIVE) ===== */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            background: linear-gradient(135deg, #1a1f2b, #0a0c10);
+            border-radius: 0 0 20px 20px;
+            margin: -6px -12px 12px;
+            padding: 12px 16px 10px;
+        }
+        .header .logo { font-size: 20px; font-weight: 800; color: #f7c948; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .header .logo span { color: #fff; }
+        .header .logo .badge { font-size: 8px; background: #f7c948; color: #0a0c10; padding: 2px 6px; border-radius: 20px; font-weight: 700; margin-left: 4px; }
+        .header .balance { color: #ffd966; font-weight: 700; background: rgba(247, 201, 72, 0.15); padding: 4px 14px; border-radius: 40px; border: 1px solid rgba(247, 201, 72, 0.2); font-size: 13px; display: flex; align-items: center; gap: 4px; }
+        .header .logout-btn { color: #f28b82; font-size: 11px; cursor: pointer; background: none; border: none; margin-left: 6px; padding: 4px 8px; }
 
-    /* ===== NAV TABS ===== */
-    .nav-tabs { display: flex; gap: 4px; overflow-x: auto; padding: 4px 0 8px; margin-bottom: 6px; scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.04); }
-    .nav-tabs::-webkit-scrollbar { display: none; }
-    .nav-tabs button { background: transparent; border: none; color: #6a7e9c; padding: 6px 16px; border-radius: 40px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.3s; }
-    .nav-tabs button.active { background: linear-gradient(135deg, #f0b90b, #d99f0a); color: #0b0e14; box-shadow: 0 2px 12px rgba(240,185,11,0.2); }
-    .nav-tabs button:active { transform: scale(0.95); }
+        /* ===== HERO SECTION (ATTRACTIVE) ===== */
+        .hero {
+            background: linear-gradient(135deg, #1a1f2b, #2a3546);
+            border-radius: 20px;
+            padding: 20px 16px;
+            margin: 8px 0 16px;
+            text-align: center;
+            border: 1px solid rgba(247, 201, 72, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(247, 201, 72, 0.05) 0%, transparent 70%);
+            animation: heroGlow 6s ease-in-out infinite;
+        }
+        @keyframes heroGlow { 0%,100%{transform:translate(0,0)} 50%{transform:translate(10%,10%)} }
+        .hero .label { font-size: 11px; color: #f7c948; text-transform: uppercase; letter-spacing: 3px; font-weight: 600; position: relative; }
+        .hero .amount { font-size: 32px; font-weight: 900; color: #fff; margin: 4px 0; position: relative; text-shadow: 0 0 40px rgba(247, 201, 72, 0.15); }
+        .hero .amount span { color: #f7c948; }
+        .hero .sub-label { font-size: 12px; color: #6a7e9c; position: relative; }
+        .hero .win-notification {
+            background: rgba(42, 140, 90, 0.15);
+            border: 1px solid rgba(42, 140, 90, 0.2);
+            border-radius: 40px;
+            padding: 4px 14px;
+            display: inline-block;
+            font-size: 12px;
+            color: #2a8c5a;
+            margin-top: 8px;
+            position: relative;
+        }
 
-    /* ===== GAME GRID ===== */
-    .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .game-card {
-      background: linear-gradient(145deg, #131a22, #1a1f2b);
-      border-radius: 14px;
-      padding: 12px 6px;
-      text-align: center;
-      border: 1px solid rgba(255,255,255,0.04);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    .game-card::before {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: radial-gradient(circle, rgba(240,185,11,0.05) 0%, transparent 70%);
-      opacity: 0; transition: opacity 0.2s ease;
-    }
-    .game-card:hover::before { opacity: 1; }
-    .game-card:hover { transform: translateY(-2px); border-color: rgba(240,185,11,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-    .game-card:active { transform: scale(0.95); }
-    .game-card .icon { font-size: 28px; margin-bottom: 4px; display: block; }
-    .game-card .name { font-size: 10px; font-weight: 600; color: #b0c8e5; }
-    .game-card .tag { font-size: 7px; color: #6a7e9c; background: rgba(255,255,255,0.04); padding: 1px 8px; border-radius: 40px; display: inline-block; margin-top: 2px; }
-    .game-card .badge-hot { position: absolute; top: 4px; right: 4px; background: #ff6b6b; color: #fff; font-size: 6px; font-weight: 700; padding: 1px 6px; border-radius: 40px; text-transform: uppercase; }
-    .game-card .badge-new { position: absolute; top: 4px; right: 4px; background: #f0b90b; color: #0b0e14; font-size: 6px; font-weight: 700; padding: 1px 6px; border-radius: 40px; text-transform: uppercase; }
+        /* ===== NAV TABS ===== */
+        .nav-tabs {
+            display: flex; gap: 4px; overflow-x: auto; padding: 4px 0 12px; margin-bottom: 4px;
+            scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .nav-tabs::-webkit-scrollbar { display: none; }
+        .nav-tabs button {
+            background: transparent; border: none; color: #6a7e9c; padding: 6px 16px;
+            border-radius: 40px; font-weight: 600; font-size: 12px; cursor: pointer;
+            white-space: nowrap; flex-shrink: 0; transition: 0.3s;
+        }
+        .nav-tabs button.active {
+            background: linear-gradient(135deg, #f7c948, #d99f0a); color: #0a0c10;
+            box-shadow: 0 2px 20px rgba(247, 201, 72, 0.2);
+        }
+        .nav-tabs button:active { transform: scale(0.95); }
 
-    /* ===== BOTTOM NAV ===== */
-    .bottom-nav {
-      display: flex; justify-content: space-around; padding: 8px 0 4px; margin-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-      max-width: 480px; width: 100%;
-      background: rgba(11,14,20,0.95); backdrop-filter: blur(16px); z-index: 100;
-    }
-    .bottom-nav a { color: #6a7e9c; text-decoration: none; font-size: 10px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; padding: 4px 8px; transition: 0.2s; }
-    .bottom-nav a:active { transform: scale(0.90); }
-    .bottom-nav a.active { color: #f0b90b; }
-    .bottom-nav a .emoji { font-size: 18px; }
+        /* ===== GAME GRID (ATTRACTIVE) ===== */
+        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .game-card {
+            background: linear-gradient(145deg, #131a22, #1a1f2b);
+            border-radius: 16px;
+            padding: 14px 6px 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.04);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .game-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(247, 201, 72, 0.06) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .game-card:hover::before { opacity: 1; }
+        .game-card:hover { transform: translateY(-4px); border-color: rgba(247, 201, 72, 0.3); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+        .game-card:active { transform: scale(0.95); }
+        .game-card .icon { font-size: 30px; margin-bottom: 4px; display: block; }
+        .game-card .name { font-size: 10px; font-weight: 600; color: #b0c8e5; }
+        .game-card .tag {
+            font-size: 7px; color: #6a7e9c; background: rgba(255,255,255,0.04);
+            padding: 1px 8px; border-radius: 40px; display: inline-block; margin-top: 2px;
+        }
+        .game-card .badge-hot {
+            position: absolute; top: 6px; right: 6px; background: #ff6b6b; color: #fff;
+            font-size: 6px; font-weight: 700; padding: 1px 6px; border-radius: 40px; text-transform: uppercase;
+        }
+        .game-card .badge-new {
+            position: absolute; top: 6px; right: 6px; background: #f7c948; color: #0a0c10;
+            font-size: 6px; font-weight: 700; padding: 1px 6px; border-radius: 40px; text-transform: uppercase;
+        }
+        .game-card .badge-jackpot {
+            position: absolute; top: 6px; right: 6px; background: #8c2a8c; color: #fff;
+            font-size: 6px; font-weight: 700; padding: 1px 6px; border-radius: 40px; text-transform: uppercase;
+        }
 
-    .footer-text { color: #4a5e7a; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
+        /* ===== BOTTOM NAV (ATTRACTIVE) ===== */
+        .bottom-nav {
+            display: flex; justify-content: space-around; padding: 8px 0 6px; margin-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            max-width: 480px; width: 100%;
+            background: rgba(10, 12, 16, 0.95); backdrop-filter: blur(20px);
+            z-index: 100; border-radius: 20px 20px 0 0;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.3);
+        }
+        .bottom-nav a {
+            color: #6a7e9c; text-decoration: none; font-size: 10px; font-weight: 600;
+            display: flex; flex-direction: column; align-items: center; gap: 1px;
+            cursor: pointer; padding: 4px 12px; transition: 0.2s; border-radius: 12px;
+        }
+        .bottom-nav a:active { transform: scale(0.90); }
+        .bottom-nav a.active { color: #f7c948; background: rgba(247, 201, 72, 0.1); }
+        .bottom-nav a .emoji { font-size: 20px; }
 
-    /* ===== ADMIN PANEL ===== */
-    .admin-panel { margin-top: 10px; padding-top: 10px; border-top: 2px solid rgba(240,185,11,0.2); display: none; }
-    .admin-panel.active { display: block; }
-    .admin-panel h2 { color: #f0b90b; font-size: 14px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-    .admin-panel h2 span { background: #f0b90b; color: #0b0e14; font-size: 10px; padding: 2px 8px; border-radius: 40px; }
-    .deposit-card { background: #1a1f2b; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; border: 1px solid #2a3546; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-    .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 14px; }
-    .deposit-card .info .user { color: #889bb5; font-size: 11px; }
-    .deposit-card .actions { display: flex; gap: 4px; }
-    .deposit-card .actions button { padding: 4px 12px; border: none; border-radius: 40px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; }
-    .deposit-card .actions button:active { transform: scale(0.95); }
-    .btn-approve { background: #2a8c5a; color: #fff; }
-    .btn-reject { background: #8c2a2a; color: #fff; }
-    .empty-deposits { color: #6a7e9c; text-align: center; padding: 12px; font-size: 12px; }
+        .footer-text { color: #4a5e7a; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
 
-    /* ===== PROMOTIONS ===== */
-    .promo-task { display: flex; justify-content: space-between; align-items: center; background: #1a1f2b; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid #2a3546; }
-    .promo-task .info { display: flex; flex-direction: column; flex: 1; }
-    .promo-task .info .title { font-weight: 600; font-size: 14px; }
-    .promo-task .info .desc { font-size: 11px; color: #889bb5; }
-    .promo-task .info .reward { color: #f0b90b; font-weight: 700; font-size: 12px; }
-    .promo-task .info .progress { font-size: 11px; color: #ffd966; margin-top: 2px; }
-    .promo-task .actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .promo-task .actions .link-btn { background: rgba(240,185,11,0.15); color: #f0b90b; border: 1px solid rgba(240,185,11,0.3); padding: 4px 12px; border-radius: 40px; font-size: 11px; cursor: pointer; transition: 0.2s; text-decoration: none; }
-    .promo-task .actions .link-btn:hover { background: rgba(240,185,11,0.25); }
-    .promo-task button { padding: 4px 16px; border: none; border-radius: 40px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; }
-    .promo-task button.claim { background: linear-gradient(135deg, #f0b90b, #d99f0a); color: #0b0e14; }
-    .promo-task button.claim:active { transform: scale(0.95); }
-    .promo-task button.completed { background: #2a8c5a; color: #fff; cursor: default; }
-    .promo-task button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .promo-task button.ad-watch { background: #2a6a8c; color: #fff; }
-    .promo-task button.ad-watch:active { transform: scale(0.95); }
-    .daily-timer { font-size: 12px; color: #6a7e9c; text-align: center; margin: 8px 0; }
+        /* ===== ADMIN PANEL ===== */
+        .admin-panel { margin-top: 10px; padding-top: 10px; border-top: 2px solid rgba(247, 201, 72, 0.2); display: none; }
+        .admin-panel.active { display: block; }
+        .admin-panel h2 { color: #f7c948; font-size: 14px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .admin-panel h2 span { background: #f7c948; color: #0a0c10; font-size: 10px; padding: 2px 8px; border-radius: 40px; }
+        .deposit-card { background: #1a1f2b; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; border: 1px solid #2a3546; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .deposit-card .info .amount { color: #ffd966; font-weight: 700; font-size: 14px; }
+        .deposit-card .info .user { color: #889bb5; font-size: 11px; }
+        .deposit-card .actions { display: flex; gap: 4px; }
+        .deposit-card .actions button { padding: 4px 12px; border: none; border-radius: 40px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; }
+        .deposit-card .actions button:active { transform: scale(0.95); }
+        .btn-approve { background: #2a8c5a; color: #fff; }
+        .btn-reject { background: #8c2a2a; color: #fff; }
+        .empty-deposits { color: #6a7e9c; text-align: center; padding: 12px; font-size: 12px; }
 
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #f0b90b; border-radius: 10px; }
-  </style>
+        /* ===== PROMOTIONS ===== */
+        .promo-task { display: flex; justify-content: space-between; align-items: center; background: #1a1f2b; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid #2a3546; }
+        .promo-task .info { display: flex; flex-direction: column; flex: 1; }
+        .promo-task .info .title { font-weight: 600; font-size: 14px; }
+        .promo-task .info .desc { font-size: 11px; color: #889bb5; }
+        .promo-task .info .reward { color: #f7c948; font-weight: 700; font-size: 12px; }
+        .promo-task .info .progress { font-size: 11px; color: #ffd966; margin-top: 2px; }
+        .promo-task .actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .promo-task .actions .link-btn { background: rgba(247, 201, 72, 0.15); color: #f7c948; border: 1px solid rgba(247, 201, 72, 0.3); padding: 4px 12px; border-radius: 40px; font-size: 11px; cursor: pointer; transition: 0.2s; text-decoration: none; }
+        .promo-task .actions .link-btn:hover { background: rgba(247, 201, 72, 0.25); }
+        .promo-task button { padding: 4px 16px; border: none; border-radius: 40px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .promo-task button.claim { background: linear-gradient(135deg, #f7c948, #d99f0a); color: #0a0c10; }
+        .promo-task button.claim:active { transform: scale(0.95); }
+        .promo-task button.completed { background: #2a8c5a; color: #fff; cursor: default; }
+        .promo-task button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .promo-task button.ad-watch { background: #2a6a8c; color: #fff; }
+        .promo-task button.ad-watch:active { transform: scale(0.95); }
+        .daily-timer { font-size: 12px; color: #6a7e9c; text-align: center; margin: 8px 0; }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #f7c948; border-radius: 10px; }
+    </style>
 </head>
 <body>
 
 <div class="app" id="app">
 
-  <!-- ===== LOADING SCREEN ===== -->
-  <div class="loading-screen" id="loadingScreen">
-    <div class="loading-logo">Ethio<span>bet</span></div>
-    <div class="loading-spinner"></div>
-    <div class="loading-text">LOADING 100+ GAMES...</div>
-  </div>
-
-  <!-- ===== PAGE: SPLASH ===== -->
-  <div class="page active" id="page-splash">
-    <div class="splash">
-      <div class="logo">Ethio<span>bet</span></div>
-      <div class="sub">🎮 100+ Games · Play & win with Telebirr</div>
-      <div class="btn-group">
-        <button class="login-btn" onclick="showPage('login')">Login</button>
-        <button class="signup-btn" onclick="showPage('register')">Sign Up</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== PAGE: LOGIN ===== -->
-  <div class="page" id="page-login">
-    <button class="back-btn" onclick="showPage('splash')">← Back</button>
-    <div class="auth-container">
-      <h1>🔐 Login</h1>
-      <div class="sub">Welcome back to Ethiobet</div>
-      <div id="loginError" class="auth-error"></div>
-      <label>Phone Number</label>
-      <input type="tel" id="loginPhone" placeholder="09XXXXXXXX">
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="Enter your password">
-      <button class="btn" onclick="login()">Continue</button>
-      <div class="switch">Don't have an account? <a onclick="showPage('register')">Sign Up</a></div>
-    </div>
-  </div>
-
-  <!-- ===== PAGE: REGISTER ===== -->
-  <div class="page" id="page-register">
-    <button class="back-btn" onclick="showPage('splash')">← Back</button>
-    <div class="auth-container">
-      <h1>📝 Sign Up</h1>
-      <div class="sub">Create your Ethiobet account</div>
-      <div id="registerError" class="auth-error"></div>
-      <label>Full Name</label>
-      <input type="text" id="registerName" placeholder="Your name">
-      <label>Phone Number</label>
-      <input type="tel" id="registerPhone" placeholder="09XXXXXXXX">
-      <label>Password</label>
-      <input type="password" id="registerPassword" placeholder="Create a password">
-      <button class="btn" onclick="register()">Create Account</button>
-      <div class="switch">Already have an account? <a onclick="showPage('login')">Login</a></div>
-    </div>
-  </div>
-
-  <!-- ===== PAGE: DASHBOARD (LOBBY) ===== -->
-  <div class="page" id="page-lobby">
-    <div class="header">
-      <div class="logo" onclick="showPage('lobby')">Ethio<span>bet</span></div>
-      <div id="lobbyUserInfo">
-        <span class="balance" id="lobbyBalance">💰 0.00 ETB</span>
-        <button class="logout-btn" onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
-      </div>
+    <!-- ===== LOADING SCREEN ===== -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">Ethio<span>bet</span></div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">LOADING 100+ GAMES...</div>
     </div>
 
-    <div class="nav-tabs" id="navTabs">
-      <button class="active" data-tab="all" onclick="filterGames('all')">🔥 All</button>
-      <button data-tab="slots" onclick="filterGames('slots')">🎰 Slots</button>
-      <button data-tab="crash" onclick="filterGames('crash')">💥 Crash</button>
-      <button data-tab="sports" onclick="filterGames('sports')">⚽ Sports</button>
-      <button data-tab="jackpot" onclick="filterGames('jackpot')">🏆 Jackpot</button>
-      <button data-tab="new" onclick="filterGames('new')">✨ New</button>
+    <!-- ===== PAGE: SPLASH ===== -->
+    <div class="page active" id="page-splash">
+        <div class="splash">
+            <div class="logo">Ethio<span>bet</span></div>
+            <div class="sub">🎮 100+ Games · Play & win with Telebirr</div>
+            <div class="btn-group">
+                <button class="login-btn" onclick="showPage('login')">Login</button>
+                <button class="signup-btn" onclick="showPage('register')">Sign Up</button>
+            </div>
+        </div>
     </div>
 
-    <div class="game-grid" id="gameGrid">
-      <!-- ===== CRASH GAMES ===== -->
-      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=aviator'">
-        <div class="icon">✈️</div><div class="name">Aviator</div><div class="tag">Crash</div><div class="badge-hot">HOT</div>
-      </div>
-      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=jetx'">
-        <div class="icon">🚀</div><div class="name">JetX</div><div class="tag">Crash</div>
-      </div>
-      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=mines'">
-        <div class="icon">💣</div><div class="name">Mines</div><div class="tag">Strategy</div>
-      </div>
-      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=chiken'">
-        <div class="icon">🐔</div><div class="name">Chicken Crash</div><div class="tag">Crash</div>
-      </div>
-      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=plinko'">
-        <div class="icon">🪙</div><div class="name">PlinkoX</div><div class="tag">Crash</div><div class="badge-new">NEW</div>
-      </div>
-      <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=keno'">
-        <div class="icon">🎯</div><div class="name">Keno</div><div class="tag">Crash</div>
-      </div>
-
-      <!-- ===== SLOTS ===== -->
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=golden'">
-        <div class="icon">🐉</div><div class="name">Golden Dragon</div><div class="tag">Slot</div><div class="badge-hot">HOT</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=dragon'">
-        <div class="icon">🐉</div><div class="name">Dragon Luck</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=burn'">
-        <div class="icon">🔥</div><div class="name">Burn Wilds</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=fortune'">
-        <div class="icon">💎</div><div class="name">Fortune Coins</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=royal'">
-        <div class="icon">👑</div><div class="name">Royal Secrets</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=power'">
-        <div class="icon">⚡</div><div class="name">Power Hot 100</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=burning'">
-        <div class="icon">🍒</div><div class="name">20 Burning Hot</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=safari'">
-        <div class="icon">🌴</div><div class="name">Safari Star</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=mystic'">
-        <div class="icon">🧙</div><div class="name">Mystic Witch</div><div class="tag">Slot</div><div class="badge-new">NEW</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=treasure'">
-        <div class="icon">🏺</div><div class="name">Treasure Bowl</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=tiger'">
-        <div class="icon">🐅</div><div class="name">Treasure Tiger</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=candy'">
-        <div class="icon">🍬</div><div class="name">Candy Palace</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=mythical'">
-        <div class="icon">🌙</div><div class="name">Mythical Treasure</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=olympus'">
-        <div class="icon">🏛️</div><div class="name">Olympus Glory</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=vampire'">
-        <div class="icon">🧛</div><div class="name">Vampire Night</div><div class="tag">Slot</div>
-      </div>
-      <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=amazons'">
-        <div class="icon">⚔️</div><div class="name">Amazons Battle</div><div class="tag">Slot</div>
-      </div>
-
-      <!-- ===== JACKPOT ===== -->
-      <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=mega'">
-        <div class="icon">🏆</div><div class="name">Mega Jackpot</div><div class="tag">Jackpot</div><div class="badge-hot">HOT</div>
-      </div>
-      <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=diamond'">
-        <div class="icon">💎</div><div class="name">Diamond Jackpot</div><div class="tag">Jackpot</div>
-      </div>
-      <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=royal'">
-        <div class="icon">👑</div><div class="name">Royal Jackpot</div><div class="tag">Jackpot</div>
-      </div>
-      <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=lion'">
-        <div class="icon">🦁</div><div class="name">Lion Jackpot</div><div class="tag">Jackpot</div>
-      </div>
-
-      <!-- ===== SPORTS ===== -->
-      <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=worldcup'">
-        <div class="icon">⚽</div><div class="name">World Cup</div><div class="tag">Sports</div><div class="badge-hot">HOT</div>
-      </div>
-      <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=basketball'">
-        <div class="icon">🏀</div><div class="name">Basketball</div><div class="tag">Sports</div>
-      </div>
-      <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=football'">
-        <div class="icon">🏈</div><div class="name">American Football</div><div class="tag">Sports</div>
-      </div>
-
-      <!-- ===== NEW ===== -->
-      <div class="game-card" data-game="new" onclick="location.href='new.html?game=spacecrash'">
-        <div class="icon">🚀</div><div class="name">Space Crash</div><div class="tag">New</div><div class="badge-new">NEW</div>
-      </div>
-      <div class="game-card" data-game="new" onclick="location.href='new.html?game=zombie'">
-        <div class="icon">🧟</div><div class="name">Zombie Hunt</div><div class="tag">New</div><div class="badge-new">NEW</div>
-      </div>
-      <div class="game-card" data-game="new" onclick="location.href='new.html?game=robot'">
-        <div class="icon">🤖</div><div class="name">Robot Wars</div><div class="tag">New</div><div class="badge-new">NEW</div>
-      </div>
+    <!-- ===== PAGE: LOGIN ===== -->
+    <div class="page" id="page-login">
+        <button class="back-btn" onclick="showPage('splash')">← Back</button>
+        <div class="auth-container">
+            <h1>🔐 Login</h1>
+            <div class="sub">Welcome back to Ethiobet</div>
+            <div id="loginError" class="auth-error"></div>
+            <label>Phone Number</label>
+            <input type="tel" id="loginPhone" placeholder="09XXXXXXXX">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="Enter your password">
+            <button class="btn" onclick="login()">Continue</button>
+            <div class="switch">Don't have an account? <a onclick="showPage('register')">Sign Up</a></div>
+        </div>
     </div>
 
-    <!-- Admin Panel -->
-    <div class="admin-panel" id="adminPanel">
-      <h2>🔑 Admin Panel <span id="pendingCount">0 pending</span></h2>
-      <div id="adminDepositList"><div class="empty-deposits">No pending deposits</div></div>
+    <!-- ===== PAGE: REGISTER ===== -->
+    <div class="page" id="page-register">
+        <button class="back-btn" onclick="showPage('splash')">← Back</button>
+        <div class="auth-container">
+            <h1>📝 Sign Up</h1>
+            <div class="sub">Create your Ethiobet account</div>
+            <div id="registerError" class="auth-error"></div>
+            <label>Full Name</label>
+            <input type="text" id="registerName" placeholder="Your name">
+            <label>Phone Number</label>
+            <input type="tel" id="registerPhone" placeholder="09XXXXXXXX">
+            <label>Password</label>
+            <input type="password" id="registerPassword" placeholder="Create a password">
+            <button class="btn" onclick="register()">Create Account</button>
+            <div class="switch">Already have an account? <a onclick="showPage('login')">Login</a></div>
+        </div>
     </div>
 
-    <div class="bottom-nav">
-      <a class="active" onclick="showPage('lobby')"><span class="emoji">🏠</span>Home</a>
-      <a onclick="showPage('wallet')"><span class="emoji">💰</span>Wallet</a>
-      <a onclick="showPage('promotions')"><span class="emoji">🎁</span>Promos</a>
-      <a onclick="showPage('chat')"><span class="emoji">💬</span>Chat</a>
-      <a onclick="showPage('admin')"><span class="emoji">🔑</span>Admin</a>
+    <!-- ===== PAGE: DASHBOARD (LOBBY) ===== -->
+    <div class="page" id="page-lobby">
+        <div class="header">
+            <div class="logo" onclick="showPage('lobby')">Ethio<span>bet</span><span class="badge">🎰</span></div>
+            <div id="lobbyUserInfo" style="display:flex;align-items:center;gap:6px;">
+                <span class="balance" id="lobbyBalance">💰 0.00 ETB</span>
+                <button class="logout-btn" onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+
+        <!-- HERO SECTION -->
+        <div class="hero">
+            <div class="label">🎰 CASINO MODE</div>
+            <div class="amount">🎯 <span>40,000,000 ETB</span></div>
+            <div class="sub-label">🔥 MULTIPLY YOUR STAKE & WIN BIG</div>
+            <div class="win-notification">🏆 251***262 won 9,003 ETB</div>
+        </div>
+
+        <div class="nav-tabs" id="navTabs">
+            <button class="active" data-tab="all" onclick="filterGames('all')">🔥 All</button>
+            <button data-tab="slots" onclick="filterGames('slots')">🎰 Slots</button>
+            <button data-tab="crash" onclick="filterGames('crash')">💥 Crash</button>
+            <button data-tab="sports" onclick="filterGames('sports')">⚽ Sports</button>
+            <button data-tab="jackpot" onclick="filterGames('jackpot')">🏆 Jackpot</button>
+            <button data-tab="new" onclick="filterGames('new')">✨ New</button>
+        </div>
+
+        <div class="game-grid" id="gameGrid">
+            <!-- ===== CRASH GAMES ===== -->
+            <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=aviator'">
+                <div class="icon">✈️</div><div class="name">Aviator</div><div class="tag">Crash</div><div class="badge-hot">HOT</div>
+            </div>
+            <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=jetx'">
+                <div class="icon">🚀</div><div class="name">JetX</div><div class="tag">Crash</div>
+            </div>
+            <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=mines'">
+                <div class="icon">💣</div><div class="name">Mines</div><div class="tag">Strategy</div>
+            </div>
+            <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=chiken'">
+                <div class="icon">🐔</div><div class="name">Chicken Crash</div><div class="tag">Crash</div>
+            </div>
+            <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=plinko'">
+                <div class="icon">🪙</div><div class="name">PlinkoX</div><div class="tag">Crash</div><div class="badge-new">NEW</div>
+            </div>
+            <div class="game-card" data-game="crash" onclick="location.href='crash.html?game=keno'">
+                <div class="icon">🎯</div><div class="name">Keno</div><div class="tag">Crash</div>
+            </div>
+
+            <!-- ===== SLOTS ===== -->
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=golden'">
+                <div class="icon">🐉</div><div class="name">Golden Dragon</div><div class="tag">Slot</div><div class="badge-hot">HOT</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=dragon'">
+                <div class="icon">🐉</div><div class="name">Dragon Luck</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=burn'">
+                <div class="icon">🔥</div><div class="name">Burn Wilds</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=fortune'">
+                <div class="icon">💎</div><div class="name">Fortune Coins</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=royal'">
+                <div class="icon">👑</div><div class="name">Royal Secrets</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=power'">
+                <div class="icon">⚡</div><div class="name">Power Hot 100</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=burning'">
+                <div class="icon">🍒</div><div class="name">20 Burning Hot</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=safari'">
+                <div class="icon">🌴</div><div class="name">Safari Star</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=mystic'">
+                <div class="icon">🧙</div><div class="name">Mystic Witch</div><div class="tag">Slot</div><div class="badge-new">NEW</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=treasure'">
+                <div class="icon">🏺</div><div class="name">Treasure Bowl</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=tiger'">
+                <div class="icon">🐅</div><div class="name">Treasure Tiger</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=candy'">
+                <div class="icon">🍬</div><div class="name">Candy Palace</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=mythical'">
+                <div class="icon">🌙</div><div class="name">Mythical Treasure</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=olympus'">
+                <div class="icon">🏛️</div><div class="name">Olympus Glory</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=vampire'">
+                <div class="icon">🧛</div><div class="name">Vampire Night</div><div class="tag">Slot</div>
+            </div>
+            <div class="game-card" data-game="slots" onclick="location.href='slots.html?game=amazons'">
+                <div class="icon">⚔️</div><div class="name">Amazons Battle</div><div class="tag">Slot</div>
+            </div>
+
+            <!-- ===== JACKPOT ===== -->
+            <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=mega'">
+                <div class="icon">🏆</div><div class="name">Mega Jackpot</div><div class="tag">Jackpot</div><div class="badge-jackpot">🎰</div>
+            </div>
+            <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=diamond'">
+                <div class="icon">💎</div><div class="name">Diamond Jackpot</div><div class="tag">Jackpot</div>
+            </div>
+            <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=royal'">
+                <div class="icon">👑</div><div class="name">Royal Jackpot</div><div class="tag">Jackpot</div>
+            </div>
+            <div class="game-card" data-game="jackpot" onclick="location.href='jackpot.html?game=lion'">
+                <div class="icon">🦁</div><div class="name">Lion Jackpot</div><div class="tag">Jackpot</div>
+            </div>
+
+            <!-- ===== SPORTS ===== -->
+            <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=worldcup'">
+                <div class="icon">⚽</div><div class="name">World Cup</div><div class="tag">Sports</div><div class="badge-hot">HOT</div>
+            </div>
+            <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=basketball'">
+                <div class="icon">🏀</div><div class="name">Basketball</div><div class="tag">Sports</div>
+            </div>
+            <div class="game-card" data-game="sports" onclick="location.href='sports.html?game=football'">
+                <div class="icon">🏈</div><div class="name">American Football</div><div class="tag">Sports</div>
+            </div>
+
+            <!-- ===== NEW ===== -->
+            <div class="game-card" data-game="new" onclick="location.href='new.html?game=spacecrash'">
+                <div class="icon">🚀</div><div class="name">Space Crash</div><div class="tag">New</div><div class="badge-new">NEW</div>
+            </div>
+            <div class="game-card" data-game="new" onclick="location.href='new.html?game=zombie'">
+                <div class="icon">🧟</div><div class="name">Zombie Hunt</div><div class="tag">New</div><div class="badge-new">NEW</div>
+            </div>
+            <div class="game-card" data-game="new" onclick="location.href='new.html?game=robot'">
+                <div class="icon">🤖</div><div class="name">Robot Wars</div><div class="tag">New</div><div class="badge-new">NEW</div>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <h2>🔑 Admin Panel <span id="pendingCount">0 pending</span></h2>
+            <div id="adminDepositList"><div class="empty-deposits">No pending deposits</div></div>
+        </div>
+
+        <div class="bottom-nav">
+            <a class="active" onclick="showPage('lobby')"><span class="emoji">🏠</span>Home</a>
+            <a onclick="showPage('wallet')"><span class="emoji">💰</span>Wallet</a>
+            <a onclick="showPage('promotions')"><span class="emoji">🎁</span>Promos</a>
+            <a onclick="showPage('chat')"><span class="emoji">💬</span>Chat</a>
+            <a onclick="showPage('admin')"><span class="emoji">🔑</span>Admin</a>
+        </div>
+        <div class="footer-text">⚡ @Ethiobet1_bot · 100+ Games · Telebirr</div>
     </div>
-    <div class="footer-text">⚡ @Ethiobet1_bot · 100+ Games · Telebirr</div>
-  </div>
 
-  <!-- ===== PAGE: PROMOTIONS ===== -->
-  <div class="page" id="page-promotions">
-    <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
-    <h2 style="font-size:18px; margin-bottom:12px;">🎁 Promotions</h2>
-    <div id="promoContainer">
-      <!-- rendered by JS -->
+    <!-- ===== PAGE: PROMOTIONS ===== -->
+    <div class="page" id="page-promotions">
+        <button class="back-btn" onclick="showPage('lobby')">← Back to Lobby</button>
+        <h2 style="font-size:18px; margin-bottom:12px;">🎁 Promotions</h2>
+        <div id="promoContainer"></div>
     </div>
-  </div>
 
-  <!-- ===== PAGE: WALLET (placeholder) ===== -->
-  <div class="page" id="page-wallet">
-    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <h2>💰 Wallet</h2>
-    <p>Coming soon...</p>
-  </div>
+    <!-- ===== PAGE: WALLET ===== -->
+    <div class="page" id="page-wallet">
+        <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+        <h2>💰 Wallet</h2>
+        <p style="color:#6a7e9c;">Your balance and transactions</p>
+    </div>
 
-  <!-- ===== PAGE: CHAT (placeholder) ===== -->
-  <div class="page" id="page-chat">
-    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <h2>💬 Chat</h2>
-    <p>Coming soon...</p>
-  </div>
+    <!-- ===== PAGE: CHAT ===== -->
+    <div class="page" id="page-chat">
+        <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+        <h2>💬 Chat</h2>
+        <p style="color:#6a7e9c;">Community chat coming soon!</p>
+    </div>
 
-  <!-- ===== PAGE: ADMIN (placeholder) ===== -->
-  <div class="page" id="page-admin">
-    <button class="back-btn" onclick="showPage('lobby')">← Back</button>
-    <h2>🔑 Admin</h2>
-    <p>Admin panel coming soon...</p>
-  </div>
+    <!-- ===== PAGE: ADMIN ===== -->
+    <div class="page" id="page-admin">
+        <button class="back-btn" onclick="showPage('lobby')">← Back</button>
+        <h2>🔑 Admin</h2>
+        <p style="color:#6a7e9c;">Admin panel coming soon...</p>
+    </div>
 
 </div>
 
 <script>
-  // ============================================================
-  // ========== DYNAMIC BACKEND URL ==========
-  // ============================================================
-  const BACKEND_URL = (() => {
-    const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
-    return 'https://ethio-bet-1.onrender.com';
-  })();
-  console.log('🔗 Backend URL:', BACKEND_URL);
+    // ============================================================
+    // ========== DYNAMIC BACKEND URL ==========
+    // ============================================================
+    const BACKEND_URL = (() => {
+        const host = window.location.hostname;
+        if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
+        return 'https://ethio-bet-1.onrender.com';
+    })();
+    console.log('🔗 Backend URL:', BACKEND_URL);
 
-  // ============================================================
-  // ========== ADMIN IDs ==========
-  // ============================================================
-  const ADMIN_IDS = [7154361039];
+    // ============================================================
+    // ========== ADMIN IDs ==========
+    // ============================================================
+    const ADMIN_IDS = [7154361039];
 
-  // ============================================================
-  // ========== LOADING SCREEN ==========
-  // ============================================================
-  window.addEventListener('load', function() {
-    setTimeout(() => document.getElementById('loadingScreen').classList.add('hidden'), 1000);
-  });
-
-  // ============================================================
-  // ========== TELEGRAM WEBAPP ==========
-  // ============================================================
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.expand(); tg.ready(); }
-  const tgUser = tg?.initDataUnsafe?.user;
-  const telegramId = tgUser?.id || null;
-  const firstName = tgUser?.first_name || 'Guest';
-
-  // ============================================================
-  // ========== PAGE NAVIGATION ==========
-  // ============================================================
-  function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const page = document.getElementById('page-' + pageId);
-    if (page) page.classList.add('active');
-    if (pageId === 'lobby') refreshLobby();
-    if (pageId === 'promotions') loadPromotions();
-  }
-
-  function filterGames(tab) {
-    document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
-    document.querySelector(`.nav-tabs button[data-tab="${tab}"]`)?.classList.add('active');
-    document.querySelectorAll('.game-card').forEach(card => {
-      const gameType = card.dataset.game;
-      card.style.display = (tab === 'all' || gameType === tab) ? 'block' : 'none';
-    });
-  }
-
-  // ============================================================
-  // ========== AUTH ==========
-  // ============================================================
-  let currentUser = null;
-  function getToken() { return localStorage.getItem('token'); }
-
-  function setAuth(token, user) {
-    localStorage.setItem('token', token);
-    currentUser = user;
-    updateUI();
-    showPage('lobby');
-  }
-
-  function logout() {
-    localStorage.removeItem('token');
-    currentUser = null;
-    updateUI();
-    showPage('splash');
-  }
-
-  async function login() {
-    const phone = document.getElementById('loginPhone').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const error = document.getElementById('loginError');
-    error.textContent = '';
-    if (!phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAuth(data.token, data.user);
-      } else {
-        error.textContent = '❌ ' + (data.error || 'Login failed');
-      }
-    } catch (err) {
-      error.textContent = '❌ Network error. Is the backend running?';
-    }
-  }
-
-  async function register() {
-    const name = document.getElementById('registerName').value.trim();
-    const phone = document.getElementById('registerPhone').value.trim();
-    const password = document.getElementById('registerPassword').value;
-    const error = document.getElementById('registerError');
-    error.textContent = '';
-    if (!name || !phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
-    if (password.length < 4) { error.textContent = '⚠️ Password must be at least 4 characters'; return; }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, password })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAuth(data.token, data.user);
-      } else {
-        error.textContent = '❌ ' + (data.error || 'Registration failed');
-      }
-    } catch (err) {
-      error.textContent = '❌ Network error. Is the backend running?';
-    }
-  }
-
-  // ============================================================
-  // ========== UI UPDATES ==========
-  // ============================================================
-  function updateUI() {
-    const token = getToken();
-    const isLoggedIn = !!token && currentUser;
-    const lobbyBalance = document.getElementById('lobbyBalance');
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (isLoggedIn && currentUser) {
-      lobbyBalance.textContent = `💰 ${currentUser.balance.toFixed(2)} ETB`;
-      logoutBtn.style.display = 'inline';
-      if (ADMIN_IDS.includes(currentUser.id)) {
-        document.getElementById('adminPanel').classList.add('active');
-        loadPendingDeposits();
-      } else {
-        document.getElementById('adminPanel').classList.remove('active');
-      }
-    } else {
-      lobbyBalance.textContent = '💰 0.00 ETB';
-      logoutBtn.style.display = 'none';
-      document.getElementById('adminPanel').classList.remove('active');
-    }
-  }
-
-  async function refreshLobby() {
-    const token = getToken();
-    if (!token) { updateUI(); return; }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        currentUser = { ...currentUser, ...data };
-        updateUI();
-        return true;
-      } else {
-        logout();
-        return false;
-      }
-    } catch (err) {
-      console.error('Refresh error:', err);
-      return false;
-    }
-  }
-
-  // ============================================================
-  // ========== ADMIN PANEL ==========
-  // ============================================================
-  async function loadPendingDeposits() {
-    const token = getToken();
-    if (!token) return;
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/pending`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Unauthorized');
-      const deposits = await res.json();
-      document.getElementById('pendingCount').textContent = deposits.length + ' pending';
-      const container = document.getElementById('adminDepositList');
-      if (deposits.length === 0) {
-        container.innerHTML = '<div class="empty-deposits">✅ No pending deposits</div>';
-        return;
-      }
-      container.innerHTML = deposits.map(d => `
-        <div class="deposit-card" id="dep-${d.id}">
-          <div class="info">
-            <div class="amount">💰 ${d.amount} ETB</div>
-            <div class="user">👤 ${d.telegramId}</div>
-          </div>
-          <div class="actions">
-            <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
-            <button class="btn-reject" onclick="verifyDeposit('${d.id}', 'reject')">❌ Reject</button>
-          </div>
-        </div>
-      `).join('');
-    } catch (err) {
-      document.getElementById('adminDepositList').innerHTML = '<div class="empty-deposits">⚠️ Error loading</div>';
-    }
-  }
-
-  async function verifyDeposit(depositId, action) {
-    if (!confirm(`Are you sure you want to ${action} this deposit?`)) return;
-    const token = getToken();
-    if (!token) return;
-    const card = document.getElementById(`dep-${depositId}`);
-    const buttons = card.querySelectorAll('button');
-    buttons.forEach(b => b.disabled = true);
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ adminId: currentUser.id, depositId, action })
-      });
-      const data = await res.json();
-      if (data.success) {
-        card.style.opacity = '0.3';
-        card.style.background = action === 'approve' ? '#1f3a2f' : '#3a1f1f';
-        setTimeout(loadPendingDeposits, 1000);
-        if (currentUser) currentUser.balance = data.balance || currentUser.balance;
-        updateUI();
-      }
-    } catch (err) {
-      alert('Error: ' + err.message);
-      buttons.forEach(b => b.disabled = false);
-    }
-  }
-
-  // ============================================================
-  // ========== PROMOTIONS (with ad integration) ==========
-  // ============================================================
-  const TASKS = [
-    { id: 'startBot', label: '🤖 Start Bot', desc: 'Launch the bot', reward: 1, url: 'https://t.me/Studybuddy_2025Bot' },
-    { id: 'joinChannel', label: '📢 Join Channel', desc: 'Subscribe to our Telegram channel', reward: 1, url: 'https://t.me/gangs234' },
-    { id: 'joinGroup', label: '👥 Join Group', desc: 'Join our community group', reward: 1, url: 'https://t.me/cryptoapphub1' },
-    { id: 'playGames', label: '🎮 Play 5 Games', desc: 'Play any 5 games (start with @tictactoe1st_bot)', reward: 2, url: 'https://t.me/tictactoe1st_bot' },
-    { id: 'watchAds', label: '📺 Watch 10 Ads', desc: 'Watch rewarded ads to earn', reward: 2, url: null, adRequired: true },
-    { id: 'joinLive', label: '🔴 Join Live', desc: 'Tune in to a live stream', reward: 1, url: null }
-  ];
-
-  let promoStatus = { claimedTasks: [], dailyLastClaim: null, adWatchCount: 0 };
-
-  async function loadPromotions() {
-    const token = getToken();
-    if (!token) {
-      document.getElementById('promoContainer').innerHTML = '<p style="color:#6a7e9c;">Please login to view promotions.</p>';
-      return;
-    }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/promotions`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        promoStatus.claimedTasks = data.claimedTasks || [];
-        promoStatus.dailyLastClaim = data.dailyLastClaim || null;
-        promoStatus.adWatchCount = data.adWatchCount || 0;
-        renderPromotions();
-      } else {
-        throw new Error('Failed to fetch');
-      }
-    } catch (err) {
-      document.getElementById('promoContainer').innerHTML = '<p style="color:#f28b82;">⚠️ Error loading promotions</p>';
-    }
-  }
-
-  function renderPromotions() {
-    const container = document.getElementById('promoContainer');
-    let html = '';
-
-    // Daily reward
-    const now = Date.now();
-    const last = promoStatus.dailyLastClaim || 0;
-    const oneDay = 24 * 60 * 60 * 1000;
-    const canClaimDaily = (now - last) >= oneDay;
-
-    html += `<div class="promo-task">
-      <div class="info">
-        <div class="title">📅 Daily Reward</div>
-        <div class="desc">Claim 2 ETB every day</div>
-        <div class="reward">+2 ETB</div>
-      </div>
-      <div class="actions">
-        <button class="${canClaimDaily ? 'claim' : 'completed'}" 
-                onclick="claimPromotion('daily')" 
-                ${!canClaimDaily ? 'disabled' : ''}>
-          ${canClaimDaily ? 'Claim' : '✅ Claimed'}
-        </button>
-      </div>
-    </div>`;
-    if (!canClaimDaily && last > 0) {
-      const timeLeft = oneDay - (now - last);
-      const hours = Math.floor(timeLeft / (60 * 60 * 1000));
-      const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-      html += `<div class="daily-timer">⏳ Next daily reward in ${hours}h ${minutes}m</div>`;
-    }
-
-    // Other tasks
-    TASKS.forEach(task => {
-      const claimed = promoStatus.claimedTasks.includes(task.id);
-      const hasLink = task.url !== null;
-      const isAdTask = task.id === 'watchAds';
-      const adCount = promoStatus.adWatchCount || 0;
-      const canClaimAd = !claimed && adCount >= 10;
-
-      html += `<div class="promo-task">
-        <div class="info">
-          <div class="title">${task.label}</div>
-          <div class="desc">${task.desc}</div>
-          <div class="reward">+${task.reward} ETB</div>
-          ${isAdTask ? `<div class="progress">📊 ${adCount}/10 ads watched</div>` : ''}
-        </div>
-        <div class="actions">
-          ${hasLink ? `<a href="${task.url}" target="_blank" class="link-btn">▶ Start</a>` : ''}
-          ${isAdTask ? `<button class="ad-watch" onclick="watchAd()" ${adCount >= 10 ? 'disabled' : ''}>📺 Watch Ad</button>` : ''}
-          <button class="${claimed ? 'completed' : (isAdTask ? (canClaimAd ? 'claim' : 'claim disabled') : 'claim')}" 
-                  onclick="claimPromotion('${task.id}')" 
-                  ${claimed ? 'disabled' : (isAdTask ? (!canClaimAd ? 'disabled' : '') : '')}>
-            ${claimed ? '✅ Completed' : (isAdTask ? (canClaimAd ? 'Claim' : `Watch ${10-adCount} more`) : 'Claim')}
-          </button>
-        </div>
-      </div>`;
+    // ============================================================
+    // ========== LOADING SCREEN ==========
+    // ============================================================
+    window.addEventListener('load', function() {
+        setTimeout(() => document.getElementById('loadingScreen').classList.add('hidden'), 1200);
     });
 
-    container.innerHTML = html;
-  }
+    // ============================================================
+    // ========== TELEGRAM WEBAPP ==========
+    // ============================================================
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand(); tg.ready(); }
+    const tgUser = tg?.initDataUnsafe?.user;
+    const telegramId = tgUser?.id || null;
+    const firstName = tgUser?.first_name || 'Guest';
 
-  // ----- AD WATCH FUNCTION -----
-  async function watchAd() {
-    const token = getToken();
-    if (!token) {
-      alert('Please login first.');
-      return;
+    // ============================================================
+    // ========== PAGE NAVIGATION ==========
+    // ============================================================
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const page = document.getElementById('page-' + pageId);
+        if (page) page.classList.add('active');
+        if (pageId === 'lobby') refreshLobby();
+        if (pageId === 'promotions') loadPromotions();
     }
 
-    const container = document.getElementById('promoContainer');
-    const adBtn = container.querySelector('.ad-watch');
-    if (adBtn) adBtn.disabled = true;
-
-    try {
-      if (typeof show_11177585 === 'function') {
-        await show_11177585();
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-
-      const res = await fetch(`${BACKEND_URL}/api/promotions/ad-watch`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        promoStatus.adWatchCount = data.adWatchCount;
-        renderPromotions();
-      } else {
-        alert('Failed to record ad view. Try again.');
-      }
-    } catch (err) {
-      console.error('Ad error:', err);
-      alert('Ad could not be loaded. Please try again later.');
-    } finally {
-      if (adBtn) adBtn.disabled = false;
-    }
-  }
-
-  // ----- CLAIM PROMOTION -----
-  async function claimPromotion(taskId) {
-    const token = getToken();
-    if (!token) {
-      alert('Please login first.');
-      return;
+    function filterGames(tab) {
+        document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.nav-tabs button[data-tab="${tab}"]`)?.classList.add('active');
+        document.querySelectorAll('.game-card').forEach(card => {
+            const gameType = card.dataset.game;
+            card.style.display = (tab === 'all' || gameType === tab) ? 'block' : 'none';
+        });
     }
 
-    const container = document.getElementById('promoContainer');
-    const btns = container.querySelectorAll('button');
-    btns.forEach(b => b.disabled = true);
+    // ============================================================
+    // ========== AUTH ==========
+    // ============================================================
+    let currentUser = null;
+    function getToken() { return localStorage.getItem('token'); }
 
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/promotions/claim`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ taskId })
-      });
-      const data = await res.json();
-      if (data.success) {
-        if (currentUser) currentUser.balance = data.newBalance;
-        promoStatus.claimedTasks = data.claimedTasks || [];
-        promoStatus.dailyLastClaim = data.dailyLastClaim || null;
-        if (data.adWatchCount !== undefined) promoStatus.adWatchCount = data.adWatchCount;
+    function setAuth(token, user) {
+        localStorage.setItem('token', token);
+        currentUser = user;
         updateUI();
-        renderPromotions();
-      } else {
-        alert('❌ ' + (data.error || 'Claim failed'));
-        renderPromotions();
-      }
-    } catch (err) {
-      alert('Network error. Please try again.');
-      renderPromotions();
-    }
-  }
-
-  // ============================================================
-  // ========== INIT ==========
-  // ============================================================
-  async function initApp() {
-    const savedToken = getToken();
-    if (savedToken) {
-      const ok = await refreshLobby();
-      if (ok && currentUser) {
         showPage('lobby');
-      } else {
-        showPage('splash');
-      }
-    } else {
-      showPage('splash');
     }
-  }
 
-  initApp();
-  console.log('🎮 Ethiobet 100+ Games Loaded');
+    function logout() {
+        localStorage.removeItem('token');
+        currentUser = null;
+        updateUI();
+        showPage('splash');
+    }
+
+    async function login() {
+        const phone = document.getElementById('loginPhone').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const error = document.getElementById('loginError');
+        error.textContent = '';
+        if (!phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAuth(data.token, data.user);
+            } else {
+                error.textContent = '❌ ' + (data.error || 'Login failed');
+            }
+        } catch (err) {
+            error.textContent = '❌ Network error. Is the backend running?';
+        }
+    }
+
+    async function register() {
+        const name = document.getElementById('registerName').value.trim();
+        const phone = document.getElementById('registerPhone').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const error = document.getElementById('registerError');
+        error.textContent = '';
+        if (!name || !phone || !password) { error.textContent = '⚠️ Please fill in all fields'; return; }
+        if (password.length < 4) { error.textContent = '⚠️ Password must be at least 4 characters'; return; }
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, phone, password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAuth(data.token, data.user);
+            } else {
+                error.textContent = '❌ ' + (data.error || 'Registration failed');
+            }
+        } catch (err) {
+            error.textContent = '❌ Network error. Is the backend running?';
+        }
+    }
+
+    // ============================================================
+    // ========== UI UPDATES ==========
+    // ============================================================
+    function updateUI() {
+        const token = getToken();
+        const isLoggedIn = !!token && currentUser;
+        const lobbyBalance = document.getElementById('lobbyBalance');
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (isLoggedIn && currentUser) {
+            lobbyBalance.textContent = `💰 ${currentUser.balance.toFixed(2)} ETB`;
+            logoutBtn.style.display = 'inline';
+            if (ADMIN_IDS.includes(currentUser.id)) {
+                document.getElementById('adminPanel').classList.add('active');
+                loadPendingDeposits();
+            } else {
+                document.getElementById('adminPanel').classList.remove('active');
+            }
+        } else {
+            lobbyBalance.textContent = '💰 0.00 ETB';
+            logoutBtn.style.display = 'none';
+            document.getElementById('adminPanel').classList.remove('active');
+        }
+    }
+
+    async function refreshLobby() {
+        const token = getToken();
+        if (!token) { updateUI(); return; }
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/profile`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                currentUser = { ...currentUser, ...data };
+                updateUI();
+                return true;
+            } else {
+                logout();
+                return false;
+            }
+        } catch (err) {
+            console.error('Refresh error:', err);
+            return false;
+        }
+    }
+
+    // ============================================================
+    // ========== ADMIN PANEL ==========
+    // ============================================================
+    async function loadPendingDeposits() {
+        const token = getToken();
+        if (!token) return;
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/pending`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Unauthorized');
+            const deposits = await res.json();
+            document.getElementById('pendingCount').textContent = deposits.length + ' pending';
+            const container = document.getElementById('adminDepositList');
+            if (deposits.length === 0) {
+                container.innerHTML = '<div class="empty-deposits">✅ No pending deposits</div>';
+                return;
+            }
+            container.innerHTML = deposits.map(d => `
+                <div class="deposit-card" id="dep-${d.id}">
+                    <div class="info">
+                        <div class="amount">💰 ${d.amount} ETB</div>
+                        <div class="user">👤 ${d.telegramId}</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-approve" onclick="verifyDeposit('${d.id}', 'approve')">✅ Approve</button>
+                        <button class="btn-reject" onclick="verifyDeposit('${d.id}', 'reject')">❌ Reject</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            document.getElementById('adminDepositList').innerHTML = '<div class="empty-deposits">⚠️ Error loading</div>';
+        }
+    }
+
+    async function verifyDeposit(depositId, action) {
+        if (!confirm(`Are you sure you want to ${action} this deposit?`)) return;
+        const token = getToken();
+        if (!token) return;
+        const card = document.getElementById(`dep-${depositId}`);
+        const buttons = card.querySelectorAll('button');
+        buttons.forEach(b => b.disabled = true);
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ adminId: currentUser.id, depositId, action })
+            });
+            const data = await res.json();
+            if (data.success) {
+                card.style.opacity = '0.3';
+                card.style.background = action === 'approve' ? '#1f3a2f' : '#3a1f1f';
+                setTimeout(loadPendingDeposits, 1000);
+                if (currentUser) currentUser.balance = data.balance || currentUser.balance;
+                updateUI();
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+            buttons.forEach(b => b.disabled = false);
+        }
+    }
+
+    // ============================================================
+    // ========== PROMOTIONS (with ad integration) ==========
+    // ============================================================
+    const TASKS = [
+        { id: 'startBot', label: '🤖 Start Bot', desc: 'Launch the bot', reward: 1, url: 'https://t.me/Studybuddy_2025Bot' },
+        { id: 'joinChannel', label: '📢 Join Channel', desc: 'Subscribe to our Telegram channel', reward: 1, url: 'https://t.me/gangs234' },
+        { id: 'joinGroup', label: '👥 Join Group', desc: 'Join our community group', reward: 1, url: 'https://t.me/cryptoapphub1' },
+        { id: 'playGames', label: '🎮 Play 5 Games', desc: 'Play any 5 games', reward: 2, url: 'https://t.me/tictactoe1st_bot' },
+        { id: 'watchAds', label: '📺 Watch 10 Ads', desc: 'Watch rewarded ads to earn', reward: 2, url: null, adRequired: true },
+        { id: 'joinLive', label: '🔴 Join Live', desc: 'Tune in to a live stream', reward: 1, url: null }
+    ];
+
+    let promoStatus = { claimedTasks: [], dailyLastClaim: null, adWatchCount: 0 };
+
+    async function loadPromotions() {
+        const token = getToken();
+        if (!token) {
+            document.getElementById('promoContainer').innerHTML = '<p style="color:#6a7e9c;">Please login to view promotions.</p>';
+            return;
+        }
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/promotions`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                promoStatus.claimedTasks = data.claimedTasks || [];
+                promoStatus.dailyLastClaim = data.dailyLastClaim || null;
+                promoStatus.adWatchCount = data.adWatchCount || 0;
+                renderPromotions();
+            } else {
+                throw new Error('Failed to fetch');
+            }
+        } catch (err) {
+            document.getElementById('promoContainer').innerHTML = '<p style="color:#f28b82;">⚠️ Error loading promotions</p>';
+        }
+    }
+
+    function renderPromotions() {
+        const container = document.getElementById('promoContainer');
+        let html = '';
+
+        // Daily reward
+        const now = Date.now();
+        const last = promoStatus.dailyLastClaim || 0;
+        const oneDay = 24 * 60 * 60 * 1000;
+        const canClaimDaily = (now - last) >= oneDay;
+
+        html += `<div class="promo-task">
+            <div class="info">
+                <div class="title">📅 Daily Reward</div>
+                <div class="desc">Claim 2 ETB every day</div>
+                <div class="reward">+2 ETB</div>
+            </div>
+            <div class="actions">
+                <button class="${canClaimDaily ? 'claim' : 'completed'}" 
+                        onclick="claimPromotion('daily')" 
+                        ${!canClaimDaily ? 'disabled' : ''}>
+                    ${canClaimDaily ? 'Claim' : '✅ Claimed'}
+                </button>
+            </div>
+        </div>`;
+        if (!canClaimDaily && last > 0) {
+            const timeLeft = oneDay - (now - last);
+            const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+            const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+            html += `<div class="daily-timer">⏳ Next daily reward in ${hours}h ${minutes}m</div>`;
+        }
+
+        // Other tasks
+        TASKS.forEach(task => {
+            const claimed = promoStatus.claimedTasks.includes(task.id);
+            const hasLink = task.url !== null;
+            const isAdTask = task.id === 'watchAds';
+            const adCount = promoStatus.adWatchCount || 0;
+            const canClaimAd = !claimed && adCount >= 10;
+
+            html += `<div class="promo-task">
+                <div class="info">
+                    <div class="title">${task.label}</div>
+                    <div class="desc">${task.desc}</div>
+                    <div class="reward">+${task.reward} ETB</div>
+                    ${isAdTask ? `<div class="progress">📊 ${adCount}/10 ads watched</div>` : ''}
+                </div>
+                <div class="actions">
+                    ${hasLink ? `<a href="${task.url}" target="_blank" class="link-btn">▶ Start</a>` : ''}
+                    ${isAdTask ? `<button class="ad-watch" onclick="watchAd()" ${adCount >= 10 ? 'disabled' : ''}>📺 Watch Ad</button>` : ''}
+                    <button class="${claimed ? 'completed' : (isAdTask ? (canClaimAd ? 'claim' : 'claim disabled') : 'claim')}" 
+                            onclick="claimPromotion('${task.id}')" 
+                            ${claimed ? 'disabled' : (isAdTask ? (!canClaimAd ? 'disabled' : '') : '')}>
+                        ${claimed ? '✅ Completed' : (isAdTask ? (canClaimAd ? 'Claim' : `Watch ${10-adCount} more`) : 'Claim')}
+                    </button>
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // ----- AD WATCH FUNCTION -----
+    async function watchAd() {
+        const token = getToken();
+        if (!token) {
+            alert('Please login first.');
+            return;
+        }
+
+        const container = document.getElementById('promoContainer');
+        const adBtn = container.querySelector('.ad-watch');
+        if (adBtn) adBtn.disabled = true;
+
+        try {
+            if (typeof show_11177585 === 'function') {
+                await show_11177585();
+            } else {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
+            const res = await fetch(`${BACKEND_URL}/api/promotions/ad-watch`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                promoStatus.adWatchCount = data.adWatchCount;
+                renderPromotions();
+            } else {
+                alert('Failed to record ad view. Try again.');
+            }
+        } catch (err) {
+            console.error('Ad error:', err);
+            alert('Ad could not be loaded. Please try again later.');
+        } finally {
+            if (adBtn) adBtn.disabled = false;
+        }
+    }
+
+    // ----- CLAIM PROMOTION -----
+    async function claimPromotion(taskId) {
+        const token = getToken();
+        if (!token) {
+            alert('Please login first.');
+            return;
+        }
+
+        const container = document.getElementById('promoContainer');
+        const btns = container.querySelectorAll('button');
+        btns.forEach(b => b.disabled = true);
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/promotions/claim`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ taskId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (currentUser) currentUser.balance = data.newBalance;
+                promoStatus.claimedTasks = data.claimedTasks || [];
+                promoStatus.dailyLastClaim = data.dailyLastClaim || null;
+                if (data.adWatchCount !== undefined) promoStatus.adWatchCount = data.adWatchCount;
+                updateUI();
+                renderPromotions();
+            } else {
+                alert('❌ ' + (data.error || 'Claim failed'));
+                renderPromotions();
+            }
+        } catch (err) {
+            alert('Network error. Please try again.');
+            renderPromotions();
+        }
+    }
+
+    // ============================================================
+    // ========== INIT ==========
+    // ============================================================
+    async function initApp() {
+        const savedToken = getToken();
+        if (savedToken) {
+            const ok = await refreshLobby();
+            if (ok && currentUser) {
+                showPage('lobby');
+            } else {
+                showPage('splash');
+            }
+        } else {
+            showPage('splash');
+        }
+    }
+
+    initApp();
+    console.log('🎮 Ethiobet 100+ Games Loaded');
 </script>
 </body>
-        </html>
+                                              </html>
