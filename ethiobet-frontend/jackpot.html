@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title id="pageTitle">Jackpot - Ethiobet</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+    body { background:#0b0e14; color:#fff; min-height:100vh; display:flex; justify-content:center; padding:0; margin:0; overflow-x:hidden; }
+    .app { max-width:480px; width:100%; background:#0b0e14; padding:12px 16px 20px; min-height:100vh; display:flex; flex-direction:column; }
+    .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
+    .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; padding:4px 8px; }
+    .header .back:active { transform:scale(0.9); }
+    .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
+    .game-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:10px 0; background:linear-gradient(145deg,#131a22,#1a1f2b); border-radius:20px; padding:20px; border:1px solid rgba(255,255,255,0.04); }
+    .game-icon { font-size:48px; margin-bottom:2px; }
+    .game-name { font-size:20px; font-weight:700; margin-bottom:4px; }
+    .jackpot-pool { font-size:28px; font-weight:900; color:#f0b90b; margin:8px 0; }
+    .tickets { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:8px 0; max-width:360px; }
+    .ticket { background:#2a3546; padding:8px 12px; border-radius:8px; cursor:pointer; transition:0.15s; font-size:13px; min-width:32px; text-align:center; }
+    .ticket.selected { background:#f0b90b; color:#0b0e14; }
+    .ticket:active { transform:scale(0.95); }
+    .controls { display:flex; gap:10px; margin-top:8px; width:100%; max-width:320px; flex-wrap:wrap; }
+    .controls input { flex:1; padding:8px 12px; background:#1b2532; border:1px solid #2f3e51; border-radius:40px; color:#fff; font-size:14px; outline:none; min-width:60px; }
+    .controls button { padding:8px 16px; border:none; border-radius:40px; font-weight:700; font-size:14px; cursor:pointer; transition:0.15s; flex:1; min-width:70px; }
+    .controls button:active { transform:scale(0.95); }
+    .controls button:disabled { opacity:0.4; cursor:not-allowed; }
+    .btn-draw { background:linear-gradient(135deg,#f0b90b,#d99f0a); color:#0b0e14; }
+    .btn-reset { background:#2a3546; color:#fff; }
+    .result { margin-top:8px; font-weight:700; font-size:14px; text-align:center; min-height:20px; }
+    .history { margin-top:8px; color:#6a7e9c; font-size:11px; text-align:center; width:100%; border-top:1px solid rgba(255,255,255,0.04); padding-top:8px; max-height:60px; overflow-y:auto; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; }
+    .history .draw-result { display:inline-block; background:#1a1f2b; padding:2px 8px; border-radius:40px; font-size:10px; }
+    .history .draw-result.win { color:#2a8c5a; }
+    .history .draw-result.lose { color:#6a7e9c; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <button class="back" onclick="history.back()">← Back</button>
+    <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
+  </div>
+  <div class="game-area">
+    <div class="game-icon" id="gameIcon">🏆</div>
+    <div class="game-name" id="gameName">Mega Jackpot</div>
+    <div class="jackpot-pool" id="jackpotPool">💰 1000 ETB</div>
+    <div style="font-size:13px;color:#6a7e9c;margin-bottom:4px;">Pick your lucky number (1-20)</div>
+    <div class="tickets" id="ticketContainer"></div>
+    <div class="controls">
+      <input type="number" id="betAmount" placeholder="Bet" value="1" min="0.1" step="0.1" />
+      <button class="btn-draw" id="drawBtn" onclick="drawJackpot()">BUY & DRAW</button>
+      <button class="btn-reset" onclick="resetTicket()">RESET</button>
+    </div>
+    <div class="result" id="resultMsg">Pick a number and try your luck!</div>
+    <div class="history" id="historyContainer">
+      <span style="color:#4a5e7a;width:100%;font-size:11px;">Draw history</span>
+    </div>
+  </div>
+</div>
+<script>
+  // ===== JACKPOT CONFIG =====
+  const JACKPOT_CONFIGS = {
+    mega: { icon: '🏆', name: 'Mega Jackpot', pool: 1000 },
+    diamond: { icon: '💎', name: 'Diamond Jackpot', pool: 5000 },
+    royal: { icon: '👑', name: 'Royal Jackpot', pool: 2500 },
+    lion: { icon: '🦁', name: 'Lion Jackpot', pool: 1500 }
+  };
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const gameParam = urlParams.get('game') || 'mega';
+  const config = JACKPOT_CONFIGS[gameParam] || JACKPOT_CONFIGS.mega;
+
+  document.title = config.name + ' - Ethiobet';
+  document.getElementById('pageTitle').textContent = config.name + ' - Ethiobet';
+  document.getElementById('gameIcon').textContent = config.icon;
+  document.getElementById('gameName').textContent = config.name;
+  document.getElementById('jackpotPool').textContent = `💰 ${config.pool} ETB`;
+
+  // ===== BACKEND =====
+  const API_URL = (() => {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
+    return 'https://ethio-bet-1.onrender.com';
+  })();
+
+  function getToken() { return localStorage.getItem('token'); }
+  let currentBalance = 0;
+  let selectedNumber = null;
+  let isDrawn = false;
+  let history = [];
+
+  async function fetchBalance() {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentBalance = data.balance;
+        document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+      }
+    } catch (e) {}
+  }
+
+  function renderTickets() {
+    const container = document.getElementById('ticketContainer');
+    container.innerHTML = '';
+    for (let i=1; i<=20; i++) {
+      const ticket = document.createElement('div');
+      ticket.className = 'ticket';
+      if (selectedNumber === i) ticket.classList.add('selected');
+      ticket.textContent = i;
+      ticket.onclick = () => selectTicket(i);
+      container.appendChild(ticket);
+    }
+  }
+
+  function selectTicket(num) {
+    if (isDrawn) return;
+    selectedNumber = num;
+    renderTickets();
+  }
+
+  function resetTicket() {
+    isDrawn = false;
+    selectedNumber = null;
+    document.getElementById('drawBtn').disabled = false;
+    document.getElementById('resultMsg').textContent = 'Pick a number and try your luck!';
+    renderTickets();
+  }
+
+  function addHistory(result) {
+    history.unshift(result);
+    if (history.length > 20) history.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const container = document.getElementById('historyContainer');
+    if (history.length === 0) {
+      container.innerHTML = '<span style="color:#4a5e7a;width:100%;font-size:11px;">Draw history</span>';
+      return;
+    }
+    let html = '';
+    history.forEach(h => {
+      const cls = h.win > 0 ? 'win' : 'lose';
+      html += `<span class="draw-result ${cls}">${h.number} ${h.win > 0 ? '+' : ''}${h.win.toFixed(2)}</span>`;
+    });
+    container.innerHTML = html;
+  }
+
+  async function drawJackpot() {
+    if (isDrawn) return;
+    if (!selectedNumber) { alert('Pick a number first!'); return; }
+
+    const bet = parseFloat(document.getElementById('betAmount').value);
+    if (!bet || bet <= 0) { alert('Enter a valid bet.'); return; }
+    if (bet > currentBalance) { alert('Insufficient balance!'); return; }
+
+    isDrawn = true;
+    document.getElementById('drawBtn').disabled = true;
+
+    // Deduct bet
+    currentBalance -= bet;
+    document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+
+    // Draw winning number
+    const winningNumber = Math.floor(Math.random() * 20) + 1;
+    const isWinner = selectedNumber === winningNumber;
+    const winAmount = isWinner ? bet * 10 : 0;
+    currentBalance += winAmount;
+    document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+
+    // Show result
+    document.getElementById('resultMsg').textContent = isWinner 
+      ? `🎉 JACKPOT! Number ${winningNumber} matched! Won ${winAmount.toFixed(2)} ETB!` 
+      : `😔 Number ${winningNumber} was drawn. You picked ${selectedNumber}. Try again!`;
+
+    // Highlight winning number on board
+    const tickets = document.querySelectorAll('.ticket');
+    tickets.forEach((t, i) => {
+      const num = i + 1;
+      if (num === winningNumber) {
+        t.style.background = '#2a8c5a';
+        t.style.color = '#fff';
+      } else if (num === selectedNumber && !isWinner) {
+        t.style.background = '#8c2a2a';
+        t.style.color = '#fff';
+      }
+    });
+
+    addHistory({ number: winningNumber, win: winAmount });
+
+    // Reset after 3 seconds
+    setTimeout(() => {
+      resetTicket();
+    }, 3000);
+  }
+
+  fetchBalance();
+  renderTickets();
+</script>
+</body>
+</html>
