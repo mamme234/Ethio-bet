@@ -14,9 +14,7 @@ const path = require('path');
 const PORT = process.env.PORT || 8080;
 const DB_PATH = path.join(__dirname, 'db.json');
 
-// FRONTEND URL - YOUR VERCEL DEPLOYMENT
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://ethio-bet1.vercel.app';
-
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const MERCHANT_PHONE = process.env.MERCHANT_PHONE || '0934600018';
 const ADMIN_IDS = (process.env.ADMIN_IDS || '7154361039').split(',').map(id => parseInt(id.trim()));
@@ -33,7 +31,6 @@ console.log('🔗 Frontend URL:', FRONTEND_URL);
 // ---------- EXPRESS + CORS ----------
 const app = express();
 
-// ----- CORS CONFIGURATION -----
 const allowedOrigins = [
   FRONTEND_URL,
   'https://ethio-bet1.vercel.app',
@@ -50,7 +47,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.warn('⚠️ Blocked by CORS:', origin);
-      callback(null, true); // allow all for dev
+      callback(null, true);
     }
   },
   credentials: true,
@@ -88,7 +85,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -128,7 +124,6 @@ function isAdmin(id) {
   return ADMIN_IDS.includes(id);
 }
 
-// Ensure promotions object exists for a user
 function ensurePromotions(user) {
   if (!user.promotions) {
     user.promotions = {
@@ -141,19 +136,15 @@ function ensurePromotions(user) {
   return user.promotions;
 }
 
-// ---------- AUTH ENDPOINTS ----------
+// ---------- AUTH ----------
 app.post('/api/register', async (req, res) => {
   const { phone, password, name } = req.body;
-  console.log('📝 Register attempt:', { phone, name });
-
   if (!phone || !password) {
     return res.status(400).json({ error: 'Phone and password required' });
   }
-
   if (findUser(phone)) {
     return res.status(400).json({ error: 'User already exists' });
   }
-
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
@@ -163,7 +154,7 @@ app.post('/api/register', async (req, res) => {
       password: hashedPassword,
       balance: 0,
       totalDeposits: 0,
-      totalBets: 0,
+      totalBets: 0,                     // <-- track total bets for first-win bonus
       createdAt: new Date().toISOString(),
       promotions: {
         claimedTasks: [],
@@ -194,20 +185,15 @@ app.post('/api/register', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
   const { phone, password } = req.body;
-  console.log('🔐 Login attempt:', phone);
-
   const user = findUser(phone);
   if (!user) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-
   try {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    console.log('✅ Login successful:', phone);
-
     const token = jwt.sign({ id: user.id, phone }, JWT_SECRET);
     res.json({
       success: true,
@@ -220,7 +206,6 @@ app.post('/api/login', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('❌ Login error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -244,7 +229,7 @@ app.get('/api/profile', (req, res) => {
   }
 });
 
-// ---------- DEPOSIT ENDPOINTS ----------
+// ---------- DEPOSITS ----------
 app.get('/api/pending', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -298,7 +283,7 @@ app.post('/api/verify', async (req, res) => {
   }
 });
 
-// ---------- SPORTS BETTING ENDPOINTS ----------
+// ---------- SPORTS ----------
 app.get('/api/matches', (req, res) => {
   const now = Date.now();
   if (db.matches.length === 0) {
@@ -377,7 +362,6 @@ app.get('/api/sports/history', (req, res) => {
   }
 });
 
-// Admin: resolve a match
 app.post('/api/sports/resolve', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -419,11 +403,7 @@ app.post('/api/sports/resolve', (req, res) => {
   }
 });
 
-// ================================================================
-// ========== PROMOTIONS ENDPOINTS ==========
-// ================================================================
-
-// GET promotions status
+// ---------- PROMOTIONS ----------
 app.get('/api/promotions', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -444,7 +424,6 @@ app.get('/api/promotions', (req, res) => {
   }
 });
 
-// Increment ad watch count
 app.post('/api/promotions/ad-watch', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -463,7 +442,6 @@ app.post('/api/promotions/ad-watch', (req, res) => {
   }
 });
 
-// Claim a promotion task or daily reward
 app.post('/api/promotions/claim', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -480,7 +458,6 @@ app.post('/api/promotions/claim', (req, res) => {
     const claimedTasks = promo.claimedTasks || [];
     const now = Date.now();
 
-    // Define rewards (in ETB)
     const rewards = {
       startBot: 1,
       joinChannel: 1,
@@ -491,7 +468,6 @@ app.post('/api/promotions/claim', (req, res) => {
       daily: 2
     };
 
-    // Handle daily reward
     if (taskId === 'daily') {
       const last = promo.dailyLastClaim || 0;
       const oneDay = 24 * 60 * 60 * 1000;
@@ -500,27 +476,19 @@ app.post('/api/promotions/claim', (req, res) => {
       }
       promo.dailyLastClaim = now;
     } else {
-      // Regular task: check if already claimed
       if (claimedTasks.includes(taskId)) {
         return res.status(400).json({ error: 'Task already claimed' });
       }
-
-      // Special check for watchAds: require 10 ads watched
       if (taskId === 'watchAds') {
         const count = promo.adWatchCount || 0;
         if (count < 10) {
           return res.status(400).json({ error: `Watch ${10 - count} more ads to claim` });
         }
-        // Optionally reset ad count after claim (or keep it)
-        // promo.adWatchCount = 0; // decide if you want to reset
       }
-
-      // Mark as claimed
       claimedTasks.push(taskId);
       promo.claimedTasks = claimedTasks;
     }
 
-    // Add reward
     const amount = rewards[taskId] || 0;
     user.balance += amount;
     saveDB();
@@ -576,7 +544,6 @@ bot.on('callback_query', (query) => {
   }
 });
 
-// Auto-verification for deposit screenshots
 bot.on('photo', async (msg) => {
   const chatId = msg.chat.id;
   const pending = db.pendingDeposits.filter(d => d.telegramId === chatId && d.status === 'pending');
@@ -615,7 +582,7 @@ bot.on('photo', async (msg) => {
   });
 });
 
-// ---------- WEBSOCKET GAME ENGINE ----------
+// ---------- WEBSOCKET CRASH GAME (with first-bet win) ----------
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
@@ -623,7 +590,7 @@ let round = {
   status: 'waiting',
   multiplier: 1.00,
   crashPoint: 1.01,
-  bets: {},
+  bets: {}, // socketId -> { userId, amount, totalBets (before increment) }
   timer: null,
 };
 
@@ -653,6 +620,40 @@ function startNewRound() {
       clearInterval(round.timer);
       round.status = 'crashed';
       round.multiplier = round.crashPoint;
+
+      // ----- FIRST BET WIN LOGIC -----
+      // For each active bet, if the user has never bet before (totalBets === 0),
+      // give them a 1.5x win automatically.
+      const betEntries = Object.entries(round.bets);
+      for (const [socketId, bet] of betEntries) {
+        // Find the user by userId stored in bet
+        const user = db.users.find(u => u.id === parseInt(bet.userId) || u.phone === bet.userId);
+        if (user) {
+          // Check if this was their first bet (we stored totalBets before increment)
+          if (bet.totalBets === 0) {
+            // Give them 1.5x win
+            const winAmount = bet.amount * 1.5;
+            user.balance += winAmount;
+            // Increment totalBets now (it was already incremented on bet placement, but we stored the old value)
+            // We already incremented totalBets when placing the bet. So we don't increment again.
+            // Send cash_out_success to that specific client
+            const client = Array.from(wss.clients).find(c => c.socketId === socketId);
+            if (client && client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: 'cash_out_success',
+                multiplier: 1.5,
+                winAmount,
+                balance: user.balance
+              }));
+            }
+            // Remove from round.bets to prevent double processing
+            delete round.bets[socketId];
+            saveDB();
+          }
+        }
+      }
+      // ----------------------------------------
+
       broadcast({ type: 'game_crashed', multiplier: round.crashPoint });
       round.bets = {};
       setTimeout(startNewRound, 3000);
@@ -668,7 +669,7 @@ wss.on('connection', (ws, req) => {
   const userId = urlParams.get('userId');
   if (!userId) { ws.close(); return; }
   ws.userId = userId;
-  ws.socketId = crypto.randomUUID();
+  ws.socketId = crypto.randomUUID(); // assign unique socket ID
   const user = db.users.find(u => u.id === parseInt(userId) || u.phone === userId);
   const balance = user ? user.balance : 0;
   ws.send(JSON.stringify({ type: 'init', balance, userId }));
@@ -677,35 +678,66 @@ wss.on('connection', (ws, req) => {
     try {
       const data = JSON.parse(msg);
       const user = db.users.find(u => u.id === parseInt(ws.userId) || u.phone === ws.userId);
-      if (!user) { ws.send(JSON.stringify({ type: 'error', message: 'User not found' })); return; }
+      if (!user) {
+        ws.send(JSON.stringify({ type: 'error', message: 'User not found' }));
+        return;
+      }
       switch (data.type) {
         case 'place_bet': {
           const amount = parseFloat(data.amount);
-          if (isNaN(amount) || amount <= 0) return ws.send(JSON.stringify({ type: 'error', message: 'Invalid bet' }));
-          if (round.status !== 'flying' && round.status !== 'waiting') return ws.send(JSON.stringify({ type: 'error', message: 'Round not active' }));
-          if (round.bets[ws.socketId]) return ws.send(JSON.stringify({ type: 'error', message: 'Bet already placed' }));
-          if (user.balance < amount) return ws.send(JSON.stringify({ type: 'error', message: 'Insufficient balance' }));
+          if (isNaN(amount) || amount <= 0) {
+            return ws.send(JSON.stringify({ type: 'error', message: 'Invalid bet' }));
+          }
+          if (round.status !== 'flying' && round.status !== 'waiting') {
+            return ws.send(JSON.stringify({ type: 'error', message: 'Round not active' }));
+          }
+          if (round.bets[ws.socketId]) {
+            return ws.send(JSON.stringify({ type: 'error', message: 'Bet already placed' }));
+          }
+          if (user.balance < amount) {
+            return ws.send(JSON.stringify({ type: 'error', message: 'Insufficient balance' }));
+          }
+
+          // Deduct balance
           user.balance -= amount;
+          // Store bet with totalBets BEFORE incrementing (to detect first bet)
+          const totalBetsBefore = user.totalBets || 0;
+          round.bets[ws.socketId] = { userId: ws.userId, amount, totalBets: totalBetsBefore };
+          // Increment totalBets
+          user.totalBets = totalBetsBefore + 1;
           saveDB();
-          round.bets[ws.socketId] = { userId: ws.userId, amount };
-          ws.send(JSON.stringify({ type: 'bet_placed', balance: user.balance }));
+
+          ws.send(JSON.stringify({ type: 'bet_placed', balance: user.balance, amount }));
           break;
         }
         case 'cash_out': {
-          if (round.status !== 'flying') return ws.send(JSON.stringify({ type: 'error', message: 'Not flying' }));
+          if (round.status !== 'flying') {
+            return ws.send(JSON.stringify({ type: 'error', message: 'Not flying' }));
+          }
           const bet = round.bets[ws.socketId];
-          if (!bet) return ws.send(JSON.stringify({ type: 'error', message: 'No active bet' }));
+          if (!bet) {
+            return ws.send(JSON.stringify({ type: 'error', message: 'No active bet' }));
+          }
           const winAmount = bet.amount * round.multiplier;
           user.balance += winAmount;
           saveDB();
           delete round.bets[ws.socketId];
-          ws.send(JSON.stringify({ type: 'cash_out_success', multiplier: round.multiplier, winAmount, balance: user.balance }));
+          ws.send(JSON.stringify({
+            type: 'cash_out_success',
+            multiplier: round.multiplier,
+            winAmount,
+            balance: user.balance
+          }));
+          // broadcast that someone cashed out (optional)
           broadcast({ type: 'user_cashed_out', userId: ws.userId, multiplier: round.multiplier });
           break;
         }
-        default: ws.send(JSON.stringify({ type: 'error', message: 'Unknown command' }));
+        default:
+          ws.send(JSON.stringify({ type: 'error', message: 'Unknown command' }));
       }
-    } catch (err) { ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON' })); }
+    } catch (err) {
+      ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON' }));
+    }
   });
 
   ws.on('close', () => {
@@ -713,6 +745,7 @@ wss.on('connection', (ws, req) => {
   });
 });
 
+// Start the first round after 1s
 setTimeout(startNewRound, 1000);
 
 // ---------- START SERVER ----------
