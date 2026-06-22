@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Aviator - Ethiobet</title>
+  <title id="pageTitle">Crash Game - Ethiobet</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif; }
@@ -11,8 +11,11 @@
     .app { max-width:480px; width:100%; background:#0b0e14; padding:12px 16px 20px; min-height:100vh; display:flex; flex-direction:column; }
     .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
     .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; padding:4px 8px; }
+    .header .back:active { transform:scale(0.9); }
     .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
     .game-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:10px 0; background:linear-gradient(145deg,#131a22,#1a1f2b); border-radius:20px; padding:12px; min-height:320px; border:1px solid rgba(255,255,255,0.04); }
+    .game-icon { font-size:48px; margin-bottom:2px; }
+    .game-name { font-size:20px; font-weight:700; margin-bottom:4px; }
     canvas { width:100%; height:auto; border-radius:8px; background:#0b0e14; }
     .status-text { font-size:14px; color:#6a7e9c; margin-top:6px; min-height:22px; }
     .connection-status { font-size:11px; text-align:center; margin-top:4px; min-height:18px; }
@@ -28,13 +31,12 @@
     .btn-cashout { background:#2a8c5a; color:#fff; }
     .bet-amount { color:#889bb5; font-size:12px; margin-top:4px; }
     .win-amount { color:#ffd966; font-size:14px; font-weight:700; margin-top:2px; }
+    .win-amount.profit-badge { display:inline-block; background:rgba(42,140,90,0.2); color:#2a8c5a; padding:0 10px; border-radius:40px; font-size:12px; font-weight:600; margin-top:2px; }
     .history { margin-top:12px; color:#6a7e9c; font-size:12px; text-align:center; width:100%; border-top:1px solid rgba(255,255,255,0.04); padding-top:10px; max-height:70px; overflow-y:auto; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; }
     .history .crash-point { display:inline-block; background:#1a1f2b; padding:2px 10px; border-radius:40px; font-weight:600; color:#f0b90b; font-size:11px; }
     .history .crash-point.low { color:#6a7e9c; }
     .history .crash-point.medium { color:#f0b90b; }
     .history .crash-point.high { color:#ff6b6b; }
-    .profit-badge { display:inline-block; background:rgba(42,140,90,0.2); color:#2a8c5a; padding:0 10px; border-radius:40px; font-size:12px; font-weight:600; }
-    .profit-badge.loss { background:rgba(255,107,107,0.15); color:#ff6b6b; }
   </style>
 </head>
 <body>
@@ -44,7 +46,9 @@
     <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
   </div>
   <div class="game-area">
-    <canvas id="graphCanvas" width="400" height="250"></canvas>
+    <div class="game-icon" id="gameIcon">✈️</div>
+    <div class="game-name" id="gameName">Aviator</div>
+    <canvas id="graphCanvas" width="400" height="220"></canvas>
     <div class="status-text" id="statusText">Waiting for next round...</div>
     <div class="connection-status connected" id="connectionStatus">● Connected</div>
     <div class="controls">
@@ -62,7 +66,27 @@
   </div>
 </div>
 <script>
-  // ===== CONFIG =====
+  // ===== GAME CONFIGURATION =====
+  const GAME_CONFIGS = {
+    aviator: { icon: '✈️', name: 'Aviator', color: '#f0b90b' },
+    jetx: { icon: '🚀', name: 'JetX', color: '#2a8c5a' },
+    mines: { icon: '💣', name: 'Mines', color: '#ff6b6b' },
+    chiken: { icon: '🐔', name: 'Chicken Crash', color: '#f0b90b' },
+    spacecrash: { icon: '🚀', name: 'Space Crash', color: '#4a8cff' }
+  };
+
+  // Get game from URL parameter: ?game=aviator
+  const urlParams = new URLSearchParams(window.location.search);
+  const gameParam = urlParams.get('game') || 'aviator';
+  const config = GAME_CONFIGS[gameParam] || GAME_CONFIGS.aviator;
+
+  // Set page title, icon, and name
+  document.title = config.name + ' - Ethiobet';
+  document.getElementById('pageTitle').textContent = config.name + ' - Ethiobet';
+  document.getElementById('gameIcon').textContent = config.icon;
+  document.getElementById('gameName').textContent = config.name;
+
+  // ===== BACKEND CONFIG =====
   function getBackendUrl() {
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
@@ -96,12 +120,10 @@
   let roundState = {
     status: 'waiting',
     multiplier: 1.00,
-    crashPoint: 0,
     myBetPlaced: false,
     hasCashedOut: false,
     myBet: null,
   };
-  // Graph data
   let graphPoints = [{x:0, y:1}];
   let isCrashed = false;
   let crashX = 0;
@@ -169,9 +191,7 @@
           graphPoints.push({x: x, y: x});
           if (graphPoints.length > 200) graphPoints.shift();
           drawGraph();
-          if (roundState.myBetPlaced && !roundState.hasCashedOut) {
-            cashoutBtn.disabled = false;
-          }
+          if (roundState.myBetPlaced && !roundState.hasCashedOut) cashoutBtn.disabled = false;
         }
         break;
       case 'game_crashed':
@@ -179,7 +199,6 @@
         roundState.crashPoint = data.multiplier;
         isCrashed = true;
         crashX = data.multiplier;
-        // push final point
         graphPoints.push({x: data.multiplier, y: data.multiplier});
         drawGraph();
         statusText.textContent = `💥 Crashed at ${data.multiplier.toFixed(2)}x`;
@@ -231,14 +250,11 @@
     }
   }
 
-  // ===== GRAPH DRAWING =====
   function drawGraph() {
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-    // Background
     ctx.fillStyle = '#0b0e14';
     ctx.fillRect(0,0,w,h);
-    // Grid
     ctx.strokeStyle = '#1a1f2b';
     ctx.lineWidth = 0.5;
     for (let i=0; i<=10; i++) {
@@ -248,7 +264,6 @@
       ctx.lineTo(w, y);
       ctx.stroke();
     }
-    // Graph line
     if (graphPoints.length < 2) return;
     const maxX = Math.max(10, ...graphPoints.map(p => p.x));
     const scaleX = w / maxX;
@@ -266,7 +281,6 @@
     }
     ctx.stroke();
 
-    // Plane icon at current point
     if (graphPoints.length > 0 && !isCrashed) {
       const last = graphPoints[graphPoints.length-1];
       const px = last.x * scaleX;
@@ -274,12 +288,10 @@
       ctx.font = '20px sans-serif';
       ctx.fillStyle = '#fff';
       ctx.fillText('✈️', px-12, py-10);
-      // Show multiplier at plane
       ctx.font = 'bold 12px sans-serif';
       ctx.fillStyle = '#f0b90b';
       ctx.fillText(last.y.toFixed(2)+'x', px-10, py-25);
     }
-    // Crash marker
     if (isCrashed) {
       const px = crashX * scaleX;
       const py = h - crashX * scaleY;
@@ -333,7 +345,6 @@
     }
   }
 
-  // ===== ACTIONS =====
   function placeBet() {
     if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) { alert('Not connected.'); return; }
     if (roundState.status !== 'flying' && roundState.status !== 'waiting') { alert('Round not active.'); return; }
@@ -351,9 +362,6 @@
     ws.send(JSON.stringify({ type: 'cash_out' }));
   }
 
-  // ============================================================
-  // ========== INIT ==========
-  // ============================================================
   (async function init() {
     const token = getToken();
     if (!token) {
@@ -367,13 +375,11 @@
       if (!document.hidden && !isConnected) connectWebSocket();
     });
     setInterval(fetchBalance, 15000);
-    // Initial graph
     drawGraph();
   })();
 
   const tg = window.Telegram?.WebApp;
   if (tg) { tg.expand(); tg.ready(); }
-  console.log('✈️ Aviator with plane loaded');
 </script>
 </body>
 </html>
