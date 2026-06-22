@@ -19,7 +19,7 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const MERCHANT_PHONE = process.env.MERCHANT_PHONE || '0934600018';
 const ADMIN_IDS = (process.env.ADMIN_IDS || '7154361039').split(',').map(id => parseInt(id.trim()));
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
-const JWT_SECRET = process.env.JWT_SECRET || 'mamme dev';
+const JWT_SECRET = process.env.JWT_SECRET || 'mamme_dev_secret_2024';
 
 console.log('🚀 Starting Ethiobet Platform...');
 console.log('🤖 Bot: @Ethiobet1_bot');
@@ -154,7 +154,7 @@ app.post('/api/register', async (req, res) => {
       password: hashedPassword,
       balance: 0,
       totalDeposits: 0,
-      totalBets: 0,                     // <-- track total bets for first-win bonus
+      totalBets: 0,
       createdAt: new Date().toISOString(),
       promotions: {
         claimedTasks: [],
@@ -582,7 +582,7 @@ bot.on('photo', async (msg) => {
   });
 });
 
-// ---------- WEBSOCKET CRASH GAME (with first-bet win) ----------
+// ---------- WEBSOCKET CRASH GAME ----------
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
@@ -590,7 +590,7 @@ let round = {
   status: 'waiting',
   multiplier: 1.00,
   crashPoint: 1.01,
-  bets: {}, // socketId -> { userId, amount, totalBets (before increment) }
+  bets: {},
   timer: null,
 };
 
@@ -621,38 +621,26 @@ function startNewRound() {
       round.status = 'crashed';
       round.multiplier = round.crashPoint;
 
-      // ----- FIRST BET WIN LOGIC -----
-      // For each active bet, if the user has never bet before (totalBets === 0),
-      // give them a 1.5x win automatically.
+      // First bet win bonus (1.5x for new users)
       const betEntries = Object.entries(round.bets);
       for (const [socketId, bet] of betEntries) {
-        // Find the user by userId stored in bet
         const user = db.users.find(u => u.id === parseInt(bet.userId) || u.phone === bet.userId);
-        if (user) {
-          // Check if this was their first bet (we stored totalBets before increment)
-          if (bet.totalBets === 0) {
-            // Give them 1.5x win
-            const winAmount = bet.amount * 1.5;
-            user.balance += winAmount;
-            // Increment totalBets now (it was already incremented on bet placement, but we stored the old value)
-            // We already incremented totalBets when placing the bet. So we don't increment again.
-            // Send cash_out_success to that specific client
-            const client = Array.from(wss.clients).find(c => c.socketId === socketId);
-            if (client && client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({
-                type: 'cash_out_success',
-                multiplier: 1.5,
-                winAmount,
-                balance: user.balance
-              }));
-            }
-            // Remove from round.bets to prevent double processing
-            delete round.bets[socketId];
-            saveDB();
+        if (user && bet.totalBets === 0) {
+          const winAmount = bet.amount * 1.5;
+          user.balance += winAmount;
+          const client = Array.from(wss.clients).find(c => c.socketId === socketId);
+          if (client && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+              type: 'cash_out_success',
+              multiplier: 1.5,
+              winAmount,
+              balance: user.balance
+            }));
           }
+          delete round.bets[socketId];
+          saveDB();
         }
       }
-      // ----------------------------------------
 
       broadcast({ type: 'game_crashed', multiplier: round.crashPoint });
       round.bets = {};
@@ -669,7 +657,7 @@ wss.on('connection', (ws, req) => {
   const userId = urlParams.get('userId');
   if (!userId) { ws.close(); return; }
   ws.userId = userId;
-  ws.socketId = crypto.randomUUID(); // assign unique socket ID
+  ws.socketId = crypto.randomUUID();
   const user = db.users.find(u => u.id === parseInt(userId) || u.phone === userId);
   const balance = user ? user.balance : 0;
   ws.send(JSON.stringify({ type: 'init', balance, userId }));
@@ -698,12 +686,9 @@ wss.on('connection', (ws, req) => {
             return ws.send(JSON.stringify({ type: 'error', message: 'Insufficient balance' }));
           }
 
-          // Deduct balance
           user.balance -= amount;
-          // Store bet with totalBets BEFORE incrementing (to detect first bet)
           const totalBetsBefore = user.totalBets || 0;
           round.bets[ws.socketId] = { userId: ws.userId, amount, totalBets: totalBetsBefore };
-          // Increment totalBets
           user.totalBets = totalBetsBefore + 1;
           saveDB();
 
@@ -728,7 +713,6 @@ wss.on('connection', (ws, req) => {
             winAmount,
             balance: user.balance
           }));
-          // broadcast that someone cashed out (optional)
           broadcast({ type: 'user_cashed_out', userId: ws.userId, multiplier: round.multiplier });
           break;
         }
@@ -745,7 +729,6 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-// Start the first round after 1s
 setTimeout(startNewRound, 1000);
 
 // ---------- START SERVER ----------
