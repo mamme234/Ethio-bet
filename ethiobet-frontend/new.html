@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title id="pageTitle">New Game - Ethiobet</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+    body { background:#0b0e14; color:#fff; min-height:100vh; display:flex; justify-content:center; padding:0; margin:0; overflow-x:hidden; }
+    .app { max-width:480px; width:100%; background:#0b0e14; padding:12px 16px 20px; min-height:100vh; display:flex; flex-direction:column; }
+    .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
+    .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; padding:4px 8px; }
+    .header .back:active { transform:scale(0.9); }
+    .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
+    .game-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:10px 0; background:linear-gradient(145deg,#131a22,#1a1f2b); border-radius:20px; padding:20px; border:1px solid rgba(255,255,255,0.04); }
+    .game-icon { font-size:48px; margin-bottom:2px; }
+    .game-name { font-size:20px; font-weight:700; margin-bottom:8px; }
+    .game-container { width:100%; max-width:360px; display:flex; flex-direction:column; align-items:center; }
+    .controls { display:flex; gap:10px; margin-top:12px; width:100%; max-width:320px; }
+    .controls input { flex:1; padding:10px 14px; background:#1b2532; border:1px solid #2f3e51; border-radius:40px; color:#fff; font-size:14px; outline:none; min-width:0; }
+    .controls input:focus { border-color:#f0b90b; }
+    .controls button { padding:10px 18px; border:none; border-radius:40px; font-weight:700; font-size:14px; cursor:pointer; transition:0.15s; flex:1; min-width:70px; }
+    .controls button:active { transform:scale(0.94); }
+    .controls button:disabled { opacity:0.4; cursor:not-allowed; }
+    .btn-action { background:linear-gradient(135deg,#f0b90b,#d99f0a); color:#0b0e14; }
+    .btn-reset { background:#2a3546; color:#fff; }
+    .result { margin-top:8px; font-weight:700; font-size:14px; text-align:center; min-height:20px; }
+    .history { margin-top:8px; color:#6a7e9c; font-size:11px; text-align:center; width:100%; border-top:1px solid rgba(255,255,255,0.04); padding-top:8px; max-height:60px; overflow-y:auto; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; }
+    .history .game-result { display:inline-block; background:#1a1f2b; padding:2px 8px; border-radius:40px; font-size:10px; }
+    .history .game-result.win { color:#2a8c5a; }
+    .history .game-result.lose { color:#6a7e9c; }
+    /* Space Crash specific */
+    .crash-display { font-size:48px; margin:8px 0; }
+    .multiplier-display { font-size:32px; font-weight:900; color:#f0b90b; }
+    /* Zombie Hunt specific */
+    .zombie-area { position:relative; width:100%; max-width:320px; height:200px; background:#0b0e14; border-radius:12px; overflow:hidden; cursor:pointer; margin:8px 0; }
+    .zombie { position:absolute; font-size:36px; transition:all 0.1s; cursor:pointer; user-select:none; }
+    .zombie:active { transform:scale(0.8); }
+    .stats { display:flex; gap:20px; margin:6px 0; font-size:13px; }
+    .stats span { color:#6a7e9c; }
+    .stats .value { color:#f0b90b; font-weight:700; }
+    /* Robot Wars specific */
+    .robot-display { font-size:48px; margin:4px 0; }
+    .dice-display { font-size:36px; margin:4px 0; }
+    .dice-result { display:flex; gap:20px; margin:4px 0; }
+    .dice-result .dice { font-size:32px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <button class="back" onclick="history.back()">← Back</button>
+    <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
+  </div>
+  <div class="game-area">
+    <div class="game-icon" id="gameIcon">🚀</div>
+    <div class="game-name" id="gameName">Space Crash</div>
+    <div class="game-container" id="gameContainer">
+      <!-- Dynamic content rendered by JS -->
+    </div>
+    <div class="result" id="resultMsg">Ready to play!</div>
+    <div class="history" id="historyContainer">
+      <span style="color:#4a5e7a;width:100%;font-size:11px;">History</span>
+    </div>
+  </div>
+</div>
+<script>
+  // ===== NEW GAMES CONFIG =====
+  const NEW_CONFIGS = {
+    spacecrash: { icon: '🚀', name: 'Space Crash', type: 'crash' },
+    zombie: { icon: '🧟', name: 'Zombie Hunt', type: 'zombie' },
+    robot: { icon: '🤖', name: 'Robot Wars', type: 'robot' }
+  };
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const gameParam = urlParams.get('game') || 'spacecrash';
+  const config = NEW_CONFIGS[gameParam] || NEW_CONFIGS.spacecrash;
+
+  document.title = config.name + ' - Ethiobet';
+  document.getElementById('pageTitle').textContent = config.name + ' - Ethiobet';
+  document.getElementById('gameIcon').textContent = config.icon;
+  document.getElementById('gameName').textContent = config.name;
+
+  // ===== BACKEND =====
+  const API_URL = (() => {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
+    return 'https://ethio-bet-1.onrender.com';
+  })();
+
+  function getToken() { return localStorage.getItem('token'); }
+  let currentBalance = 0;
+
+  async function fetchBalance() {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentBalance = data.balance;
+        document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+      }
+    } catch (e) {}
+  }
+
+  // ===== GAME RENDERER =====
+  function renderGame() {
+    const container = document.getElementById('gameContainer');
+    const resultMsg = document.getElementById('resultMsg');
+    const historyContainer = document.getElementById('historyContainer');
+
+    switch (config.type) {
+      case 'crash':
+        renderCrashGame(container, resultMsg, historyContainer);
+        break;
+      case 'zombie':
+        renderZombieGame(container, resultMsg, historyContainer);
+        break;
+      case 'robot':
+        renderRobotGame(container, resultMsg, historyContainer);
+        break;
+    }
+  }
+
+  // ===== SPACE CRASH =====
+  let crashHistory = [];
+
+  function renderCrashGame(container, resultMsg, historyContainer) {
+    container.innerHTML = `
+      <div class="multiplier-display" id="crashMultiplier">1.00x</div>
+      <div style="font-size:14px;color:#6a7e9c;margin:4px 0;" id="crashStatus">Waiting for next round...</div>
+      <div class="controls">
+        <input type="number" id="betAmount" placeholder="Bet" value="1" min="0.1" step="0.1" />
+        <button class="btn-action" id="betBtn" onclick="crashPlaceBet()">BET</button>
+        <button class="btn-action" id="cashoutBtn" onclick="crashCashOut()" disabled style="background:#2a8c5a;color:#fff;">CASH OUT</button>
+      </div>
+      <div id="crashBetInfo" style="width:100%;text-align:center;margin:4px 0;">
+        <div style="color:#889bb5;font-size:12px;" id="crashBetDisplay"></div>
+        <div style="color:#ffd966;font-size:14px;font-weight:700;" id="crashWinDisplay"></div>
+      </div>
+    `;
+
+    // Simulate crash game (for demo without WebSocket)
+    let multiplier = 1.00;
+    let isFlying = false;
+    let myBetPlaced = false;
+    let hasCashedOut = false;
+    let myBet = 0;
+    let timer = null;
+
+    const multiplierEl = document.getElementById('crashMultiplier');
+    const statusEl = document.getElementById('crashStatus');
+    const betBtn = document.getElementById('betBtn');
+    const cashoutBtn = document.getElementById('cashoutBtn');
+    const betInput = document.getElementById('betAmount');
+    const betDisplay = document.getElementById('crashBetDisplay');
+    const winDisplay = document.getElementById('crashWinDisplay');
+
+    function startRound() {
+      isFlying = true;
+      myBetPlaced = false;
+      hasCashedOut = false;
+      multiplier = 1.00;
+      multiplierEl.textContent = '1.00x';
+      statusEl.textContent = '✈️ Flying...';
+      betBtn.disabled = false;
+      cashoutBtn.disabled = true;
+      betDisplay.textContent = '';
+      winDisplay.textContent = '';
+      document.getElementById('resultMsg').textContent = 'Place a bet!';
+
+      const crashPoint = 1.5 + Math.random() * 8;
+      let startTime = Date.now();
+
+      if (timer) clearInterval(timer);
+      timer = setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        multiplier = 1.00 + elapsed * 1.2;
+        multiplierEl.textContent = multiplier.toFixed(2) + 'x';
+
+        if (multiplier >= crashPoint) {
+          clearInterval(timer);
+          isFlying = false;
+          statusEl.textContent = `💥 Crashed at ${multiplier.toFixed(2)}x`;
+          multiplierEl.style.color = '#ff6b6b';
+          cashoutBtn.disabled = true;
+          betBtn.disabled = true;
+
+          if (myBetPlaced && !hasCashedOut) {
+            betDisplay.textContent = `❌ Lost ${myBet} ETB`;
+            winDisplay.textContent = '';
+            myBetPlaced = false;
+            document.getElementById('resultMsg').textContent = `💥 Crashed at ${multiplier.toFixed(2)}x`;
+          }
+
+          // Add to history
+          crashHistory.unshift({ multiplier: crashPoint, win: 0 });
+          if (crashHistory.length > 20) crashHistory.pop();
+          renderCrashHistory(historyContainer);
+
+          setTimeout(() => {
+            multiplierEl.style.color = '#f0b90b';
+            startRound();
+          }, 3000);
+        }
+      }, 100);
+    }
+
+    window.crashPlaceBet = function() {
+      if (!isFlying || myBetPlaced) return;
+      const amount = parseFloat(betInput.value);
+      if (!amount || amount <= 0) { alert('Enter valid bet.'); return; }
+      if (amount > currentBalance) { alert('Insufficient balance!'); return; }
+
+      myBet = amount;
+      myBetPlaced = true;
+      currentBalance -= amount;
+      document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+      betDisplay.textContent = `💰 Bet: ${amount.toFixed(2)} ETB`;
+      winDisplay.textContent = '';
+      betBtn.disabled = true;
+      cashoutBtn.disabled = false;
+      document.getElementById('resultMsg').textContent = `✈️ Flying at ${multiplier.toFixed(2)}x`;
+    };
+
+    window.crashCashOut = function() {
+      if (!myBetPlaced || hasCashedOut || !isFlying) return;
+      hasCashedOut = true;
+      const winAmount = myBet * multiplier;
+      currentBalance += winAmount;
+      document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+      winDisplay.textContent = `🎉 Won ${winAmount.toFixed(2)} ETB at ${multiplier.toFixed(2)}x`;
+      winDisplay.style.color = '#2a8c5a';
+      cashoutBtn.disabled = true;
+      document.getElementById('resultMsg').textContent = `🎉 Cashed out at ${multiplier.toFixed(2)}x!`;
+      
+      // Add to history
+      crashHistory.unshift({ multiplier: multiplier, win: winAmount });
+      if (crashHistory.length > 20) crashHistory.pop();
+      renderCrashHistory(historyContainer);
+    };
+
+    function renderCrashHistory(container) {
+      if (crashHistory.length === 0) {
+        container.innerHTML = '<span style="color:#4a5e7a;width:100%;font-size:11px;">History</span>';
+        return;
+      }
+      let html = '';
+      crashHistory.forEach(h => {
+        const cls = h.win > 0 ? 'win' : 'lose';
+        html += `<span class="game-result ${cls}">${h.multiplier.toFixed(2)}x ${h.win > 0 ? '+' : ''}${h.win.toFixed(2)}</span>`;
+      });
+      container.innerHTML = html;
+    }
+
+    startRound();
+  }
+
+  // ===== ZOMBIE HUNT =====
+  let zombieKills = 0;
+  let zombieRunning = false;
+  let zombieHistory = [];
+
+  function renderZombieGame(container, resultMsg, historyContainer) {
+    container.innerHTML = `
+      <div class="stats">
+        <span>💀 Kills: <span class="value" id="killCount">0</span></span>
+        <span>⏱️ Time: <span class="value" id="timeDisplay">0s</span></span>
+      </div>
+      <div class="zombie-area" id="zombieArea"></div>
+      <div class="controls">
+        <button class="btn-action" id="startBtn" onclick="zombieStart()">START</button>
+        <button class="btn-reset" onclick="zombieReset()">RESET</button>
+      </div>
+    `;
+
+    window.zombieStart = function() {
+      if (zombieRunning) return;
+      zombieRunning = true;
+      zombieKills = 0;
+      document.getElementById('killCount').textContent = '0';
+      document.getElementById('timeDisplay').textContent = '0s';
+      document.getElementById('startBtn').disabled = true;
+      resultMsg.textContent = '🔫 Kill zombies!';
+
+      const area = document.getElementById('zombieArea');
+      area.innerHTML = '';
+      let seconds = 0;
+      let timer = setInterval(() => {
+        seconds++;
+        document.getElementById('timeDisplay').textContent = seconds + 's';
+      }, 1000);
+
+      function spawnZombie() {
+        if (!zombieRunning) return;
+        const area = document.getElementById('zombieArea');
+        const zombie = document.createElement('div');
+        zombie.className = 'zombie';
+        zombie.textContent = '🧟';
+        const x = Math.random() * (area.clientWidth - 40);
+        const y = Math.random() * (area.clientHeight - 50);
+        zombie.style.left = x + 'px';
+        zombie.style.top = y + 'px';
+        zombie.onclick = () => killZombie(zombie);
+        area.appendChild(zombie);
+
+        setTimeout(() => {
+          if (zombie.parentNode) {
+            zombie.remove();
+            zombieEnd(seconds);
+          }
+        }, 2000);
+
+        if (zombieRunning) {
+          const delay = Math.max(200, 800 - seconds * 8);
+          setTimeout(spawnZombie, delay);
+        }
+      }
+
+      window.killZombie = function(zombie) {
+        if (!zombieRunning) return;
+        zombieKills++;
+        document.getElementById('killCount').textContent = zombieKills;
+        zombie.remove();
+        // Explosion effect
+        const boom = document.createElement('div');
+        boom.style.position = 'absolute';
+        boom.style.left = zombie.style.left;
+        boom.style.top = zombie.style.top;
+        boom.style.fontSize = '24px';
+        boom.textContent = '💥';
+        boom.style.transition = 'opacity 0.5s';
+        area.appendChild(boom);
+        setTimeout(() => {
+          boom.style.opacity = '0';
+          setTimeout(() => boom.remove(), 500);
+        }, 50);
+      };
+
+      function zombieEnd(seconds) {
+        if (!zombieRunning) return;
+        zombieRunning = false;
+        clearInterval(timer);
+        document.getElementById('startBtn').disabled = false;
+        const reward = Math.floor(zombieKills / 3) * 0.5 + 0.5;
+        currentBalance += reward;
+        document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+        resultMsg.textContent = reward > 0 ? `🎉 ${zombieKills} kills! Won ${reward.toFixed(2)} ETB` : `😔 ${zombieKills} kills. Try again!`;
+        zombieHistory.unshift({ kills: zombieKills, reward: reward });
+        if (zombieHistory.length > 20) zombieHistory.pop();
+        renderZombieHistory(historyContainer);
+        document.getElementById('zombieArea').innerHTML = '';
+      }
+
+      window.zombieReset = function() {
+        zombieRunning = false;
+        clearInterval(timer);
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('zombieArea').innerHTML = '';
+        resultMsg.textContent = 'Ready to hunt zombies!';
+      };
+
+      spawnZombie();
+    };
+
+    window.zombieReset = function() {
+      zombieRunning = false;
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('zombieArea').innerHTML = '';
+      resultMsg.textContent = 'Ready to hunt zombies!';
+    };
+
+    function renderZombieHistory(container) {
+      if (zombieHistory.length === 0) {
+        container.innerHTML = '<span style="color:#4a5e7a;width:100%;font-size:11px;">History</span>';
+        return;
+      }
+      let html = '';
+      zombieHistory.forEach(h => {
+        const cls = h.reward > 0 ? 'win' : 'lose';
+        html += `<span class="game-result ${cls}">${h.kills} kills ${h.reward > 0 ? '+' : ''}${h.reward.toFixed(2)}</span>`;
+      });
+      container.innerHTML = html;
+    }
+  }
+
+  // ===== ROBOT WARS =====
+  let robotHistory = [];
+
+  function renderRobotGame(container, resultMsg, historyContainer) {
+    container.innerHTML = `
+      <div class="robot-display">🤖</div>
+      <div class="dice-display" id="robotDice">🎲</div>
+      <div class="dice-result">
+        <span class="dice" id="playerDice">⚀</span>
+        <span style="color:#6a7e9c;">vs</span>
+        <span class="dice" id="robotDiceResult">⚀</span>
+      </div>
+      <div class="controls">
+        <input type="number" id="betAmount" placeholder="Bet" value="1" min="0.1" step="0.1" />
+        <button class="btn-action" id="fightBtn" onclick="robotFight()">FIGHT</button>
+      </div>
+    `;
+
+    window.robotFight = function() {
+      const bet = parseFloat(document.getElementById('betAmount').value);
+      if (!bet || bet <= 0) { alert('Enter valid bet.'); return; }
+      if (bet > currentBalance) { alert('Insufficient balance!'); return; }
+
+      const playerDice = Math.floor(Math.random() * 6) + 1;
+      const robotDice = Math.floor(Math.random() * 6) + 1;
+      const diceSymbols = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+      document.getElementById('playerDice').textContent = diceSymbols[playerDice-1];
+      document.getElementById('robotDiceResult').textContent = diceSymbols[robotDice-1];
+
+      const isWin = playerDice > robotDice;
+      const isDraw = playerDice === robotDice;
+      let winAmount = 0;
+      let resultText = '';
+
+      if (isWin) {
+        winAmount = bet * 2;
+        resultText = `🎉 You win! ${playerDice} vs ${robotDice}`;
+      } else if (isDraw) {
+        winAmount = bet;
+        resultText = `🤝 Draw! ${playerDice} vs ${robotDice}`;
+      } else {
+        resultText = `😔 You lose. ${playerDice} vs ${robotDice}`;
+      }
+
+      currentBalance += winAmount - bet;
+      document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+      resultMsg.textContent = resultText + (winAmount > 0 ? ` Won ${winAmount.toFixed(2)} ETB` : '');
+
+      robotHistory.unshift({ player: playerDice, robot: robotDice, win: winAmount - bet });
+      if (robotHistory.length > 20) robotHistory.pop();
+      renderRobotHistory(historyContainer);
+    };
+
+    function renderRobotHistory(container) {
+      if (robotHistory.length === 0) {
+        container.innerHTML = '<span style="color:#4a5e7a;width:100%;font-size:11px;">History</span>';
+        return;
+      }
+      let html = '';
+      robotHistory.forEach(h => {
+        const cls = h.win > 0 ? 'win' : 'lose';
+        html += `<span class="game-result ${cls}">${h.player} vs ${h.robot} ${h.win > 0 ? '+' : ''}${h.win.toFixed(2)}</span>`;
+      });
+      container.innerHTML = html;
+    }
+  }
+
+  fetchBalance();
+  renderGame();
+</script>
+</body>
+  </html>
