@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title id="pageTitle">Slots - Ethiobet</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+    body { background:#0b0e14; color:#fff; min-height:100vh; display:flex; justify-content:center; padding:0; margin:0; overflow-x:hidden; }
+    .app { max-width:480px; width:100%; background:#0b0e14; padding:12px 16px 20px; min-height:100vh; display:flex; flex-direction:column; }
+    .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
+    .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; padding:4px 8px; }
+    .header .back:active { transform:scale(0.9); }
+    .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
+    .game-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:10px 0; background:linear-gradient(145deg,#131a22,#1a1f2b); border-radius:20px; padding:20px; border:1px solid rgba(255,255,255,0.04); }
+    .game-icon { font-size:48px; margin-bottom:2px; }
+    .game-name { font-size:20px; font-weight:700; margin-bottom:8px; }
+    .reels { display:flex; gap:20px; font-size:48px; margin:12px 0; padding:20px 30px; background:#0b0e14; border-radius:12px; border:1px solid rgba(255,255,255,0.05); }
+    .reel { min-width:50px; text-align:center; transition:transform 0.1s; }
+    .controls { display:flex; gap:10px; margin-top:12px; width:100%; max-width:320px; }
+    .controls input { flex:1; padding:10px 14px; background:#1b2532; border:1px solid #2f3e51; border-radius:40px; color:#fff; font-size:14px; outline:none; }
+    .controls input:focus { border-color:#f0b90b; }
+    .controls button { padding:10px 20px; border:none; border-radius:40px; font-weight:700; font-size:14px; cursor:pointer; transition:0.15s; flex:1; }
+    .controls button:active { transform:scale(0.95); }
+    .btn-spin { background:linear-gradient(135deg,#f0b90b,#d99f0a); color:#0b0e14; }
+    .btn-spin:disabled { opacity:0.4; cursor:not-allowed; }
+    .result { margin-top:10px; font-weight:700; font-size:16px; min-height:24px; text-align:center; }
+    .win-amount { color:#ffd966; font-size:14px; font-weight:700; margin-top:2px; }
+    .history { margin-top:12px; color:#6a7e9c; font-size:12px; text-align:center; width:100%; border-top:1px solid rgba(255,255,255,0.04); padding-top:10px; max-height:70px; overflow-y:auto; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; }
+    .history .spin-result { display:inline-block; background:#1a1f2b; padding:2px 10px; border-radius:40px; font-weight:600; font-size:11px; }
+    .history .spin-result.win { color:#2a8c5a; }
+    .history .spin-result.lose { color:#6a7e9c; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <button class="back" onclick="history.back()">← Back</button>
+    <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
+  </div>
+  <div class="game-area">
+    <div class="game-icon" id="gameIcon">🎰</div>
+    <div class="game-name" id="gameName">Slots</div>
+    <div class="reels" id="reels">
+      <span class="reel" id="reel1">🍒</span>
+      <span class="reel" id="reel2">🍋</span>
+      <span class="reel" id="reel3">🍊</span>
+    </div>
+    <div class="controls">
+      <input type="number" id="betAmount" placeholder="Bet" value="1" min="0.1" step="0.1" />
+      <button class="btn-spin" id="spinBtn" onclick="spin()">SPIN</button>
+    </div>
+    <div class="result" id="resultMsg">Place a bet and spin!</div>
+    <div class="history" id="historyContainer">
+      <span style="color:#4a5e7a;width:100%;font-size:11px;">History</span>
+    </div>
+  </div>
+</div>
+<script>
+  // ===== SLOT GAME CONFIG =====
+  const SLOT_CONFIGS = {
+    golden: { icon: '🐉', name: 'Golden Dragon' },
+    dragon: { icon: '🐉', name: 'Dragon Luck' },
+    burn: { icon: '🔥', name: 'Burn Wilds' },
+    fortune: { icon: '💎', name: 'Fortune Coins' },
+    royal: { icon: '👑', name: 'Royal Secrets' },
+    power: { icon: '⚡', name: 'Power Hot 100' },
+    burning: { icon: '🍒', name: '20 Burning Hot' },
+    safari: { icon: '🌴', name: 'Safari Star' },
+    mystic: { icon: '🧙', name: 'Mystic Witch' },
+    treasure: { icon: '🏺', name: 'Treasure Bowl' },
+    tiger: { icon: '🐅', name: 'Treasure Tiger' },
+    candy: { icon: '🍬', name: 'Candy Palace' },
+    mythical: { icon: '🌙', name: 'Mythical Treasure' },
+    olympus: { icon: '🏛️', name: 'Olympus Glory' },
+    vampire: { icon: '🧛', name: 'Vampire Night' },
+    amazons: { icon: '⚔️', name: 'Amazons Battle' }
+  };
+
+  // Get slot game from URL: ?game=golden
+  const urlParams = new URLSearchParams(window.location.search);
+  const gameParam = urlParams.get('game') || 'golden';
+  const config = SLOT_CONFIGS[gameParam] || SLOT_CONFIGS.golden;
+
+  document.title = config.name + ' - Ethiobet';
+  document.getElementById('pageTitle').textContent = config.name + ' - Ethiobet';
+  document.getElementById('gameIcon').textContent = config.icon;
+  document.getElementById('gameName').textContent = config.name;
+
+  // ===== BACKEND =====
+  const API_URL = (() => {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
+    return 'https://ethio-bet-1.onrender.com';
+  })();
+
+  function getToken() { return localStorage.getItem('token'); }
+  let currentBalance = 0;
+
+  async function fetchBalance() {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentBalance = data.balance;
+        document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+      }
+    } catch (e) {}
+  }
+
+  // ===== SLOT MACHINE =====
+  const symbols = ['🍒', '🍋', '🍊', '🍇', '💎', '🔔', '7️⃣'];
+  let isSpinning = false;
+  let history = [];
+
+  function getRandomSymbol() {
+    return symbols[Math.floor(Math.random() * symbols.length)];
+  }
+
+  function calculateWin(result, bet) {
+    const [a,b,c] = result;
+    let multiplier = 0;
+    if (a === b && b === c) {
+      if (a === '7️⃣') multiplier = 10;
+      else if (a === '💎') multiplier = 8;
+      else if (a === '🔔') multiplier = 6;
+      else multiplier = 4;
+    } else if (a === b || b === c || a === c) {
+      multiplier = 2;
+    }
+    return bet * multiplier;
+  }
+
+  async function spin() {
+    if (isSpinning) return;
+    const bet = parseFloat(document.getElementById('betAmount').value);
+    if (!bet || bet <= 0) { alert('Enter a valid bet.'); return; }
+    if (bet > currentBalance) { alert('Insufficient balance!'); return; }
+
+    isSpinning = true;
+    document.getElementById('spinBtn').disabled = true;
+    document.getElementById('resultMsg').textContent = '🎰 Spinning...';
+
+    // Deduct bet
+    currentBalance -= bet;
+    document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+
+    const reelEls = [
+      document.getElementById('reel1'),
+      document.getElementById('reel2'),
+      document.getElementById('reel3')
+    ];
+
+    // Animate
+    let spins = 0;
+    const interval = setInterval(() => {
+      reelEls.forEach(el => el.textContent = getRandomSymbol());
+      spins++;
+      if (spins > 15) {
+        clearInterval(interval);
+        // Final result
+        const result = reelEls.map(el => el.textContent);
+        const win = calculateWin(result, bet);
+        currentBalance += win;
+        document.getElementById('balanceDisplay').textContent = `💰 ${currentBalance.toFixed(2)} ETB`;
+
+        const resultText = win > 0 ? `🎉 You won ${win.toFixed(2)} ETB!` : '😔 Try again!';
+        document.getElementById('resultMsg').textContent = resultText;
+
+        // Add to history
+        history.unshift({ result: result.join(' '), win: win });
+        if (history.length > 20) history.pop();
+        renderHistory();
+
+        isSpinning = false;
+        document.getElementById('spinBtn').disabled = false;
+      }
+    }, 100);
+  }
+
+  function renderHistory() {
+    if (history.length === 0) {
+      document.getElementById('historyContainer').innerHTML = '<span style="color:#4a5e7a;width:100%;font-size:11px;">History</span>';
+      return;
+    }
+    let html = '';
+    history.forEach(h => {
+      const cls = h.win > 0 ? 'win' : 'lose';
+      html += `<span class="spin-result ${cls}">${h.result} ${h.win > 0 ? '+' : ''}${h.win.toFixed(2)}</span>`;
+    });
+    document.getElementById('historyContainer').innerHTML = html;
+  }
+
+  fetchBalance();
+</script>
+</body>
+  </html>
