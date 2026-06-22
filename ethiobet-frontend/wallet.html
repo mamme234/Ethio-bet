@@ -3,79 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>💰 Wallet</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <title>Wallet - Ethiobet</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
-    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
-    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
-    .back-btn:active { transform: scale(0.95); }
-    .wallet-card { background: #131a22; border-radius: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 10px; }
-    .wallet-card .amount { font-size: 28px; font-weight: 800; color: #ffd966; }
-    .wallet-card .label { color: #6a7e9c; font-size: 12px; }
-    .wallet-actions { display: flex; gap: 8px; margin-top: 10px; }
-    .wallet-actions button { flex: 1; padding: 10px; border: none; border-radius: 40px; font-weight: 700; font-size: 13px; cursor: pointer; }
-    .wallet-actions button:active { transform: scale(0.95); }
-    .deposit-btn { background: #2a8c5a; color: #fff; }
-    .withdraw-btn { background: #8c2a2a; color: #fff; }
-    .history-box { background: #131a22; border-radius: 14px; padding: 14px; border: 1px solid rgba(255,255,255,0.04); }
-    .history-box h3 { font-size: 13px; color: #6a7e9c; margin-bottom: 6px; }
-    .history-item { color: #6a7e9c; font-size: 12px; text-align: center; padding: 10px; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:#0b0e14; color:#fff; min-height:100vh; display:flex; justify-content:center; padding:0; margin:0; overflow-x:hidden; }
+    .app { max-width:480px; width:100%; background:#0b0e14; padding:12px 16px 20px; min-height:100vh; }
+    .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
+    .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; }
+    .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
+    .balance-box { background:#1a1f2b; border-radius:16px; padding:20px; text-align:center; border:1px solid #2a3546; margin-bottom:16px; }
+    .balance-box .amount { font-size:32px; font-weight:900; color:#ffd966; }
+    .balance-box .label { color:#6a7e9c; font-size:14px; }
+    .history-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .history-item .desc { color:#b0c8e5; }
+    .history-item .value { font-weight:700; }
+    .history-item .value.positive { color:#2a8c5a; }
+    .history-item .value.negative { color:#ff6b6b; }
+    .deposit-btn { display:block; width:100%; padding:12px; background:linear-gradient(135deg,#f0b90b,#d99f0a); border:none; border-radius:40px; font-weight:700; font-size:16px; color:#0b0e14; cursor:pointer; margin-top:16px; }
+    .deposit-btn:active { transform:scale(0.95); }
   </style>
 </head>
 <body>
-
 <div class="app">
-  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
-  <h2 style="margin-bottom:10px;font-size:18px;">💰 Wallet</h2>
-  <div class="wallet-card">
-    <div class="label">Your Balance</div>
-    <div class="amount" id="balanceDisplay">0.00 ETB</div>
-    <div class="wallet-actions">
-      <button class="deposit-btn" onclick="deposit()">💳 Deposit</button>
-      <button class="withdraw-btn" onclick="alert('Withdrawals coming soon!')">🏦 Withdraw</button>
-    </div>
+  <div class="header">
+    <button class="back" onclick="history.back()">← Back</button>
+    <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
   </div>
-  <div class="history-box">
-    <h3>📊 Deposit History</h3>
-    <div id="historyDisplay"><div class="history-item">No transactions yet</div></div>
+  <div class="balance-box">
+    <div class="label">Current Balance</div>
+    <div class="amount" id="walletBalance">0.00 ETB</div>
   </div>
+  <div id="historyList"></div>
+  <button class="deposit-btn" onclick="alert('Deposit via Telebirr: 0934600018')">💳 Deposit</button>
 </div>
-
 <script>
-  // ============================================================
-  // ========== CONFIGURATION ==========
-  // ============================================================
-  const BACKEND_URL = 'https://ethiobet.onrender.com'; // CHANGE THIS
-  const MERCHANT_PHONE = '0934600018';
-  const BOT_USERNAME = 'Ethiobet1_bot';
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.expand(); tg.ready(); }
-  const token = localStorage.getItem('token');
+  const BACKEND_URL = (() => {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
+    return 'https://ethio-bet-1.onrender.com';
+  })();
 
-  async function loadBalance() {
-    if (!token) {
-      document.getElementById('balanceDisplay').textContent = '0.00 ETB';
-      return;
-    }
+  function getToken() { return localStorage.getItem('token'); }
+
+  async function fetchWallet() {
+    const token = getToken();
+    if (!token) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await res.json();
-      document.getElementById('balanceDisplay').textContent = data.balance.toFixed(2) + ' ETB';
-    } catch (err) {}
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('balanceDisplay').textContent = `💰 ${data.balance.toFixed(2)} ETB`;
+        document.getElementById('walletBalance').textContent = data.balance.toFixed(2) + ' ETB';
+        // Load dummy history (from localStorage)
+        const history = JSON.parse(localStorage.getItem('walletHistory') || '[]');
+        const list = document.getElementById('historyList');
+        if (!history.length) {
+          list.innerHTML = '<div style="color:#6a7e9c;text-align:center;padding:20px;">No transactions yet</div>';
+          return;
+        }
+        list.innerHTML = history.map(h => `
+          <div class="history-item">
+            <span class="desc">${h.desc}</span>
+            <span class="value ${h.amount >= 0 ? 'positive' : 'negative'}">${h.amount >= 0 ? '+' : ''}${h.amount.toFixed(2)} ETB</span>
+          </div>
+        `).join('');
+      }
+    } catch (e) { console.error(e); }
   }
 
-  function deposit() {
-    if (!token) { alert('Please login first!'); return; }
-    tg?.openTelegramLink(`https://t.me/${BOT_USERNAME}`);
-    alert(`📸 Send money to ${MERCHANT_PHONE} via Telebirr, then send screenshot to @${BOT_USERNAME}`);
-  }
-
-  loadBalance();
-  console.log('💰 Wallet Loaded');
+  // Example: add a dummy deposit record when deposit button is clicked (in real app, from backend)
+  // We'll just reload on page load.
+  fetchWallet();
 </script>
 </body>
 </html>
