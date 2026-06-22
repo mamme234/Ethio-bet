@@ -3,113 +3,143 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🎡 Wheel of Fortune</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <title>Wheel - Ethiobet</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background: #0b0e14; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 0; margin: 0; }
-    .app { max-width: 480px; width: 100%; background: #0b0e14; padding: 6px 12px 20px; min-height: 100vh; }
-    .back-btn { background: none; border: none; color: #6a7e9c; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
-    .back-btn:active { transform: scale(0.95); }
-    .wheel-box { background: #131a22; border-radius: 14px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.04); }
-    .wheel-result { font-size: 72px; margin: 10px 0; transition: 0.3s; }
-    .wheel-colors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
-    .wheel-colors button { padding: 10px; border: none; border-radius: 40px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.3s; }
-    .wheel-colors button:active { transform: scale(0.95); }
-    .wheel-colors .red { background: #e74c3c; color: #fff; }
-    .wheel-colors .black { background: #2c3e50; color: #fff; }
-    .wheel-colors .green { background: #2ecc71; color: #0b0e14; }
-    .bet-input { display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
-    .bet-input input { background: #1b2532; border: 1px solid #2f3e51; border-radius: 40px; padding: 8px 14px; color: #fff; outline: none; width: 120px; font-size: 14px; text-align: center; }
-    .bet-input button { background: #2a8c5a; border: none; border-radius: 40px; padding: 8px 20px; font-weight: 700; color: #fff; cursor: pointer; font-size: 13px; }
-    .bet-input button:active { transform: scale(0.95); }
-    .status { color: #6a7e9c; font-size: 13px; margin-top: 8px; }
-    .balance { color: #ffd966; font-weight: 700; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:#0b0e14; color:#fff; min-height:100vh; display:flex; justify-content:center; padding:0; margin:0; overflow-x:hidden; }
+    .app { max-width:480px; width:100%; background:#0b0e14; padding:12px 16px 20px; min-height:100vh; }
+    .header { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px; }
+    .header .back { background:none; border:none; color:#6a7e9c; font-size:14px; cursor:pointer; }
+    .header .balance { color:#ffd966; font-weight:700; background:rgba(240,185,11,0.12); padding:2px 12px; border-radius:40px; border:1px solid rgba(240,185,11,0.2); font-size:13px; }
+    .wheel-container { display:flex; justify-content:center; align-items:center; margin:12px 0; }
+    canvas { border-radius:50%; box-shadow:0 0 30px rgba(240,185,11,0.1); }
+    .controls { display:flex; gap:8px; margin-top:12px; }
+    .controls button { padding:10px 20px; border:none; border-radius:40px; font-weight:700; cursor:pointer; transition:0.15s; flex:1; }
+    .controls button:active { transform:scale(0.95); }
+    .btn-spin { background:linear-gradient(135deg,#f0b90b,#d99f0a); color:#0b0e14; }
+    .result { text-align:center; margin-top:8px; font-weight:700; }
   </style>
 </head>
 <body>
-
 <div class="app">
-  <button class="back-btn" onclick="location.href='index.html'">← Back to Lobby</button>
-  <h2 style="margin-bottom:10px;font-size:18px;">🎡 Wheel of Fortune</h2>
-  <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-    <span>Balance: <span class="balance" id="balanceDisplay">0</span> ETB</span>
+  <div class="header">
+    <button class="back" onclick="history.back()">← Back</button>
+    <span class="balance" id="balanceDisplay">💰 0.00 ETB</span>
   </div>
-  <div class="wheel-box">
-    <div class="wheel-result" id="wheelResult">🎡</div>
-    <div style="font-size:14px;color:#6a7e9c;margin-bottom:8px;">Pick a color and spin the wheel!</div>
-    <div class="wheel-colors">
-      <button class="red" onclick="spinWheel('red')">🔴 Red (2x)</button>
-      <button class="black" onclick="spinWheel('black')">⚫ Black (2x)</button>
-      <button class="green" onclick="spinWheel('green')">🟢 Green (10x)</button>
-    </div>
-    <div class="bet-input">
-      <input type="number" id="betInput" value="10" step="1" min="1">
-      <button id="placeBetBtn">Place Bet</button>
-    </div>
-    <div class="status" id="statusMsg">Place your bet and spin!</div>
+  <div style="font-size:18px;font-weight:700;">🎡 Wheel</div>
+  <div class="wheel-container">
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
   </div>
+  <div class="controls">
+    <button class="btn-spin" onclick="spin()">Spin</button>
+  </div>
+  <div class="result" id="wheelResult">Spin to win!</div>
 </div>
-
 <script>
-  const BACKEND_URL = 'https://ethiobet.onrender.com';
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.expand(); tg.ready(); }
-  const token = localStorage.getItem('token');
-  let currentBet = 0;
-  let isSpinning = false;
+  const BACKEND_URL = (() => {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
+    return 'https://ethio-bet-1.onrender.com';
+  })();
 
-  async function updateBalance() {
+  function getToken() { return localStorage.getItem('token'); }
+  let balance = 0;
+  const segments = [
+    { label: '1x', color: '#2a3546', multiplier: 1 },
+    { label: '2x', color: '#3a4a5e', multiplier: 2 },
+    { label: '5x', color: '#2a6a8c', multiplier: 5 },
+    { label: '10x', color: '#8c6a2a', multiplier: 10 },
+    { label: '20x', color: '#2a8c5a', multiplier: 20 },
+    { label: '50x', color: '#8c2a2a', multiplier: 50 },
+  ];
+  let currentAngle = 0;
+
+  async function fetchBalance() {
+    const token = getToken();
     if (!token) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await res.json();
-      document.getElementById('balanceDisplay').textContent = data.balance.toFixed(0);
-    } catch (err) {}
+      if (res.ok) {
+        const data = await res.json();
+        balance = data.balance;
+        document.getElementById('balanceDisplay').textContent = `💰 ${balance.toFixed(2)} ETB`;
+      }
+    } catch (e) {}
   }
 
-  document.getElementById('placeBetBtn').addEventListener('click', async () => {
-    const bet = parseFloat(document.getElementById('betInput').value);
-    if (!bet || bet <= 0) return alert('Enter valid bet');
-    if (!token) { alert('Please login first!'); return; }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.balance < bet) { alert('Insufficient balance!'); return; }
-      currentBet = bet;
-      document.getElementById('statusMsg').textContent = `✅ Bet placed! Choose a color.`;
-    } catch (err) { alert('Error placing bet'); }
-  });
-
-  async function spinWheel(color) {
-    if (!currentBet) { alert('Place a bet first!'); return; }
-    if (isSpinning) return;
-    isSpinning = true;
-    const colors = ['red', 'black', 'green', 'red', 'black', 'red', 'black', 'green'];
-    const result = colors[Math.floor(Math.random() * colors.length)];
-    const emojis = { red: '🔴', black: '⚫', green: '🟢' };
-    document.getElementById('wheelResult').textContent = emojis[result];
-    const win = result === color;
-    if (win) {
-      let multiplier = 1;
-      if (color === 'red' || color === 'black') multiplier = 2;
-      else if (color === 'green') multiplier = 10;
-      const winAmount = currentBet * multiplier;
-      document.getElementById('statusMsg').textContent = `🎉 You won ${winAmount.toFixed(2)} ETB!`;
-      updateBalance();
-    } else {
-      document.getElementById('statusMsg').textContent = `😔 You lost ${currentBet.toFixed(2)} ETB.`;
+  function drawWheel(angle) {
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const center = w/2, radius = w/2 - 10;
+    ctx.clearRect(0,0,w,h);
+    const slice = (2 * Math.PI) / segments.length;
+    for (let i=0; i<segments.length; i++) {
+      const start = angle + i * slice;
+      const end = start + slice;
+      ctx.beginPath();
+      ctx.moveTo(center, center);
+      ctx.arc(center, center, radius, start, end);
+      ctx.closePath();
+      ctx.fillStyle = segments[i].color;
+      ctx.fill();
+      ctx.strokeStyle = '#0b0e14';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // label
+      ctx.save();
+      ctx.translate(center, center);
+      ctx.rotate(start + slice/2);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fff';
+      ctx.font = '14px sans-serif';
+      ctx.fillText(segments[i].label, radius * 0.7, 0);
+      ctx.restore();
     }
-    isSpinning = false;
-    currentBet = 0;
+    // pointer
+    ctx.beginPath();
+    ctx.moveTo(center, 10);
+    ctx.lineTo(center-10, 30);
+    ctx.lineTo(center+10, 30);
+    ctx.closePath();
+    ctx.fillStyle = '#f0b90b';
+    ctx.fill();
   }
 
-  updateBalance();
-  console.log('🎡 Wheel of Fortune Loaded');
+  function spin() {
+    const spins = 5 + Math.random() * 5;
+    const targetSegment = Math.floor(Math.random() * segments.length);
+    const targetAngle = currentAngle + spins * 2 * Math.PI + targetSegment * (2*Math.PI/segments.length);
+    const startAngle = currentAngle;
+    const duration = 3000;
+    const startTime = performance.now();
+
+    function animate(time) {
+      const elapsed = time - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const angle = startAngle + (targetAngle - startAngle) * eased;
+      currentAngle = angle;
+      drawWheel(angle);
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        const idx = targetSegment;
+        const multiplier = segments[idx].multiplier;
+        const win = 10 * multiplier;
+        balance += win;
+        document.getElementById('balanceDisplay').textContent = `💰 ${balance.toFixed(2)} ETB`;
+        document.getElementById('wheelResult').textContent = `🎉 ${multiplier}x! Win ${win.toFixed(2)} ETB`;
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  fetchBalance();
+  drawWheel(0);
 </script>
 </body>
-    </html>
+</html>
